@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
 import { hashPassword, comparePassword } from "../utils/hash";
-import { generateToken } from "../utils/jwt";
+import {
+    generateAccessToken,
+    generateRefreshToken,
+    verifyRefreshToken
+} from "../utils/jwt";
 import { RegisterRequest, LoginRequest } from "../types/user";
 
 const register = async (
@@ -26,9 +30,18 @@ const register = async (
         ]);
         const newUser = result.rows[0];
 
-        const token = generateToken(newUser.id);
+        const accessToken = generateAccessToken(newUser.id);
+        const refreshToken = generateRefreshToken(newUser.id);
 
-        res.status(201).json({ success: true, data: { token, user: newUser } });
+        await pool.query(
+            'INSERT INTO "Session" ("userId", "refreshToken") VALUES ($1, $2)',
+            [newUser.id, refreshToken]
+        );
+
+        res.status(201).json({
+            success: true,
+            data: { accessToken, refreshToken, user: newUser }
+        });
     } catch (error: any) {
         console.error("Register Error:", error);
 
@@ -76,11 +89,16 @@ const login = async (req: Request<{}, {}, LoginRequest>, res: Response) => {
             return;
         }
 
-        const token = generateToken(user.id);
+        const accessToken = generateAccessToken(user.id);
+        const refreshToken = generateRefreshToken(user.id);
 
+        await pool.query(
+            'INSERT INTO "Session" ("userId", "refreshToken") VALUES ($1, $2)',
+            [user.id, refreshToken]
+        );
         delete user.password;
 
-        res.json({ success: true, data: { token, user } });
+        res.json({ success: true, data: { accessToken, refreshToken, user } });
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -90,4 +108,61 @@ const login = async (req: Request<{}, {}, LoginRequest>, res: Response) => {
     }
 };
 
-export { register, login };
+const refresh = async (req: Request, res: Response): Promise<void> => {
+    const { refreshToken } = req.body;
+
+    try {
+        const decoded = verifyRefreshToken(refreshToken) as { id: string };
+
+        const sessionResult = await pool.query(
+            'SELECT * FROM "Session" WHERE "refreshToken" = $1',
+            [refreshToken]
+        );
+        const session = sessionResult.rows[0];
+
+        if (!session) {
+            res.status(401).json({
+                success: false,
+                error: {
+                    code: 401,
+                    message: "Invalid refresh token. Please log in again."
+                }
+            });
+            return;
+        }
+
+        const newAccessToken = generateAccessToken(decoded.id);
+
+        res.json({
+            success: true,
+            data: { accessToken: newAccessToken }
+        });
+    } catch (error) {
+        res.status(401).json({
+            success: false,
+            error: { code: 401, message: "Invalid or expired refresh token." }
+        });
+    }
+};
+
+const logout = async (req: Request, res: Response): Promise<void> => {
+    const { refreshToken } = req.body;
+
+    try {
+        await pool.query('DELETE FROM "Session" WHERE "refreshToken" = $1', [
+            refreshToken
+        ]);
+
+        res.json({
+            success: true,
+            data: { message: "The log out is successful." }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: { code: 500, message: "Server Error." }
+        });
+    }
+};
+
+export { register, login, refresh, logout };
