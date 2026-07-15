@@ -17,4 +17,25 @@ pool.on("error", err => {
     process.exit(-1);
 });
 
+export const initDatabase = async (): Promise<void> => {
+    const createUsersTableQuery = `
+    CREATE TABLE IF NOT EXISTS "User" (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      email VARCHAR(255) UNIQUE NOT NULL,
+      username VARCHAR(50) UNIQUE NOT NULL,
+      fullname VARCHAR(255),
+      password TEXT NOT NULL,
+      "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+    try {
+        await pool.query(createUsersTableQuery);
+    } catch (error) {
+        console.log(error);
+        process.exit(1);
+    }
+};
+
 export default pool;
