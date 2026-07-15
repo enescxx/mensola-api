@@ -67,7 +67,7 @@ const login = async (req: Request<{}, {}, LoginRequest>, res: Response) => {
             return;
         }
 
-        const isValid = await comparePassword(password, user.passwordHash);
+        const isValid = await comparePassword(password, user.password);
         if (!isValid) {
             res.status(401).json({
                 success: false,
@@ -82,6 +82,7 @@ const login = async (req: Request<{}, {}, LoginRequest>, res: Response) => {
 
         res.json({ success: true, data: { token, user } });
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             success: false,
             error: { code: 500, message: "Server Error" }
