@@ -1,0 +1,25 @@
+import express, { Request, Response } from "express";
+
+import pool from "./config/db";
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use(express.json());
+
+app.get("/", (req: Request, res: Response) => {
+    res.send("Server is running successfully");
+});
+
+app.get("/db-test", async (req: Request, res: Response) => {
+    try {
+        const result = await pool.query("SELECT NOW()");
+        res.json(result.rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: "DB Error" });
+    }
+});
+
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+});
