@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
+import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { hashPassword, comparePassword } from "../utils/hash";
 import {
     generateAccessToken,
@@ -7,6 +9,7 @@ import {
     verifyRefreshToken
 } from "../utils/jwt";
 import { RegisterRequest, LoginRequest } from "../types/user";
+import { sendPasswordResetEmail } from "../utils/email";
 
 const register = async (
     req: Request<{}, {}, RegisterRequest>,
@@ -100,7 +103,6 @@ const login = async (req: Request<{}, {}, LoginRequest>, res: Response) => {
 
         res.json({ success: true, data: { accessToken, refreshToken, user } });
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             success: false,
             error: { code: 500, message: "Server Error" }
@@ -165,4 +167,145 @@ const logout = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export { register, login, refresh, logout };
+const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+    const { email } = req.body;
+
+    try {
+        const result = await pool.query(
+            'SELECT id FROM "User" WHERE email = $1',
+            [email]
+        );
+        const user = result.rows[0];
+
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                error: {
+                    code: 404,
+                    message:
+                        "No account was found registered with this email address."
+                }
+            });
+            return;
+        }
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+        await pool.query(
+            'UPDATE "User" SET "resetToken" = $1, "resetTokenExpires" = $2 WHERE email = $3',
+            [otpCode, otpExpires, email]
+        );
+
+        await sendPasswordResetEmail(email, otpCode);
+
+        res.json({
+            success: true,
+            data: {
+                message:
+                    "If this email address is registered, a reset code has been sent."
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            error: { code: 500, message: "Server Error." }
+        });
+    }
+};
+
+const verifyResetCode = async (req: Request, res: Response): Promise<void> => {
+    const { email, code } = req.body;
+
+    try {
+        const result = await pool.query(
+            'SELECT id FROM "User" WHERE email = $1 AND "resetToken" = $2 AND "resetTokenExpires" > NOW()',
+            [email, code]
+        );
+        const user = result.rows[0];
+
+        if (!user) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    code: 400,
+                    message: "Invalid or expired verification code."
+                }
+            });
+            return;
+        }
+
+        const secureTicket = crypto.randomBytes(32).toString("hex");
+        const ticketExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+        await pool.query(
+            'UPDATE "User" SET "resetToken" = $1, "resetTokenExpires" = $2 WHERE id = $3',
+            [secureTicket, ticketExpires, user.id]
+        );
+
+        res.json({ success: true, data: { ticket: secureTicket } });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: { code: 500, message: "Server Error." }
+        });
+    }
+};
+
+const resetPassword = async (req: Request, res: Response): Promise<void> => {
+    const { ticket, newPassword } = req.body;
+
+    try {
+        const result = await pool.query(
+            'SELECT id FROM "User" WHERE "resetToken" = $1 AND "resetTokenExpires" > NOW()',
+            [ticket]
+        );
+        const user = result.rows[0];
+
+        if (!user) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    code: 400,
+                    message: "Invalid session. Please restart the process."
+                }
+            });
+            return;
+        }
+
+        const hashedNewPassword = await hashPassword(newPassword);
+
+        await pool.query(
+            'UPDATE "User" SET password = $1, "resetToken" = NULL, "resetTokenExpires" = NULL WHERE id = $2',
+            [hashedNewPassword, user.id]
+        );
+
+        await pool.query('DELETE FROM "Session" WHERE "userId" = $1', [
+            user.id
+        ]);
+
+        res.json({
+            success: true,
+            data: {
+                message:
+                    "Your password has been successfully updated. Please log in with your new password."
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            error: { code: 500, message: "Server Error." }
+        });
+    }
+};
+
+export {
+    register,
+    login,
+    refresh,
+    logout,
+    forgotPassword,
+    verifyResetCode,
+    resetPassword
+};

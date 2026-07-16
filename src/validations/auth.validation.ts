@@ -29,4 +29,33 @@ const refreshTokenSchema = z.object({
     refreshToken: z.string({ message: "Refresh token is required." })
 });
 
-export { registerSchema, loginSchema, refreshTokenSchema };
+const forgotPasswordSchema = z.object({
+    email: z
+        .string({ message: "Email is required." })
+        .email("Please enter a valid email address.")
+});
+
+const verifyResetCodeSchema = z.object({
+    email: z
+        .string({ message: "Email is required." })
+        .email("Please enter a valid email address."),
+    code: z
+        .string({ message: "A verification code is required." })
+        .length(6, "The code must be 6 digits long.")
+});
+
+const resetPasswordSchema = z.object({
+    ticket: z.string({ message: "Ticket is required." }),
+    newPassword: z
+        .string({ message: "A new password is required." })
+        .min(6, "The new password must be at least 6 characters long.")
+});
+
+export {
+    registerSchema,
+    loginSchema,
+    refreshTokenSchema,
+    forgotPasswordSchema,
+    verifyResetCodeSchema,
+    resetPasswordSchema
+};

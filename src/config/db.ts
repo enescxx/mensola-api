@@ -25,6 +25,8 @@ export const initDatabase = async (): Promise<void> => {
       username VARCHAR(50) UNIQUE NOT NULL,
       fullname VARCHAR(255),
       password TEXT NOT NULL,
+      "resetToken" TEXT,
+      "resetTokenExpires" TIMESTAMP WITH TIME ZONE,
       "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
