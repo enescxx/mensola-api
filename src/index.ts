@@ -27,3 +27,5 @@ initDatabase().then(() => {
         console.log(`Server is running on http://localhost:${port}`);
     });
 });
+
+export default app;

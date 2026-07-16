@@ -46,8 +46,6 @@ const register = async (
             data: { accessToken, refreshToken, user: newUser }
         });
     } catch (error: any) {
-        console.error("Register Error:", error);
-
         if (error.code === "23505") {
             res.status(400).json({
                 success: false,
@@ -206,7 +204,6 @@ const forgotPassword = async (req: Request, res: Response): Promise<void> => {
             }
         });
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             success: false,
             error: { code: 500, message: "Server Error." }
@@ -292,7 +289,6 @@ const resetPassword = async (req: Request, res: Response): Promise<void> => {
             }
         });
     } catch (error) {
-        console.error(error);
         res.status(500).json({
             success: false,
             error: { code: 500, message: "Server Error." }

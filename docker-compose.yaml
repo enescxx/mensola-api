@@ -15,7 +15,6 @@ services:
         depends_on:
             db:
                 condition: service_healthy
-
         volumes:
             - ./src:/usr/src/app/src
         command: npm run dev
