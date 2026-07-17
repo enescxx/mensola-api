@@ -3,8 +3,19 @@ interface IUser {
     email: string;
     username: string;
     fullname?: string;
-    password: string;
     bio?: string;
+    password?: string;
+    resetToken?: string;
+    resetTokenExpires?: Date | string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+}
+
+interface ISession {
+    id: string;
+    userId: string;
+    refreshToken: string;
+    createdAt?: Date | string;
 }
 
 interface RegisterRequest {
@@ -18,4 +29,4 @@ interface LoginRequest {
     password: string;
 }
 
-export { IUser, RegisterRequest, LoginRequest };
+export { IUser, ISession, RegisterRequest, LoginRequest };
