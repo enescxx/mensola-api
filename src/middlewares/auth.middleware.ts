@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 export const verifyToken = (
     req: Request,
     res: Response,
-    nextNexFunction
+    next: NextFunction
 ): void => {
     const authHeader = req.headers["authorization"];
 
@@ -20,9 +20,15 @@ export const verifyToken = (
 
     try {
         const secret = process.env.JWT_SECRET;
+        if (!secret) {
+            throw new Error(
+                "JWT_SECRET is not defined in environment variables"
+            );
+        }
+
         const decoded = jwt.verify(token, secret) as { id: string };
 
-        req.user = { id: decoded.id };
+        (req as any).user = { id: decoded.id };
 
         next();
     } catch (error) {
