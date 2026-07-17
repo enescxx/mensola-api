@@ -165,7 +165,7 @@ describe("Auth Endpoints", () => {
         it("Step 4: Should login successfully with the new password (200)", async () => {
             const response = await request(app).post("/api/auth/login").send({
                 email: testUser.email,
-                password: newPassword 
+                password: newPassword
             });
 
             expect(response.status).toBe(200);
