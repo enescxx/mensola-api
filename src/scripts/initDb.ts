@@ -101,6 +101,7 @@ export const initDatabase = async (poolInstance?: Pool): Promise<void> => {
         "description" TEXT NULL,
         "image" VARCHAR(500) NULL,
         "isPrivate" BOOLEAN DEFAULT false,
+        "listType" VARCHAR(50) DEFAULT 'custom' CHECK ("listType" IN ("custom", "favorites", "watchlist")),
         "creatorId" UUID NOT NULL REFERENCES "User"("id") ON DELETE CASCADE
     );`;
 
@@ -111,6 +112,7 @@ export const initDatabase = async (poolInstance?: Pool): Promise<void> => {
         "description" TEXT NULL,
         "image" VARCHAR(500) NULL,
         "isPrivate" BOOLEAN DEFAULT false,
+       "listType" VARCHAR(50) DEFAULT 'custom' CHECK ("listType" IN ("custom", "favorites")),
         "creatorId" UUID NOT NULL REFERENCES "User"("id") ON DELETE CASCADE
     );`;
 
@@ -167,6 +169,25 @@ export const initDatabase = async (poolInstance?: Pool): Promise<void> => {
         PRIMARY KEY ("movieListId", "userId")
     );`;
 
+    const createFollowTableQuery = `
+    CREATE TABLE IF NOT EXISTS "Follow" (
+        "followerId" UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+        "followingId" UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+        "followedAt" TIMESTAMP DEFAULT NOW(),
+    
+        PRIMARY KEY ("followerId", "followingId"),
+    
+        CONSTRAINT check_self_follow CHECK ("followerId" <> "followingId")
+    );`;
+
+    const createWatchedMovieTableQuery = `
+    CREATE TABLE IF NOT EXISTS "WatchedMovie" (
+        "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        "userId" UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+        "movieId" UUID NOT NULL REFERENCES "Movie"(id) ON DELETE CASCADE,
+        "watchedAt" TIMESTAMP DEFAULT NOW()
+    );`;
+
     try {
         await pool.query(createUsersTableQuery);
         await pool.query(createMovieTableQuery);
@@ -185,6 +206,8 @@ export const initDatabase = async (poolInstance?: Pool): Promise<void> => {
         await pool.query(createPlaylistOwnerTableQuery);
         await pool.query(createMovieListItemTableQuery);
         await pool.query(createMovieListOwnerTableQuery);
+        await pool.query(createFollowTableQuery);
+        await pool.query(createWatchedMovieTableQuery);
     } catch (error) {
         process.exit(1);
     }
