@@ -56,6 +56,8 @@ const register = async (
             });
             return;
         }
+
+        console.error(error);
         res.status(500).json({
             success: false,
             error: { code: 500, message: "Server Error" }

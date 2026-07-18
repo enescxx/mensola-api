@@ -1,0 +1,46 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile.test
+        container_name: api-test
+        ports:
+            - "3457:3000"
+        environment:
+            - PORT=${PORT}
+            - POSTGRES_HOST=test-db
+            - POSTGRES_USER=${POSTGRES_TEST_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_TEST_PASSWORD}
+            - POSTGRES_DB=${POSTGRES_TEST_DB}
+        depends_on:
+            db:
+                condition: service_healthy
+        volumes:
+            - ./src:/usr/src/app/src
+            - ./tests:/usr/src/app/tests
+        command: npm run test
+
+    db:
+        image: postgres:15-alpine
+        container_name: test-db
+        restart: always
+        environment:
+            - POSTGRES_USER=${POSTGRES_TEST_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_TEST_PASSWORD}
+            - POSTGRES_DB=${POSTGRES_TEST_DB}
+        ports:
+            - "4362:5432"
+        volumes:
+            - pgdata_test:/var/lib/postgresql/data
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "pg_isready -U ${POSTGRES_TEST_USER} -d ${POSTGRES_TEST_DB}"
+                ]
+            interval: 3s
+            timeout: 3s
+            retries: 5
+
+volumes:
+    pgdata_test:

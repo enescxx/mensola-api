@@ -1,6 +1,9 @@
-import pool from "../config/db";
+import { Pool } from "pg";
+import dbPool from "../config/db";
 
-export const initDatabase = async (): Promise<void> => {
+export const initDatabase = async (poolInstance?: Pool): Promise<void> => {
+    const pool = poolInstance || dbPool;
+
     const createUsersTableQuery = `
     CREATE TABLE IF NOT EXISTS "User" (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -184,7 +187,5 @@ export const initDatabase = async (): Promise<void> => {
         await pool.query(createMovieListOwnerTableQuery);
     } catch (error) {
         process.exit(1);
-    } finally {
-        await pool.end();
     }
 };

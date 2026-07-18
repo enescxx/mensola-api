@@ -1,5 +1,5 @@
 import request from "supertest";
-import app from "../src/index";
+import app from "../src/app";
 import pool from "../src/config/db";
 
 jest.mock("../src/utils/email", () => ({
@@ -19,6 +19,7 @@ describe("Auth Endpoints", () => {
 
     const newPassword = "newpassword456";
 
+    /*
     beforeAll(async () => {
         await pool.query('DELETE FROM "User" WHERE email = $1', [
             testUser.email
@@ -28,6 +29,7 @@ describe("Auth Endpoints", () => {
     afterAll(async () => {
         await pool.end();
     });
+    */
 
     describe("1. POST /api/auth/register", () => {
         it("Should successfully register a new user (201)", async () => {

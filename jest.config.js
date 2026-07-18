@@ -5,5 +5,6 @@ module.exports = {
     roots: ["<rootDir>/src", "<rootDir>/tests"],
     setupFiles: ["dotenv/config"],
     forceExit: true,
-    clearMocks: true
+    clearMocks: true,
+    setupFilesAfterEnv: ["<rootDir>/jest.setup.js"]
 };
