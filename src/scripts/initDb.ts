@@ -101,7 +101,7 @@ export const initDatabase = async (poolInstance?: Pool): Promise<void> => {
         "description" TEXT NULL,
         "image" VARCHAR(500) NULL,
         "isPrivate" BOOLEAN DEFAULT false,
-        "listType" VARCHAR(50) DEFAULT 'custom' CHECK ("listType" IN ("custom", "favorites", "watchlist")),
+        "listType" VARCHAR(50) DEFAULT 'custom' CHECK ("listType" IN ('custom', 'favorites', 'watchlist')),
         "creatorId" UUID NOT NULL REFERENCES "User"("id") ON DELETE CASCADE
     );`;
 
@@ -112,7 +112,7 @@ export const initDatabase = async (poolInstance?: Pool): Promise<void> => {
         "description" TEXT NULL,
         "image" VARCHAR(500) NULL,
         "isPrivate" BOOLEAN DEFAULT false,
-       "listType" VARCHAR(50) DEFAULT 'custom' CHECK ("listType" IN ("custom", "favorites")),
+       "listType" VARCHAR(50) DEFAULT 'custom' CHECK ("listType" IN ('custom', 'favorites')),
         "creatorId" UUID NOT NULL REFERENCES "User"("id") ON DELETE CASCADE
     );`;
 

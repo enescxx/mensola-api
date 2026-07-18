@@ -5,6 +5,8 @@ interface IUser {
     fullname?: string;
     bio?: string;
     password?: string;
+    favMoviesList?: string;
+    favMusicsList?: string;
     resetToken?: string;
     resetTokenExpires?: Date | string;
     createdAt?: Date | string;

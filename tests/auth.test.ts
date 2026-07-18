@@ -19,18 +19,6 @@ describe("Auth Endpoints", () => {
 
     const newPassword = "newpassword456";
 
-    /*
-    beforeAll(async () => {
-        await pool.query('DELETE FROM "User" WHERE email = $1', [
-            testUser.email
-        ]);
-    });
-
-    afterAll(async () => {
-        await pool.end();
-    });
-    */
-
     describe("1. POST /api/auth/register", () => {
         it("Should successfully register a new user (201)", async () => {
             const response = await request(app)

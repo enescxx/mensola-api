@@ -13,7 +13,9 @@ export const verifyToken = (
     if (!token) {
         res.status(401).json({
             success: false,
-            message: "Access denied. No token provided."
+            error: {
+                message: "Access denied. No token provided."
+            }
         });
         return;
     }
@@ -34,7 +36,9 @@ export const verifyToken = (
     } catch (error) {
         res.status(403).json({
             success: false,
-            message: "Invalid or expired token."
+            error: {
+                message: "Invalid or expired token."
+            }
         });
     }
 };

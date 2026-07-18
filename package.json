@@ -6,7 +6,7 @@
         "build": "tsc",
         "start": "node dist/index.js",
         "dev": "tsx watch src/index.ts",
-        "test": "jest --detectOpenHandles",
+        "test": "jest --detectOpenHandles --runInBand",
         "docker:dev": "docker compose up --build",
         "docker:dev:down": "docker compose down",
         "docker:test": "docker compose -f docker-compose.test.yaml up --build --abort-on-container-exit",
