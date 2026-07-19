@@ -19,7 +19,24 @@ const getUserQuery = `
         COALESCE(stats.total_liked_albums, 0) AS "likedAlbumsCount",
         
         COALESCE(follow_stats.follower_count, 0) AS "followerCount",
-        COALESCE(follow_stats.following_count, 0) AS "followingCount"
+        COALESCE(follow_stats.following_count, 0) AS "followingCount",
+
+        CASE 
+            WHEN $1 != $2::uuid::uuid 
+            THEN COALESCE(mutual_follows.list, '[]'::json)
+            ELSE NULL
+        END AS "mutualFollowers",
+
+        CASE 
+            WHEN $2::uuid IS NOT NULL AND EXISTS (
+                SELECT 1
+                FROM "Follow"
+                WHERE "followerId" = $2::uuid AND "followingId" = u.id
+            )
+            THEN true
+            ELSE false
+        END AS "isFollowingByMe"
+
         
     FROM "User" u
     
@@ -153,6 +170,30 @@ const getUserQuery = `
         WHERE "userId" = $1
         GROUP BY "userId"
     ) watched_stats ON u.id = watched_stats."userId"
+
+    LEFT JOIN (
+        SELECT
+            f."followingId" AS target_user_id,
+            json_agg(
+                json_build_object(
+                    'id', u_sub.id,
+                    'username', u_sub.username,
+                    'fullname', u_sub.fullname
+                )
+            ) AS list
+        FROM "Follow" f
+        JOIN "User" u_sub ON f."followerId" = u_sub.id
+        WHERE f."followingId" = $1 
+            AND $2::uuid IS NOT NULL
+            AND $1 != $2::uuid
+            AND f."followerId" IN (
+                SELECT "followingId"
+                FROM "Follow"
+                WHERE "followerId" = $2::uuid
+            )
+        GROUP BY f."followingId"
+    ) mutual_follows ON u.id = mutual_follows.target_user_id
+
 
     WHERE u.id = $1;`;
 
