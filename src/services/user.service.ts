@@ -36,4 +36,46 @@ const fetchAndFormatUserProfile = async (
     return profile;
 };
 
-export { fetchAndFormatUserProfile };
+const updateFieldsUserProfile = async (
+    userId: string,
+    updateData: { fullname?: string; bio?: string; avatar?: string }
+) => {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let placeholderIndex = 1;
+
+    if (updateData.fullname !== undefined) {
+        fields.push(`"fullname" = $${placeholderIndex}`);
+        values.push(updateData.fullname);
+        placeholderIndex++;
+    }
+    if (updateData.bio !== undefined) {
+        fields.push(`"bio" = $${placeholderIndex}`);
+        values.push(updateData.bio);
+        placeholderIndex++;
+    }
+    if (updateData.avatar !== undefined) {
+        fields.push(`"avatar" = $${placeholderIndex}`);
+        values.push(updateData.avatar);
+        placeholderIndex++;
+    }
+
+    if (fields.length === 0) {
+        return null;
+    }
+
+    values.push(userId);
+
+    const query = `
+        UPDATE "User"
+        SET ${fields.join(", ")}
+        WHERE "id" = $${placeholderIndex}
+        RETURNING id, username, fullname, bio, avatar;
+    `;
+
+    const result = await pool.query(query, values);
+
+    return result.rows[0];
+};
+
+export { fetchAndFormatUserProfile, updateFieldsUserProfile };

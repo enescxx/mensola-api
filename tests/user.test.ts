@@ -158,4 +158,58 @@ describe("User endpoints", () => {
             );
         });
     });
+
+    describe("PUT /api/users/me", () => {
+        it("should update profile fields successfully and return only updated basic user data (200)", async () => {
+            const updateData = {
+                fullname: "Updated John Doe",
+                bio: "This is my updated biography.",
+                avatar: "https://example.com/avatar.jpg"
+            };
+
+            const response = await request(app)
+                .put("/api/users/me")
+                .set("Authorization", `Bearer ${token}`)
+                .send(updateData);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.message).toMatch(
+                /Profile updated successfully/i
+            );
+
+            const updatedUser = response.body.data?.user;
+
+            expect(updatedUser).toHaveProperty("id");
+            expect(updatedUser).toHaveProperty("username");
+            expect(updatedUser.fullname).toBe(updateData.fullname);
+            expect(updatedUser.bio).toBe(updateData.bio);
+            expect(updatedUser.avatar).toBe(updateData.avatar);
+        });
+
+        it("should return a clean message without making changes if request body is empty (200)", async () => {
+            const response = await request(app)
+                .put("/api/users/me")
+                .set("Authorization", `Bearer ${token}`)
+                .send({});
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.message).toMatch(/No changes performed/i);
+            expect(response.body.data).toBeNull();
+        });
+
+        it("should fail with 403 Unauthorized when attempting to update profile without a valid token (403)", async () => {
+            const response = await request(app)
+                .put("/api/users/me")
+                .set("Authorization", "Bearer invalid-token")
+                .send({ fullname: "John Doe" });
+
+            expect(response.status).toBe(403);
+            expect(response.body.success).toBe(false);
+            expect(response.body.error.message).toMatch(
+                /Invalid or expired token/i
+            );
+        });
+    });
 });

@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
-import { fetchAndFormatUserProfile } from "../services/user.service";
+import {
+    fetchAndFormatUserProfile,
+    updateFieldsUserProfile
+} from "../services/user.service";
 
 const getMe = async (req: any, res: Response) => {
     const userId = req.user.id;
@@ -38,4 +41,37 @@ const getUserById = async (req: any, res: Response) => {
     }
 };
 
-export { getMe, getUserById };
+const updateProfile = async (req: any, res: Response) => {
+    const userId = req.user.id;
+    const { fullname, bio, avatar } = req.body;
+
+    try {
+        const updatedFields = await updateFieldsUserProfile(userId, {
+            fullname,
+            bio,
+            avatar
+        });
+
+        if (!updatedFields) {
+            return res.status(200).json({
+                success: true,
+                message: "No changes performed.",
+                data: null
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully.",
+            data: {
+                user: updatedFields
+            }
+        });
+    } catch (error) {
+        return res
+            .status(500)
+            .json({ success: false, error: { message: "Server Error." } });
+    }
+};
+
+export { getMe, getUserById, updateProfile };
