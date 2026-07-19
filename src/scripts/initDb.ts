@@ -12,6 +12,7 @@ export const initDatabase = async (poolInstance?: Pool): Promise<void> => {
         fullname VARCHAR(255),
         password TEXT NOT NULL,
         bio TEXT NULL,
+        "avatar" TEXT NULL;
         "resetToken" TEXT,
         "resetTokenExpires" TIMESTAMP WITH TIME ZONE,
         "createdAt" TIMESTAMP DEFAULT NOW(),
