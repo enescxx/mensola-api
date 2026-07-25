@@ -17,7 +17,7 @@ router.put("/me", verifyToken, updateProfile);
 router.get("/followers", extractUser, getUserFollowers);
 router.get("/following", extractUser, getUserFollowing);
 router.post("/:userId/follow", verifyToken, followUser);
-router.post("/:userId/unfollow", verifyToken, unfollowUser);
+router.delete("/:userId/follow", verifyToken, unfollowUser);
 router.get("/:userId", extractUser, getUserById);
 
 export default router;

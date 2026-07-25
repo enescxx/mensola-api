@@ -3,27 +3,69 @@ import app from "../src/app";
 import pool from "../src/config/db";
 
 describe("User endpoints", () => {
-    let token = "";
+    let userAToken = "";
+    let userAId = "";
 
-    const testUser = {
-        email: "test_user@mensola.com",
-        username: "testuser123",
+    const userA = {
+        email: "userA@mensola.com",
+        username: "usernameA",
+        password: "password123"
+    };
+
+    let userBId = "";
+    let userBToken = "";
+
+    const userB = {
+        email: "userB@mensola.com",
+        username: "usernameB",
+        password: "password123"
+    };
+
+    let userCId = "";
+    let userCToken = "";
+
+    const userC = {
+        email: "userC@mensola.com",
+        username: "usernameC",
         password: "password123"
     };
 
     beforeAll(async () => {
-        const response = await request(app)
+        const userAResponse = await request(app)
             .post("/api/auth/register")
-            .send(testUser);
+            .send(userA);
 
-        token = response.body.data.accessToken;
+        userAId = userAResponse.body.data.user.id;
+        userAToken = userAResponse.body.data.accessToken;
+
+        const userBResponse = await request(app)
+            .post("/api/auth/register")
+            .send(userB);
+
+        userBId = userBResponse.body.data.user.id;
+        userBToken = userBResponse.body.data.accessToken;
+
+        const userCResponse = await request(app)
+            .post("/api/auth/register")
+            .send(userC);
+
+        userCId = userCResponse.body.data.user.id;
+        userCToken = userCResponse.body.data.accessToken;
+
+        await request(app)
+            .post(`/api/users/${userBId}/follow`)
+            .set("Authorization", `Bearer ${userCToken}`);
+
+        await request(app)
+            .post(`/api/users/${userCId}/follow`)
+            .set("Authorization", `Bearer ${userAToken}`);
     });
 
     describe("GET /api/users/me", () => {
         it("should return authenticated user's own profile successfully and remove irrelevant relational fields (200)", async () => {
             const response = await request(app)
                 .get("/api/users/me")
-                .set("Authorization", `Bearer ${token}`);
+                .set("Authorization", `Bearer ${userAToken}`);
 
             const profile = response.body.data?.profile;
 
@@ -65,26 +107,10 @@ describe("User endpoints", () => {
     });
 
     describe("GET /api/users/:userId", () => {
-        let targetUserId = "";
-
-        const targetUser = {
-            email: "target_user@mensola.com",
-            username: "targetuser",
-            password: "password123"
-        };
-
-        beforeAll(async () => {
-            const response = await request(app)
-                .post("/api/auth/register")
-                .send(targetUser);
-
-            targetUserId = response.body.data.user.id;
-        });
-
         it("should return user profile with mutual followers and follow status for authenticated user (200)", async () => {
             const response = await request(app)
-                .get(`/api/users/${targetUserId}`)
-                .set("Authorization", `Bearer ${token}`);
+                .get(`/api/users/${userBId}`)
+                .set("Authorization", `Bearer ${userAToken}`);
 
             const profile = response.body.data?.profile;
 
@@ -116,9 +142,7 @@ describe("User endpoints", () => {
         });
 
         it("should return user profile without mutual followers and follow status for guest user (200)", async () => {
-            const response = await request(app).get(
-                `/api/users/${targetUserId}`
-            );
+            const response = await request(app).get(`/api/users/${userBId}`);
 
             const profile = response.body.data?.profile;
 
@@ -148,7 +172,7 @@ describe("User endpoints", () => {
 
         it("should return 403 error if token is sent but invalid or expired (403)", async () => {
             const response = await request(app)
-                .get(`/api/users/${targetUserId}`)
+                .get(`/api/users/${userBId}`)
                 .set("Authorization", "Bearer invalid-token");
 
             expect(response.status).toBe(403);
@@ -169,7 +193,7 @@ describe("User endpoints", () => {
 
             const response = await request(app)
                 .put("/api/users/me")
-                .set("Authorization", `Bearer ${token}`)
+                .set("Authorization", `Bearer ${userAToken}`)
                 .send(updateData);
 
             expect(response.status).toBe(200);
@@ -190,7 +214,7 @@ describe("User endpoints", () => {
         it("should return a clean message without making changes if request body is empty (200)", async () => {
             const response = await request(app)
                 .put("/api/users/me")
-                .set("Authorization", `Bearer ${token}`)
+                .set("Authorization", `Bearer ${userAToken}`)
                 .send({});
 
             expect(response.status).toBe(200);
@@ -204,6 +228,220 @@ describe("User endpoints", () => {
                 .put("/api/users/me")
                 .set("Authorization", "Bearer invalid-token")
                 .send({ fullname: "John Doe" });
+
+            expect(response.status).toBe(403);
+            expect(response.body.success).toBe(false);
+            expect(response.body.error.message).toMatch(
+                /Invalid or expired token/i
+            );
+        });
+    });
+
+    describe("GET /api/users/followers", () => {
+        it("should return followers list with isFollowing: true for authenticated user", async () => {
+            const response = await request(app)
+                .get("/api/users/followers")
+                .set("Authorization", `Bearer ${userAToken}`)
+                .query({
+                    userId: userBId,
+                    limit: 20,
+                    page: 1
+                });
+
+            expect(response.body.success).toBe(true);
+
+            const followers = response.body.data;
+
+            expect(followers.length).toBe(1);
+            expect(followers[0].isFollowing).toBe(true);
+            expect(followers[0].isFollower).toBe(false);
+            expect(followers[0].username).toBeTruthy();
+        });
+
+        it("should return isFollowing as false for unauthenticated (guest) user", async () => {
+            const response = await request(app)
+                .get("/api/users/followers")
+                .query({
+                    userId: userBId,
+                    limit: 20,
+                    page: 1
+                });
+
+            expect(response.body.success).toBe(true);
+
+            const followers = response.body.data;
+
+            expect(followers.length).toBe(1);
+            expect(followers[0].isFollowing).toBe(false);
+            expect(followers[0].isFollower).toBe(false);
+            expect(followers[0].username).toBeTruthy();
+        });
+
+        it("should return hasMore: true when additional pages are available", async () => {
+            const response = await request(app)
+                .get("/api/users/followers")
+                .query({
+                    userId: userBId,
+                    limit: 1,
+                    page: 1
+                });
+
+            expect(response.body.success).toBe(true);
+            expect(response.body.hasMore).toBe(true);
+        });
+
+        it("should return an empty array when userId query parameter is missing", async () => {
+            const response = await request(app).get("/api/users/followers");
+
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.length).toBe(0);
+        });
+    });
+
+    describe("GET /api/users/following", () => {
+        it("should return following list with isFollower: true for authenticated user", async () => {
+            const response = await request(app)
+                .get("/api/users/following")
+                .set("Authorization", `Bearer ${userBToken}`)
+                .query({
+                    userId: userAId,
+                    limit: 20,
+                    page: 1
+                });
+
+            expect(response.body.success).toBe(true);
+
+            const following = response.body.data;
+
+            expect(following.length).toBe(1);
+            expect(following[0].isFollowing).toBe(false);
+            expect(following[0].isFollower).toBe(true);
+            expect(following[0].username).toBeTruthy();
+        });
+
+        it("should return isFollower as false for unauthenticated (guest) user", async () => {
+            const response = await request(app)
+                .get("/api/users/following")
+                .query({
+                    userId: userAId,
+                    limit: 20,
+                    page: 1
+                });
+
+            expect(response.body.success).toBe(true);
+
+            const following = response.body.data;
+
+            expect(following.length).toBe(1);
+            expect(following[0].isFollowing).toBe(false);
+            expect(following[0].isFollower).toBe(false);
+            expect(following[0].username).toBeTruthy();
+        });
+
+        it("should return hasMore: true when additional pages are available", async () => {
+            const response = await request(app)
+                .get("/api/users/following")
+                .query({
+                    userId: userAId,
+                    limit: 1,
+                    page: 1
+                });
+
+            expect(response.body.success).toBe(true);
+            expect(response.body.hasMore).toBe(true);
+        });
+
+        it("should return an empty array when userId query parameter is missing", async () => {
+            const response = await request(app).get("/api/users/following");
+
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.length).toBe(0);
+        });
+    });
+
+    describe("POST /api/users/:userId/follow", () => {
+        it("should allow a user to follow another user successfully (200)", async () => {
+            const response = await request(app)
+                .post(`/api/users/${userAId}/follow`)
+                .set("Authorization", `Bearer ${userBToken}`);
+
+            expect(response.status).toBe(201);
+            expect(response.body.success).toBe(true);
+        });
+
+        it("should handle duplicate follow requests gracefully (ON CONFLICT)", async () => {
+            const response = await request(app)
+                .post(`/api/users/${userAId}/follow`)
+                .set("Authorization", `Bearer ${userBToken}`);
+
+            expect(response.status).toBe(201);
+            expect(response.body.success).toBe(true);
+        });
+
+        it("should prevent a user from following themselves (400)", async () => {
+            const response = await request(app)
+                .post(`/api/users/${userBId}/follow`)
+                .set("Authorization", `Bearer ${userBToken}`);
+
+            expect(response.status).toBe(400);
+            expect(response.body.success).toBe(false);
+            expect(response.body.error.message).toMatch(
+                /cannot follow yourself/i
+            );
+        });
+
+        it("should return 403 Forbidden when no authentication token is provided", async () => {
+            const response = await request(app)
+                .post(`/api/users/${userAId}/follow`)
+                .set("Authorization", "Bearer invalid-token");
+
+            expect(response.status).toBe(403);
+            expect(response.body.success).toBe(false);
+            expect(response.body.error.message).toMatch(
+                /Invalid or expired token/i
+            );
+        });
+    });
+
+    describe("DELETE /api/users/:userId/follow", () => {
+        it("should allow a user to unfollow someone they currently follow (200)", async () => {
+            await request(app)
+                .post(`/api/users/${userAId}/follow`)
+                .set("Authorization", `Bearer ${userBToken}`);
+
+            const response = await request(app)
+                .delete(`/api/users/${userAId}/follow`)
+                .set("Authorization", `Bearer ${userBToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+        });
+
+        it("should handle unfollowing a user who is not being followed gracefully (Idempotent - 200)", async () => {
+            const response = await request(app)
+                .delete(`/api/users/${userAId}/follow`)
+                .set("Authorization", `Bearer ${userBToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+        });
+
+        it("should prevent a user from unfollowing themselves (400)", async () => {
+            const response = await request(app)
+                .delete(`/api/users/${userBId}/follow`)
+                .set("Authorization", `Bearer ${userBToken}`);
+
+            expect(response.status).toBe(400);
+            expect(response.body.success).toBe(false);
+            expect(response.body.error.message).toMatch(
+                /cannot unfollow yourself/i
+            );
+        });
+
+        it("should return 403 Forbidden when no authentication token is provided", async () => {
+            const response = await request(app)
+                .delete(`/api/users/${userAId}/follow`)
+                .set("Authorization", "Bearer invalid-token");
 
             expect(response.status).toBe(403);
             expect(response.body.success).toBe(false);
