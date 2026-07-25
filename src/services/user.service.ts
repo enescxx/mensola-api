@@ -2,7 +2,9 @@ import pool from "../config/db";
 import {
     getUserQuery,
     getFollowersQuery,
-    getFollowingQuery
+    getFollowingQuery,
+    followQuery,
+    unfollowQuery
 } from "../queries/user.queries";
 
 const fetchAndFormatUserProfile = async (
@@ -132,9 +134,31 @@ const fetchFollowing = async (
     return result.rows;
 };
 
+const follow = async (followerId: string, followingId: string) => {
+    if (followerId === followingId) {
+        throw new Error("CANNOT_FOLLOW_SELF");
+    }
+
+    const result = await pool.query(followQuery, [followerId, followingId]);
+
+    return result.rows[0];
+};
+
+const unfollow = async (followerId: string, followingId: string) => {
+    if (followerId === followingId) {
+        throw new Error("CANNOT_UNFOLLOW_SELF");
+    }
+
+    const result = await pool.query(unfollowQuery, [followerId, followingId]);
+
+    return result.rows[0];
+};
+
 export {
     fetchAndFormatUserProfile,
     updateFieldsUserProfile,
     fetchFollowers,
-    fetchFollowing
+    fetchFollowing,
+    follow,
+    unfollow
 };

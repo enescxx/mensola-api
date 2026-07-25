@@ -4,7 +4,9 @@ import {
     getUserById,
     updateProfile,
     getUserFollowers,
-    getUserFollowing
+    getUserFollowing,
+    followUser,
+    unfollowUser
 } from "../controllers/user.controller";
 import { verifyToken, extractUser } from "../middlewares/auth.middleware";
 
@@ -14,6 +16,8 @@ router.get("/me", verifyToken, getMe);
 router.put("/me", verifyToken, updateProfile);
 router.get("/followers", extractUser, getUserFollowers);
 router.get("/following", extractUser, getUserFollowing);
+router.post("/:userId/follow", verifyToken, followUser);
+router.post("/:userId/unfollow", verifyToken, unfollowUser);
 router.get("/:userId", extractUser, getUserById);
 
 export default router;

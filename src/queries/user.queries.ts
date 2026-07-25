@@ -237,4 +237,19 @@ const getFollowingQuery = `
     ORDER BY f."followedAt" DESC
     LIMIT $3 OFFSET $4;`;
 
-export { getUserQuery, getFollowersQuery, getFollowingQuery };
+const followQuery = `
+    INSERT INTO "Follow" ("followerId", "followingId")
+    VALUES ($1, $2)
+    ON CONFLICT ("followerId", "followingId") DO NOTHING;`;
+
+const unfollowQuery = `
+    DELETE FROM "Follow"
+    WHERE "followerId" = $1 AND "followingId" = $2;`;
+
+export {
+    getUserQuery,
+    getFollowersQuery,
+    getFollowingQuery,
+    followQuery,
+    unfollowQuery
+};

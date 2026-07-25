@@ -3,7 +3,9 @@ import {
     fetchAndFormatUserProfile,
     updateFieldsUserProfile,
     fetchFollowers,
-    fetchFollowing
+    fetchFollowing,
+    follow,
+    unfollow
 } from "../services/user.service";
 import pool from "../config/db";
 
@@ -81,7 +83,7 @@ const getUserFollowers = async (req: any, res: Response) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
 
-    const targetUserId = req.params.userId;
+    const targetUserId = req.query.userId;
     const viewerId = req.user ? req.user.id : null;
 
     try {
@@ -106,11 +108,12 @@ const getUserFollowers = async (req: any, res: Response) => {
     }
 };
 
-const getUserFollowing = async (req: Request, res: Response) => {
+const getUserFollowing = async (req: any, res: Response) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
 
-    const targetUserId = req.params.userId;
+    const targetUserId = req.query.userId;
+
     const viewerId = req.user ? req.user.id : null;
 
     try {
@@ -135,10 +138,58 @@ const getUserFollowing = async (req: Request, res: Response) => {
     }
 };
 
+const followUser = async (req: any, res: Response) => {
+    const targetUserId = req.params.userId;
+    const currentUserId = req.user.id;
+
+    try {
+        await follow(currentUserId, targetUserId);
+        return res
+            .status(201)
+            .json({ success: true, message: "User followed successfully." });
+    } catch (error) {
+        if ((error as Error).message === "CANNOT_FOLLOW_SELF") {
+            return res.status(400).json({
+                success: false,
+                error: { message: "You cannot follow yourself." }
+            });
+        }
+
+        return res
+            .status(500)
+            .json({ success: false, error: { message: "Server Error." } });
+    }
+};
+
+const unfollowUser = async (req: any, res: Response) => {
+    const targetUserId = req.params.userId;
+    const currentUserId = req.user.id;
+
+    try {
+        await unfollow(currentUserId, targetUserId);
+
+        return res
+            .status(200)
+            .json({ success: true, message: "User unfollowed successfully." });
+    } catch (error) {
+        if ((error as Error).message === "CANNOT_UNFOLLOW_SELF") {
+            return res.status(400).json({
+                success: false,
+                error: { message: "You cannot unfollow yourself." }
+            });
+        }
+        return res
+            .status(500)
+            .json({ success: false, error: { message: "Server Error." } });
+    }
+};
+
 export {
     getMe,
     getUserById,
     updateProfile,
     getUserFollowers,
-    getUserFollowing
+    getUserFollowing,
+    followUser,
+    unfollowUser
 };
