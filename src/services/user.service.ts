@@ -1,5 +1,9 @@
 import pool from "../config/db";
-import { getUserQuery } from "../queries/user.queries";
+import {
+    getUserQuery,
+    getFollowersQuery,
+    getFollowingQuery
+} from "../queries/user.queries";
 
 const fetchAndFormatUserProfile = async (
     targetUserId: string,
@@ -78,4 +82,59 @@ const updateFieldsUserProfile = async (
     return result.rows[0];
 };
 
-export { fetchAndFormatUserProfile, updateFieldsUserProfile };
+const fetchFollowers = async (
+    page: number,
+    limit: number,
+    targetUserId: string | null = null,
+    viewerId: string | null = null
+) => {
+    const offset = (page - 1) * limit;
+
+    const actualTargetUserId =
+        targetUserId && targetUserId !== "me" ? targetUserId : viewerId;
+
+    if (!actualTargetUserId) {
+        return [];
+    }
+
+    const result = await pool.query(getFollowersQuery, [
+        actualTargetUserId,
+        viewerId,
+        limit,
+        offset
+    ]);
+
+    return result.rows;
+};
+
+const fetchFollowing = async (
+    page: number,
+    limit: number,
+    targetUserId: string | null = null,
+    viewerId: string | null = null
+) => {
+    const offset = (page - 1) * limit;
+
+    const actualTargetUserId =
+        targetUserId && targetUserId !== "me" ? targetUserId : viewerId;
+
+    if (!actualTargetUserId) {
+        return [];
+    }
+
+    const result = await pool.query(getFollowingQuery, [
+        actualTargetUserId,
+        viewerId,
+        limit,
+        offset
+    ]);
+
+    return result.rows;
+};
+
+export {
+    fetchAndFormatUserProfile,
+    updateFieldsUserProfile,
+    fetchFollowers,
+    fetchFollowing
+};

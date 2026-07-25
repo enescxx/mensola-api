@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import {
     fetchAndFormatUserProfile,
-    updateFieldsUserProfile
+    updateFieldsUserProfile,
+    fetchFollowers,
+    fetchFollowing
 } from "../services/user.service";
+import pool from "../config/db";
 
 const getMe = async (req: any, res: Response) => {
     const userId = req.user.id;
@@ -74,4 +77,68 @@ const updateProfile = async (req: any, res: Response) => {
     }
 };
 
-export { getMe, getUserById, updateProfile };
+const getUserFollowers = async (req: any, res: Response) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+
+    const targetUserId = req.params.userId;
+    const viewerId = req.user ? req.user.id : null;
+
+    try {
+        const followers = await fetchFollowers(
+            page,
+            limit,
+            targetUserId,
+            viewerId
+        );
+
+        return res.status(200).json({
+            success: true,
+            data: followers,
+            page: page,
+            limit: limit,
+            hasMore: followers.length === limit
+        });
+    } catch (error) {
+        return res
+            .status(500)
+            .json({ success: false, error: { message: "Server Error." } });
+    }
+};
+
+const getUserFollowing = async (req: Request, res: Response) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+
+    const targetUserId = req.params.userId;
+    const viewerId = req.user ? req.user.id : null;
+
+    try {
+        const following = await fetchFollowing(
+            page,
+            limit,
+            targetUserId,
+            viewerId
+        );
+
+        return res.status(200).json({
+            success: true,
+            data: following,
+            page: page,
+            limit: limit,
+            hasMore: following.length === limit
+        });
+    } catch (error) {
+        return res
+            .status(500)
+            .json({ success: false, error: { message: "Server Error." } });
+    }
+};
+
+export {
+    getMe,
+    getUserById,
+    updateProfile,
+    getUserFollowers,
+    getUserFollowing
+};

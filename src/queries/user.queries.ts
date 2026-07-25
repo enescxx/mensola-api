@@ -197,4 +197,44 @@ const getUserQuery = `
 
     WHERE u.id = $1;`;
 
-export { getUserQuery };
+const getFollowersQuery = `
+    SELECT 
+        u.id,
+        u.username,
+        u.fullname,
+        u.avatar,
+        EXISTS (
+            SELECT 1 FROM "Follow" f1 
+            WHERE f1."followerId" = $2 AND f1."followingId" = u.id
+        ) AS "isFollowing",
+        EXISTS (
+            SELECT 1 FROM "Follow" f2 
+            WHERE f2."followerId" = u.id AND f2."followingId" = $2
+        ) AS "isFollower"
+    FROM "Follow" f
+    JOIN "User" u ON f."followerId" = u.id
+    WHERE f."followingId" = $1
+    ORDER BY f."followedAt" DESC
+    LIMIT $3 OFFSET $4;`;
+
+const getFollowingQuery = `
+    SELECT 
+        u.id,
+        u.username,
+        u.fullname,
+        u.avatar,
+        EXISTS (
+            SELECT 1 FROM "Follow" f1 
+            WHERE f1."followerId" = $2 AND f1."followingId" = u.id
+        ) AS "isFollowing",
+        EXISTS (
+            SELECT 1 FROM "Follow" f2 
+            WHERE f2."followerId" = u.id AND f2."followingId" = $2
+        ) AS "isFollower"
+    FROM "Follow" f
+    JOIN "User" u ON f."followingId" = u.id
+    WHERE f."followerId" = $1
+    ORDER BY f."followedAt" DESC
+    LIMIT $3 OFFSET $4;`;
+
+export { getUserQuery, getFollowersQuery, getFollowingQuery };
