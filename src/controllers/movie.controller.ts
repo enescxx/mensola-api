@@ -5,7 +5,8 @@ import {
     fetchWatched,
     fetchLikedMovies,
     fetchLists,
-    fetchLikedLists
+    fetchLikedLists,
+    createList
 } from "../services/movie.service";
 
 const getFavorites = async (req: any, res: Response) => {
@@ -200,11 +201,33 @@ const getLikedLists = async (req: any, res: Response) => {
     }
 };
 
+const createMovieList = async (req: any, res: Response) => {
+    const { title, description, image, isPrivate } = req.body;
+    const creatorId = req.user.id;
+
+    try {
+        const newMovieList = await createList({
+            title,
+            description,
+            image,
+            isPrivate,
+            creatorId
+        });
+
+        return res.status(201).json({ success: true, data: newMovieList });
+    } catch (error) {
+        return res
+            .status(500)
+            .json({ success: false, error: { message: "Server Error." } });
+    }
+};
+
 export {
     getFavorites,
     getWatchlist,
     getWatchedList,
     getLikedMovies,
     getMovieLists,
-    getLikedLists
+    getLikedLists,
+    createMovieList
 };

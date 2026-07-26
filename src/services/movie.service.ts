@@ -5,8 +5,11 @@ import {
     getWatchedQuery,
     getLikedMoviesQuery,
     getMovieListsQuery,
-    getLikedListsQuery
+    getLikedListsQuery,
+    createListQuery
 } from "../queries/movie.queries";
+
+import { IMovieList } from "../types/movie";
 
 const fetchFavorites = async (userId: string, limit: number, page: number) => {
     const offset = (page - 1) * limit;
@@ -83,11 +86,29 @@ const fetchLikedLists = async (userId: string, limit: number, page: number) => {
 
     return likedLists;
 };
+
+type CreateMovieListDto = Omit<IMovieList, "id">;
+const createList = async ({
+    title,
+    description,
+    image,
+    isPrivate,
+    creatorId
+}: CreateMovieListDto): Promise<IMovieList> => {
+    const values = [title, description, image, isPrivate, creatorId];
+    const result = await pool.query<IMovieList>(createListQuery, values);
+
+    const movieList = result.rows[0];
+
+    return movieList;
+};
+
 export {
     fetchFavorites,
     fetchWatchlist,
     fetchWatched,
     fetchLikedMovies,
     fetchLists,
-    fetchLikedLists
+    fetchLikedLists,
+    createList
 };

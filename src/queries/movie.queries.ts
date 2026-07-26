@@ -130,11 +130,17 @@ const getLikedListsQuery = `
     GROUP BY ml.id
     LIMIT $2 OFFSET $3;`;
 
+const createListQuery = `
+    INSERT INTO "MovieList" (id, title, description, image, "isPrivate","creatorId") 
+    VALUES (gen_random_uuid(), $1, $2, $3, $4, $5) 
+    RETURNING id, title, description, image, "isPrivate","creatorId";`;
+
 export {
     getFavoritesQuery,
     getWatchlistQuery,
     getWatchedQuery,
     getLikedMoviesQuery,
     getMovieListsQuery,
-    getLikedListsQuery
+    getLikedListsQuery,
+    createListQuery
 };

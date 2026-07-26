@@ -5,7 +5,8 @@ import {
     getWatchedList,
     getLikedMovies,
     getMovieLists,
-    getLikedLists
+    getLikedLists,
+    createMovieList
 } from "../controllers/movie.controller";
 import { verifyToken, extractUser } from "../middlewares/auth.middleware";
 
@@ -17,5 +18,6 @@ router.get("/watched", extractUser, getWatchedList);
 router.get("/liked", extractUser, getLikedMovies);
 router.get("/lists", extractUser, getMovieLists);
 router.get("/lists/liked", extractUser, getLikedLists);
+router.post("/lists", verifyToken, createMovieList);
 
 export default router;
