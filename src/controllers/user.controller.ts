@@ -7,7 +7,6 @@ import {
     follow,
     unfollow
 } from "../services/user.service";
-import pool from "../config/db";
 
 const getMe = async (req: any, res: Response) => {
     const userId = req.user.id;
