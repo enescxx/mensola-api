@@ -59,9 +59,9 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse<CreateUserResponse>;
 
             expect(response.status).toBe(201);
-            expect(response.body.success).toBe(true);
-            expect(response.body.data).toHaveProperty("accessToken");
-            expect(response.body.data.user).toHaveProperty("email", testUser.email);
+            expect(body.success).toBe(true);
+            expect(body.data).toHaveProperty("accessToken");
+            expect(body.data?.user).toHaveProperty("email", testUser.email);
         });
 
         /**
@@ -72,8 +72,8 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse;
 
             expect(response.status).toBe(400);
-            expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/already in use/i);
+            expect(body.success).toBe(false);
+            expect(body.error?.message).toMatch(/already in use/i);
         });
     });
 
@@ -94,9 +94,9 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse<LoginUserResponse>;
 
             expect(response.status).toBe(200);
-            expect(response.body.success).toBe(true);
-            expect(response.body.data).toHaveProperty("accessToken");
-            expect(response.body.data).toHaveProperty("refreshToken");
+            expect(body.success).toBe(true);
+            expect(body.data).toHaveProperty("accessToken");
+            expect(body.data).toHaveProperty("refreshToken");
 
             // Store refresh token for subsequent tests
             testRefreshToken = response.body.data.refreshToken;
@@ -113,8 +113,8 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse;
 
             expect(response.status).toBe(401);
-            expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/Invalid email or password/i);
+            expect(body.success).toBe(false);
+            expect(body.error?.message).toMatch(/Invalid email or password/i);
         });
     });
 
@@ -132,8 +132,8 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse<TokenRefreshResponse>;
 
             expect(response.status).toBe(200);
-            expect(response.body.success).toBe(true);
-            expect(response.body.data).toHaveProperty("accessToken");
+            expect(body.success).toBe(true);
+            expect(body.data).toHaveProperty("accessToken");
         });
 
         /**
@@ -144,7 +144,7 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse;
 
             expect(response.status).toBe(401);
-            expect(response.body.success).toBe(false);
+            expect(body.success).toBe(false);
         });
     });
 
@@ -162,8 +162,8 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse;
 
             expect(response.status).toBe(200);
-            expect(response.body.success).toBe(true);
-            expect(response.body.message).toMatch(/logged out successfully/i);
+            expect(body.success).toBe(true);
+            expect(body.message).toMatch(/logged out successfully/i);
         });
     });
 
@@ -181,7 +181,7 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse;
 
             expect(response.status).toBe(200);
-            expect(response.body.success).toBe(true);
+            expect(body.success).toBe(true);
 
             // Fetch generated reset token directly from database
             const dbResult = await pool.query('SELECT "resetToken" FROM "User" WHERE email = $1', [testUser.email]);
@@ -200,8 +200,8 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse<VerifyCodeResponse>;
 
             expect(response.status).toBe(200);
-            expect(response.body.success).toBe(true);
-            expect(response.body.data).toHaveProperty("ticket");
+            expect(body.success).toBe(true);
+            expect(body.data).toHaveProperty("ticket");
 
             resetTicket = response.body.data.ticket;
         });
@@ -217,8 +217,8 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse;
 
             expect(response.status).toBe(200);
-            expect(response.body.success).toBe(true);
-            expect(response.body.message).toMatch(/successfully updated/i);
+            expect(body.success).toBe(true);
+            expect(body.message).toMatch(/successfully updated/i);
         });
 
         /**
@@ -232,7 +232,7 @@ describe("Auth Endpoints", () => {
             const body = response.body as ApiResponse;
 
             expect(response.status).toBe(200);
-            expect(response.body.success).toBe(true);
+            expect(body.success).toBe(true);
         });
     });
 });
