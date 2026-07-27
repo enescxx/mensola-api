@@ -1,309 +1,114 @@
-import { Request, Response } from "express";
-import pool from "../config/db";
-import bcrypt from "bcrypt";
-import crypto from "crypto";
-import { hashPassword, comparePassword } from "../utils/hash";
+import { Response, NextFunction } from "express";
+import { sendResponse } from "@/utils/response";
+
 import {
-    generateAccessToken,
-    generateRefreshToken,
-    verifyRefreshToken
-} from "../utils/jwt";
-import { RegisterRequest, LoginRequest } from "../types/user";
-import { sendPasswordResetEmail } from "../utils/email";
+    createUser,
+    loginUser,
+    tokenRefresh,
+    userLogout,
+    sendResetEmail,
+    verifyCode,
+    updatePassword
+} from "@/services/auth";
 
-const register = async (
-    req: Request<{}, {}, RegisterRequest>,
-    res: Response
-): Promise<void> => {
-    const { email, username, password } = req.body;
+import {
+    CreateUserDto,
+    LoginUserDto,
+    TokenRefreshDto,
+    LogoutDto,
+    SendResetEmailDto,
+    VerifyCodeDto,
+    UpdatePasswordDto
+} from "@/types/auth";
+import { TypedRequestBody } from "@/types/express";
 
+/**
+ * Handles user registration
+ */
+const register = async (req: TypedRequestBody<CreateUserDto>, res: Response, next: NextFunction) => {
     try {
-        const hashedPassword = await hashPassword(password);
-
-        const queryText = `
-            INSERT INTO "User" (id, email, username, password, "createdAt", "updatedAt") 
-            VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW()) 
-            RETURNING id, email, username;
-        `;
-
-        const result = await pool.query(queryText, [
-            email,
-            username,
-            hashedPassword
-        ]);
-        const newUser = result.rows[0];
-
-        const accessToken = generateAccessToken(newUser.id);
-        const refreshToken = generateRefreshToken(newUser.id);
-
-        await pool.query(
-            'INSERT INTO "Session" ("userId", "refreshToken") VALUES ($1, $2)',
-            [newUser.id, refreshToken]
-        );
-
-        res.status(201).json({
-            success: true,
-            data: { accessToken, refreshToken, user: newUser }
-        });
+        const responseData = await createUser(req.body);
+        return sendResponse(res, 201, responseData, "User registered successfully.");
     } catch (error: any) {
-        if (error.code === "23505") {
-            res.status(400).json({
-                success: false,
-                error: {
-                    code: 400,
-                    message: "This email or username is already in use."
-                }
-            });
-            return;
-        }
-
-        console.error(error);
-        res.status(500).json({
-            success: false,
-            error: { code: 500, message: "Server Error" }
-        });
+        next(error);
     }
 };
 
-const login = async (req: Request<{}, {}, LoginRequest>, res: Response) => {
-    const { email, password } = req.body;
-
+/**
+ * Handles user authentication
+ */
+const login = async (req: TypedRequestBody<LoginUserDto>, res: Response, next: NextFunction) => {
     try {
-        const result = await pool.query(
-            'SELECT * FROM "User" WHERE email = $1',
-            [email]
-        );
-        const user = result.rows[0];
-
-        if (!user) {
-            res.status(401).json({
-                success: false,
-                error: { code: 401, message: "Invalid email or password." }
-            });
-            return;
-        }
-
-        const isValid = await comparePassword(password, user.password);
-        if (!isValid) {
-            res.status(401).json({
-                success: false,
-                message: "Invalid email or password."
-            });
-            return;
-        }
-
-        const accessToken = generateAccessToken(user.id);
-        const refreshToken = generateRefreshToken(user.id);
-
-        await pool.query(
-            'INSERT INTO "Session" ("userId", "refreshToken") VALUES ($1, $2)',
-            [user.id, refreshToken]
-        );
-        delete user.password;
-
-        res.json({ success: true, data: { accessToken, refreshToken, user } });
+        const responseData = await loginUser(req.body);
+        return sendResponse(res, 200, responseData, "Login successful.");
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: { code: 500, message: "Server Error" }
-        });
+        next(error);
     }
 };
 
-const refresh = async (req: Request, res: Response): Promise<void> => {
-    const { refreshToken } = req.body;
-
+/**
+ * Issues a new access token using a valid refresh token
+ */
+const refresh = async (req: TypedRequestBody<TokenRefreshDto>, res: Response, next: NextFunction) => {
     try {
-        const decoded = verifyRefreshToken(refreshToken) as { id: string };
-
-        const sessionResult = await pool.query(
-            'SELECT * FROM "Session" WHERE "refreshToken" = $1',
-            [refreshToken]
-        );
-        const session = sessionResult.rows[0];
-
-        if (!session) {
-            res.status(401).json({
-                success: false,
-                error: {
-                    code: 401,
-                    message: "Invalid refresh token. Please log in again."
-                }
-            });
-            return;
-        }
-
-        const newAccessToken = generateAccessToken(decoded.id);
-
-        res.json({
-            success: true,
-            data: { accessToken: newAccessToken }
-        });
+        const responseData = await tokenRefresh(req.body);
+        return sendResponse(res, 200, responseData);
     } catch (error) {
-        res.status(401).json({
-            success: false,
-            error: { code: 401, message: "Invalid or expired refresh token." }
-        });
+        next(error);
     }
 };
 
-const logout = async (req: Request, res: Response): Promise<void> => {
-    const { refreshToken } = req.body;
-
+/**
+ * Revokes user session and logs out
+ */
+const logout = async (req: TypedRequestBody<LogoutDto>, res: Response, next: NextFunction) => {
     try {
-        await pool.query('DELETE FROM "Session" WHERE "refreshToken" = $1', [
-            refreshToken
-        ]);
-
-        res.json({
-            success: true,
-            data: { message: "The log out is successful." }
-        });
+        await userLogout(req.body);
+        return sendResponse(res, 200, null, "Logged out successfully.");
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: { code: 500, message: "Server Error." }
-        });
+        next(error);
     }
 };
 
-const forgotPassword = async (req: Request, res: Response): Promise<void> => {
-    const { email } = req.body;
-
+/**
+ * Initiates password reset flow by sending OTP code
+ */
+const forgotPassword = async (req: TypedRequestBody<SendResetEmailDto>, res: Response, next: NextFunction) => {
     try {
-        const result = await pool.query(
-            'SELECT id FROM "User" WHERE email = $1',
-            [email]
-        );
-        const user = result.rows[0];
-
-        if (!user) {
-            res.status(404).json({
-                success: false,
-                error: {
-                    code: 404,
-                    message:
-                        "No account was found registered with this email address."
-                }
-            });
-            return;
-        }
-        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
-
-        await pool.query(
-            'UPDATE "User" SET "resetToken" = $1, "resetTokenExpires" = $2 WHERE email = $3',
-            [otpCode, otpExpires, email]
-        );
-
-        await sendPasswordResetEmail(email, otpCode);
-
-        res.json({
-            success: true,
-            data: {
-                message:
-                    "If this email address is registered, a reset code has been sent."
-            }
-        });
+        await sendResetEmail(req.body);
+        return sendResponse(res, 200, null, "If this email address is registered, a reset code has been sent.");
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: { code: 500, message: "Server Error." }
-        });
+        next(error);
     }
 };
 
-const verifyResetCode = async (req: Request, res: Response): Promise<void> => {
-    const { email, code } = req.body;
-
+/**
+ * Verifies OTP code and returns a reset ticket
+ */
+const verifyResetCode = async (req: TypedRequestBody<VerifyCodeDto>, res: Response, next: NextFunction) => {
     try {
-        const result = await pool.query(
-            'SELECT id FROM "User" WHERE email = $1 AND "resetToken" = $2 AND "resetTokenExpires" > NOW()',
-            [email, code]
-        );
-        const user = result.rows[0];
-
-        if (!user) {
-            res.status(400).json({
-                success: false,
-                error: {
-                    code: 400,
-                    message: "Invalid or expired verification code."
-                }
-            });
-            return;
-        }
-
-        const secureTicket = crypto.randomBytes(32).toString("hex");
-        const ticketExpires = new Date(Date.now() + 15 * 60 * 1000);
-
-        await pool.query(
-            'UPDATE "User" SET "resetToken" = $1, "resetTokenExpires" = $2 WHERE id = $3',
-            [secureTicket, ticketExpires, user.id]
-        );
-
-        res.json({ success: true, data: { ticket: secureTicket } });
+        const responseData = await verifyCode(req.body);
+        return sendResponse(res, 200, responseData);
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: { code: 500, message: "Server Error." }
-        });
+        next(error);
     }
 };
 
-const resetPassword = async (req: Request, res: Response): Promise<void> => {
-    const { ticket, newPassword } = req.body;
-
+/**
+ * Updates password using valid verification ticket
+ */
+const resetPassword = async (req: TypedRequestBody<UpdatePasswordDto>, res: Response, next: NextFunction) => {
     try {
-        const result = await pool.query(
-            'SELECT id FROM "User" WHERE "resetToken" = $1 AND "resetTokenExpires" > NOW()',
-            [ticket]
+        await updatePassword(req.body);
+        return sendResponse(
+            res,
+            200,
+            null,
+            "Your password has been successfully updated. Please log in with your new password."
         );
-        const user = result.rows[0];
-
-        if (!user) {
-            res.status(400).json({
-                success: false,
-                error: {
-                    code: 400,
-                    message: "Invalid session. Please restart the process."
-                }
-            });
-            return;
-        }
-
-        const hashedNewPassword = await hashPassword(newPassword);
-
-        await pool.query(
-            'UPDATE "User" SET password = $1, "resetToken" = NULL, "resetTokenExpires" = NULL WHERE id = $2',
-            [hashedNewPassword, user.id]
-        );
-
-        await pool.query('DELETE FROM "Session" WHERE "userId" = $1', [
-            user.id
-        ]);
-
-        res.json({
-            success: true,
-            data: {
-                message:
-                    "Your password has been successfully updated. Please log in with your new password."
-            }
-        });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: { code: 500, message: "Server Error." }
-        });
+        next(error);
     }
 };
 
-export {
-    register,
-    login,
-    refresh,
-    logout,
-    forgotPassword,
-    verifyResetCode,
-    resetPassword
-};
+export { register, login, refresh, logout, forgotPassword, verifyResetCode, resetPassword };
