@@ -16,6 +16,7 @@ interface IMovieList {
     description?: string;
     image?: string;
     isPrivate: boolean;
+    listType?: "custom" | "favorites" | "watchlist";
     creatorId: string;
 }
 
@@ -26,4 +27,15 @@ interface IMovieListItem {
     addedAt?: Date | string;
 }
 
-export { IMovie, IMovieList, IMovieListItem };
+interface IMovieListOwner {
+    movieListId: string;
+    userId: string;
+}
+
+interface IWatchedMovie {
+    userId: string;
+    movieId: string;
+    watchedAt: Date | string;
+}
+
+export { IMovie, IMovieList, IMovieListItem, IMovieListOwner, IWatchedMovie };

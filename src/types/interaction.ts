@@ -15,14 +15,14 @@ interface IComment {
     parentId?: string;
     content: string;
     createdAt?: Date | string;
-    likesCount?: number;
-    isLikedByMe?: boolean;
+    // likesCount?: number;
+    // isLikedByMe?: boolean;
 }
 
 interface ICommentLike {
     userId: string;
     commentId: string;
-    createdAt?: Date | string;
+    // createdAt?: Date | string;
 }
 
 export { IInteraction, IComment, ICommentLike };

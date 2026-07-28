@@ -1,194 +1,166 @@
-import { Request, Response } from "express";
-import {
-    fetchAndFormatUserProfile,
-    updateFieldsUserProfile,
-    fetchFollowers,
-    fetchFollowing,
-    follow,
-    unfollow
-} from "../services/user.service";
+import { Response, NextFunction, Request } from "express";
 
-const getMe = async (req: any, res: Response) => {
-    const userId = req.user.id;
+import { getUserProfile, profileUpdate, getFollowers, getFollowing, follow, unfollow } from "@/services/user";
 
+import { sendResponse } from "@/utils/response";
+import { ApiError } from "@/utils/error";
+
+import { TypedRequest, TypedRequestBody, TypedRequestQuery } from "@/types/express";
+import { ProfileUpdateDto } from "@/types/user";
+
+/**
+ * Query parameters contract for paginated list requests
+ */
+type PaginationQuery = {
+    page?: string;
+    limit?: string;
+    userId?: string;
+};
+
+/**
+ * Fetches the authenticated user's own profile.
+ */
+const getMe = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const profile = await fetchAndFormatUserProfile(userId, userId);
+        const userId = req.user!.id;
+        const profile = await getUserProfile({ targetUserId: userId, viewerId: userId });
 
-        if (!profile) {
-            return res.status(404).json({ message: "User not found." });
-        }
-
-        return res.status(200).json({ success: true, data: { profile } });
+        return sendResponse(res, 200, { profile });
     } catch (error) {
-        return res
-            .status(500)
-            .json({ success: false, error: { message: "Server Error." } });
+        next(error);
     }
 };
 
-const getUserById = async (req: any, res: Response) => {
-    const targetUserId = req.params.userId;
-    const viewerId = req.user ? req.user.id : null;
-
+/**
+ * Fetches a target user's profile by URL parameter ID.
+ */
+const getUserById = async (req: TypedRequest<{ userId: string }>, res: Response, next: NextFunction) => {
     try {
-        const profile = await fetchAndFormatUserProfile(targetUserId, viewerId);
+        const targetUserId = req.params.userId;
+        const viewerId = req.user?.id;
 
-        if (!profile) {
-            return res.status(404).json({ message: "User not found." });
-        }
+        const profile = await getUserProfile({ targetUserId, viewerId });
 
-        return res.status(200).json({ success: true, data: { profile } });
+        return sendResponse(res, 200, { profile });
     } catch (error) {
-        return res
-            .status(500)
-            .json({ success: false, error: { message: "Server Error." } });
+        next(error);
     }
 };
 
-const updateProfile = async (req: any, res: Response) => {
-    const userId = req.user.id;
-    const { fullname, bio, avatar } = req.body;
-
+/**
+ * Updates profile fields for the authenticated user.
+ */
+const updateProfile = async (
+    req: TypedRequestBody<ProfileUpdateDto["updateData"]>,
+    res: Response,
+    next: NextFunction
+) => {
     try {
-        const updatedFields = await updateFieldsUserProfile(userId, {
-            fullname,
-            bio,
-            avatar
+        const userId = req.user!.id;
+        const updatedFields = await profileUpdate({
+            userId,
+            updateData: req.body
         });
 
-        if (!updatedFields) {
-            return res.status(200).json({
-                success: true,
-                message: "No changes performed.",
-                data: null
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: "Profile updated successfully.",
-            data: {
-                user: updatedFields
-            }
-        });
+        return sendResponse(res, 200, { user: updatedFields }, "Profile updated successfully.");
     } catch (error) {
-        return res
-            .status(500)
-            .json({ success: false, error: { message: "Server Error." } });
+        next(error);
     }
 };
 
-const getUserFollowers = async (req: any, res: Response) => {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 20;
-
-    const targetUserId = req.query.userId;
-    const viewerId = req.user ? req.user.id : null;
-
+/**
+ * Retrieves a paginated list of followers for a user.
+ */
+const getUserFollowers = async (req: TypedRequestQuery<PaginationQuery>, res: Response, next: NextFunction) => {
     try {
-        const followers = await fetchFollowers(
+        const targetUserId = req.query.userId || req.user?.id;
+        if (!targetUserId) {
+            throw new ApiError("Target user ID is required.", 400);
+        }
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 20;
+        const viewerId = req.user?.id;
+
+        const followers = await getFollowers({
             page,
             limit,
             targetUserId,
             viewerId
-        );
+        });
 
-        return res.status(200).json({
-            success: true,
-            data: followers,
-            page: page,
-            limit: limit,
+        return sendResponse(res, 200, {
+            items: followers,
+            page,
+            limit,
             hasMore: followers.length === limit
         });
     } catch (error) {
-        return res
-            .status(500)
-            .json({ success: false, error: { message: "Server Error." } });
+        next(error);
     }
 };
 
-const getUserFollowing = async (req: any, res: Response) => {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 20;
-
-    const targetUserId = req.query.userId;
-
-    const viewerId = req.user ? req.user.id : null;
-
+/**
+ * Retrieves a paginated list of users that a target user is following.
+ */
+const getUserFollowing = async (req: TypedRequestQuery<PaginationQuery>, res: Response, next: NextFunction) => {
     try {
-        const following = await fetchFollowing(
+        const targetUserId = req.query.userId || req.user?.id;
+        if (!targetUserId) {
+            throw new ApiError("Target user ID is required.", 400);
+        }
+
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 20;
+        const viewerId = req.user?.id;
+
+        const following = await getFollowing({
             page,
             limit,
             targetUserId,
             viewerId
-        );
+        });
 
-        return res.status(200).json({
-            success: true,
-            data: following,
-            page: page,
-            limit: limit,
+        return sendResponse(res, 200, {
+            items: following,
+            page,
+            limit,
             hasMore: following.length === limit
         });
     } catch (error) {
-        return res
-            .status(500)
-            .json({ success: false, error: { message: "Server Error." } });
+        next(error);
     }
 };
 
-const followUser = async (req: any, res: Response) => {
-    const targetUserId = req.params.userId;
-    const currentUserId = req.user.id;
-
+/**
+ * Creates a follow relationship with the target user.
+ */
+const followUser = async (req: TypedRequest<{ userId: string }>, res: Response, next: NextFunction) => {
     try {
-        await follow(currentUserId, targetUserId);
-        return res
-            .status(201)
-            .json({ success: true, message: "User followed successfully." });
-    } catch (error) {
-        if ((error as Error).message === "CANNOT_FOLLOW_SELF") {
-            return res.status(400).json({
-                success: false,
-                error: { message: "You cannot follow yourself." }
-            });
-        }
+        const targetUserId = req.params.userId;
+        const currentUserId = req.user!.id;
 
-        return res
-            .status(500)
-            .json({ success: false, error: { message: "Server Error." } });
+        await follow({ followerId: currentUserId, followingId: targetUserId });
+
+        return sendResponse(res, 201, null, "User followed successfully.");
+    } catch (error) {
+        next(error);
     }
 };
 
-const unfollowUser = async (req: any, res: Response) => {
-    const targetUserId = req.params.userId;
-    const currentUserId = req.user.id;
-
+/**
+ * Removes a follow relationship with the target user.
+ */
+const unfollowUser = async (req: TypedRequest<{ userId: string }>, res: Response, next: NextFunction) => {
     try {
-        await unfollow(currentUserId, targetUserId);
+        const targetUserId = req.params.userId;
+        const currentUserId = req.user!.id;
 
-        return res
-            .status(200)
-            .json({ success: true, message: "User unfollowed successfully." });
+        await unfollow({ followerId: currentUserId, followingId: targetUserId });
+
+        return sendResponse(res, 200, null, "User unfollowed successfully.");
     } catch (error) {
-        if ((error as Error).message === "CANNOT_UNFOLLOW_SELF") {
-            return res.status(400).json({
-                success: false,
-                error: { message: "You cannot unfollow yourself." }
-            });
-        }
-        return res
-            .status(500)
-            .json({ success: false, error: { message: "Server Error." } });
+        next(error);
     }
 };
 
-export {
-    getMe,
-    getUserById,
-    updateProfile,
-    getUserFollowers,
-    getUserFollowing,
-    followUser,
-    unfollowUser
-};
+export { getMe, getUserById, updateProfile, getUserFollowers, getUserFollowing, followUser, unfollowUser };

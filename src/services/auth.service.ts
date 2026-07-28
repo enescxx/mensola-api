@@ -21,7 +21,7 @@ import {
     TokenRefreshResponse,
     VerifyCodeResponse
 } from "@/types/auth";
-import { IUser } from "@/types/user";
+import { IUser, ISession } from "@/types/user";
 
 /*
  * Register a new user, hashes their password, and creates an initial session
@@ -85,7 +85,7 @@ const tokenRefresh = async (dto: TokenRefreshDto): Promise<TokenRefreshResponse>
     }
 
     // Check if session exists in DB
-    const result = await pool.query(authQueries.session.getByToken, [dto.refreshToken]);
+    const result = await pool.query<ISession>(authQueries.session.getByToken, [dto.refreshToken]);
     const session = result.rows[0];
     if (!session) {
         throw new ApiError("Invalid refresh token. Please log in again.", 401);
@@ -108,7 +108,7 @@ const userLogout = async (dto: LogoutDto): Promise<boolean> => {
  * Generates a 6-digit OTP code for password reset and sends it via email.
  */
 const sendResetEmail = async (dto: SendResetEmailDto): Promise<boolean> => {
-    const result = await pool.query(authQueries.user.findIdByEmail, [dto.email]);
+    const result = await pool.query<Pick<IUser, "id">>(authQueries.user.findIdByEmail, [dto.email]);
     const user = result.rows[0];
 
     if (!user) {
@@ -130,7 +130,7 @@ const sendResetEmail = async (dto: SendResetEmailDto): Promise<boolean> => {
  * Verifies OTP code and provides a single-use secure reset ticket for password modification.
  */
 const verifyCode = async (dto: VerifyCodeDto): Promise<VerifyCodeResponse> => {
-    const result = await pool.query(authQueries.token.verify, [dto.email, dto.code]);
+    const result = await pool.query<Pick<IUser, "id">>(authQueries.token.verify, [dto.email, dto.code]);
     const user = result.rows[0];
 
     if (!user) {
@@ -150,7 +150,7 @@ const verifyCode = async (dto: VerifyCodeDto): Promise<VerifyCodeResponse> => {
  * Resets user password using valid ticket and revokes all active sessions for security.
  */
 const updatePassword = async (dto: UpdatePasswordDto): Promise<boolean> => {
-    const result = await pool.query(authQueries.user.findByTicket, [dto.ticket]);
+    const result = await pool.query<Pick<IUser, "id">>(authQueries.user.findByTicket, [dto.ticket]);
     const user = result.rows[0];
 
     if (!user) {
