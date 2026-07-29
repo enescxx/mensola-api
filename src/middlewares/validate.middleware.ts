@@ -45,8 +45,13 @@ export const validate = (schema: ZodSchema) => {
 
         // Assign sanitized and parsed values back to the Express request object
         if (parsedData.body) req.body = parsedData.body;
-        if (parsedData.query) req.query = parsedData.query;
-        if (parsedData.params) req.params = parsedData.params;
+        if (parsedData.query) {
+            Object.keys(req.query).forEach(key => delete req.query[key]);
+            Object.assign(req.query, parsedData.query);
+        }
+        if (parsedData.params) {
+            Object.assign(req.params, parsedData.params);
+        }
 
         next();
     };

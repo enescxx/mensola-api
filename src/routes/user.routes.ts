@@ -1,4 +1,6 @@
 import { Router } from "express";
+
+// Controllers
 import {
     getMe,
     getUserById,
@@ -7,17 +9,81 @@ import {
     getUserFollowing,
     followUser,
     unfollowUser
-} from "../controllers/user.controller";
-import { verifyToken, extractUser } from "../middlewares/auth.middleware";
+} from "@/controllers/user";
+
+// Middlewares
+import { verifyToken, extractUser } from "@/middlewares/auth";
+import { validate } from "@/middlewares/validate";
+
+// Validations
+import { userListQuerySchema, userIdParamSchema, updateProfileSchema } from "@/validations/user";
 
 const router = Router();
 
+/* ==========================================================================
+   Current User Profile Routes (/me)
+   ========================================================================== */
+
+/**
+ * @route   GET /api/users/me
+ * @desc    Fetch the authenticated user's own profile details
+ * @access  Private (Requires valid Access Token)
+ */
 router.get("/me", verifyToken, getMe);
-router.put("/me", verifyToken, updateProfile);
-router.get("/followers", extractUser, getUserFollowers);
-router.get("/following", extractUser, getUserFollowing);
-router.post("/:userId/follow", verifyToken, followUser);
-router.delete("/:userId/follow", verifyToken, unfollowUser);
-router.get("/:userId", extractUser, getUserById);
+
+/**
+ * @route   PUT /api/users/me
+ * @desc    Update authenticated user's profile fields (fullname, bio, avatar)
+ * @access  Private (Requires valid Access Token)
+ */
+router.put("/me", verifyToken, validate(updateProfileSchema), updateProfile);
+
+/* ==========================================================================
+   Social Connections & Graph Routes (Followers / Following)
+   ========================================================================== */
+
+/**
+ * @route   GET /api/users/followers
+ * @desc    Get paginated followers list for a target user (or current user)
+ * @access  Public / Optional Auth (Attaches viewer context if authenticated)
+ */
+router.get("/followers", extractUser, validate(userListQuerySchema), getUserFollowers);
+
+/**
+ * @route   GET /api/users/following
+ * @desc    Get paginated following list for a target user (or current user)
+ * @access  Public / Optional Auth (Attaches viewer context if authenticated)
+ */
+router.get("/following", extractUser, validate(userListQuerySchema), getUserFollowing);
+
+/* ==========================================================================
+   Follow & Unfollow Actions
+   ========================================================================== */
+
+/**
+ * @route   POST /api/users/:userId/follow
+ * @desc    Follow a target user by ID
+ * @access  Private (Requires valid Access Token)
+ */
+router.post("/:userId/follow", verifyToken, validate(userIdParamSchema), followUser);
+
+/**
+ * @route   DELETE /api/users/:userId/follow
+ * @desc    Unfollow a target user by ID
+ * @access  Private (Requires valid Access Token)
+ */
+router.delete("/:userId/follow", verifyToken, validate(userIdParamSchema), unfollowUser);
+
+/* ==========================================================================
+   Public Profile Routes
+   ========================================================================== */
+
+/**
+ * @route   GET /api/users/:userId
+ * @desc    Get public profile details by user ID
+ * @access  Public / Optional Auth (Includes contextual fields like isFollowingByMe if token provided)
+ * @note    Must be placed at the bottom to prevent route matching collisions with static endpoints
+ */
+router.get("/:userId", extractUser, validate(userIdParamSchema), getUserById);
 
 export default router;

@@ -3,6 +3,7 @@ import app from "../src/app";
 import pool from "../src/config/db";
 
 describe("User endpoints", () => {
+    // Shared authentication tokens and user IDs for test suite setup
     let userAToken = "";
     let userAId = "";
 
@@ -30,28 +31,38 @@ describe("User endpoints", () => {
         password: "password123"
     };
 
+    /**
+     * Test Suite Setup
+     * Registers three test users and seeds initial follow relationships to establish mutual/following states.
+     */
     beforeAll(async () => {
+        // Register User A
         const userAResponse = await request(app).post("/api/auth/register").send(userA);
-
         userAId = userAResponse.body.data.user.id;
         userAToken = userAResponse.body.data.accessToken;
 
+        // Register User B
         const userBResponse = await request(app).post("/api/auth/register").send(userB);
-
         userBId = userBResponse.body.data.user.id;
         userBToken = userBResponse.body.data.accessToken;
 
+        // Register User C
         const userCResponse = await request(app).post("/api/auth/register").send(userC);
-
         userCId = userCResponse.body.data.user.id;
         userCToken = userCResponse.body.data.accessToken;
 
+        // Seed social graph: User C follows User B, User A follows User C
         await request(app).post(`/api/users/${userBId}/follow`).set("Authorization", `Bearer ${userCToken}`);
-
         await request(app).post(`/api/users/${userCId}/follow`).set("Authorization", `Bearer ${userAToken}`);
     });
 
+    /* ==========================================================================
+       GET /api/users/me Tests
+       ========================================================================== */
     describe("GET /api/users/me", () => {
+        /**
+         * @test Ensures authenticated users can retrieve their full profile with counts & arrays
+         */
         it("should return authenticated user's own profile successfully and remove irrelevant relational fields (200)", async () => {
             const response = await request(app).get("/api/users/me").set("Authorization", `Bearer ${userAToken}`);
 
@@ -81,6 +92,9 @@ describe("User endpoints", () => {
             expect(Array.isArray(profile.favoriteTracks)).toBe(true);
         });
 
+        /**
+         * @test Ensures request fails with 403 when an invalid Bearer token is provided
+         */
         it(" fail with 403 Unauthorized when an invalid or expired access token is provided (403)", async () => {
             const response = await request(app).get("/api/users/me").set("Authorization", "Bearer invalid-token");
 
@@ -90,7 +104,13 @@ describe("User endpoints", () => {
         });
     });
 
+    /* ==========================================================================
+       GET /api/users/:userId Tests
+       ========================================================================== */
     describe("GET /api/users/:userId", () => {
+        /**
+         * @test Validates public profile retrieval including relational fields (isFollowingByMe, mutualFollowers) for auth users
+         */
         it("should return user profile with mutual followers and follow status for authenticated user (200)", async () => {
             const response = await request(app)
                 .get(`/api/users/${userBId}`)
@@ -125,6 +145,9 @@ describe("User endpoints", () => {
             expect(Array.isArray(profile.favoriteTracks)).toBe(true);
         });
 
+        /**
+         * @test Validates guest user profile viewing (relational fields like mutualFollowers should be excluded/neutralized)
+         */
         it("should return user profile without mutual followers and follow status for guest user (200)", async () => {
             const response = await request(app).get(`/api/users/${userBId}`);
 
@@ -154,6 +177,9 @@ describe("User endpoints", () => {
             expect(Array.isArray(profile.favoriteTracks)).toBe(true);
         });
 
+        /**
+         * @test Ensures request fails with 403 if an invalid token is explicitly provided
+         */
         it("should return 403 error if token is sent but invalid or expired (403)", async () => {
             const response = await request(app)
                 .get(`/api/users/${userBId}`)
@@ -165,7 +191,13 @@ describe("User endpoints", () => {
         });
     });
 
+    /* ==========================================================================
+       PUT /api/users/me Tests
+       ========================================================================== */
     describe("PUT /api/users/me", () => {
+        /**
+         * @test Validates successful update of allowed profile fields (fullname, bio, avatar)
+         */
         it("should update profile fields successfully and return only updated basic user data (200)", async () => {
             const updateData = {
                 fullname: "Updated John Doe",
@@ -191,6 +223,9 @@ describe("User endpoints", () => {
             expect(updatedUser.avatar).toBe(updateData.avatar);
         });
 
+        /**
+         * @test Ensures Zod/Controller rejects empty request body updates with 400 Bad Request
+         */
         it("should return 400 if request body is empty", async () => {
             const response = await request(app)
                 .put("/api/users/me")
@@ -202,6 +237,9 @@ describe("User endpoints", () => {
             expect(response.body.error.message).toMatch(/at least one field/i);
         });
 
+        /**
+         * @test Ensures unauthenticated users cannot update profile data
+         */
         it("should fail with 403 Unauthorized when attempting to update profile without a valid token (403)", async () => {
             const response = await request(app)
                 .put("/api/users/me")
@@ -214,7 +252,13 @@ describe("User endpoints", () => {
         });
     });
 
+    /* ==========================================================================
+       GET /api/users/followers Tests
+       ========================================================================== */
     describe("GET /api/users/followers", () => {
+        /**
+         * @test Verifies followers list includes contextual 'isFollowing' flag when requested by auth user
+         */
         it("should return followers list with isFollowing: true for authenticated user", async () => {
             const response = await request(app)
                 .get("/api/users/followers")
@@ -235,6 +279,9 @@ describe("User endpoints", () => {
             expect(followers[0].username).toBeTruthy();
         });
 
+        /**
+         * @test Verifies followers list sets 'isFollowing' to false when requested by guest
+         */
         it("should return isFollowing as false for unauthenticated (guest) user", async () => {
             const response = await request(app).get("/api/users/followers").query({
                 userId: userBId,
@@ -252,6 +299,9 @@ describe("User endpoints", () => {
             expect(followers[0].username).toBeTruthy();
         });
 
+        /**
+         * @test Verifies pagination calculation sets 'hasMore: true' when limit is met
+         */
         it("should return hasMore: true when additional pages are available", async () => {
             const response = await request(app).get("/api/users/followers").query({
                 userId: userBId,
@@ -263,6 +313,9 @@ describe("User endpoints", () => {
             expect(response.body.data.hasMore).toBe(true);
         });
 
+        /**
+         * @test Ensures missing target userId query parameter returns 400 Bad Request
+         */
         it("should return 400 when userId query parameter is missing", async () => {
             const response = await request(app).get("/api/users/followers");
 
@@ -272,7 +325,13 @@ describe("User endpoints", () => {
         });
     });
 
+    /* ==========================================================================
+       GET /api/users/following Tests
+       ========================================================================== */
     describe("GET /api/users/following", () => {
+        /**
+         * @test Verifies following list includes contextual 'isFollower' flag for auth user
+         */
         it("should return following list with isFollower: true for authenticated user", async () => {
             const response = await request(app)
                 .get("/api/users/following")
@@ -293,6 +352,9 @@ describe("User endpoints", () => {
             expect(following[0].username).toBeTruthy();
         });
 
+        /**
+         * @test Verifies following list sets 'isFollower' to false for guest users
+         */
         it("should return isFollower as false for unauthenticated (guest) user", async () => {
             const response = await request(app).get("/api/users/following").query({
                 userId: userAId,
@@ -310,6 +372,9 @@ describe("User endpoints", () => {
             expect(following[0].username).toBeTruthy();
         });
 
+        /**
+         * @test Verifies pagination calculations for following list
+         */
         it("should return hasMore: true when additional pages are available", async () => {
             const response = await request(app).get("/api/users/following").query({
                 userId: userAId,
@@ -321,6 +386,9 @@ describe("User endpoints", () => {
             expect(response.body.data.hasMore).toBe(true);
         });
 
+        /**
+         * @test Ensures missing target userId query parameter returns 400 Bad Request
+         */
         it("should return 400 when userId query parameter is missing", async () => {
             const response = await request(app).get("/api/users/following");
 
@@ -330,7 +398,13 @@ describe("User endpoints", () => {
         });
     });
 
+    /* ==========================================================================
+       POST /api/users/:userId/follow Tests
+       ========================================================================== */
     describe("POST /api/users/:userId/follow", () => {
+        /**
+         * @test Verifies creating a new follow relationship (201 Created)
+         */
         it("should allow a user to follow another user successfully (200)", async () => {
             const response = await request(app)
                 .post(`/api/users/${userAId}/follow`)
@@ -340,6 +414,9 @@ describe("User endpoints", () => {
             expect(response.body.success).toBe(true);
         });
 
+        /**
+         * @test Ensures idempotent behavior when trying to follow an already followed user
+         */
         it("should handle duplicate follow requests gracefully (ON CONFLICT)", async () => {
             const response = await request(app)
                 .post(`/api/users/${userAId}/follow`)
@@ -349,6 +426,9 @@ describe("User endpoints", () => {
             expect(response.body.success).toBe(true);
         });
 
+        /**
+         * @test Ensures business logic prevents self-following (400 Bad Request)
+         */
         it("should prevent a user from following themselves (400)", async () => {
             const response = await request(app)
                 .post(`/api/users/${userBId}/follow`)
@@ -359,6 +439,9 @@ describe("User endpoints", () => {
             expect(response.body.error.message).toMatch(/cannot follow yourself/i);
         });
 
+        /**
+         * @test Ensures unauthenticated requests are rejected with 403 Forbidden
+         */
         it("should return 403 Forbidden when no authentication token is provided", async () => {
             const response = await request(app)
                 .post(`/api/users/${userAId}/follow`)
@@ -370,7 +453,13 @@ describe("User endpoints", () => {
         });
     });
 
+    /* ==========================================================================
+       DELETE /api/users/:userId/follow Tests
+       ========================================================================== */
     describe("DELETE /api/users/:userId/follow", () => {
+        /**
+         * @test Verifies removing an existing follow relationship (200 OK)
+         */
         it("should allow a user to unfollow someone they currently follow (200)", async () => {
             await request(app).post(`/api/users/${userAId}/follow`).set("Authorization", `Bearer ${userBToken}`);
 
@@ -382,6 +471,9 @@ describe("User endpoints", () => {
             expect(response.body.success).toBe(true);
         });
 
+        /**
+         * @test Ensures unfollowing a non-followed user behaves idempotently (200 OK)
+         */
         it("should handle unfollowing a user who is not being followed gracefully (Idempotent - 200)", async () => {
             const response = await request(app)
                 .delete(`/api/users/${userAId}/follow`)
@@ -391,6 +483,9 @@ describe("User endpoints", () => {
             expect(response.body.success).toBe(true);
         });
 
+        /**
+         * @test Ensures business logic prevents self-unfollowing (400 Bad Request)
+         */
         it("should prevent a user from unfollowing themselves (400)", async () => {
             const response = await request(app)
                 .delete(`/api/users/${userBId}/follow`)
@@ -401,6 +496,9 @@ describe("User endpoints", () => {
             expect(response.body.error.message).toMatch(/cannot unfollow yourself/i);
         });
 
+        /**
+         * @test Ensures unauthenticated requests are rejected with 403 Forbidden
+         */
         it("should return 403 Forbidden when no authentication token is provided", async () => {
             const response = await request(app)
                 .delete(`/api/users/${userAId}/follow`)
