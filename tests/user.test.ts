@@ -1,6 +1,6 @@
 import request from "supertest";
-import app from "../src/app";
-import pool from "../src/config/db";
+import app from "@/app";
+import pool from "@/config/db";
 
 describe("User endpoints", () => {
     // Shared authentication tokens and user IDs for test suite setup

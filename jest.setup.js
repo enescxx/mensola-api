@@ -1,7 +1,7 @@
 const testPool = require("./tests/testDb").default || require("./tests/testDb");
 const { initDatabase } = require("./src/scripts/initDb");
 
-jest.mock("./src/config/db", () => {
+jest.mock("@/config/db", () => {
     return require("./tests/testDb");
 });
 

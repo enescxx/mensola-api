@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import dbPool from "../config/db";
+import dbPool from "@/config/db";
 
 export const initDatabase = async (poolInstance?: Pool): Promise<void> => {
     const pool = poolInstance || dbPool;
