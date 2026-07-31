@@ -13,6 +13,10 @@ import {
 
 // Middlewares
 import { verifyToken, extractUser } from "@/middlewares/auth";
+import { validate } from "@/middlewares/validate";
+
+// Validation
+import { moviePaginationQuerySchema, createMovieListSchema } from "@/validations/movie";
 
 const router = Router();
 
@@ -25,28 +29,28 @@ const router = Router();
  * @desc    Get paginated favorite movies for a target user (or authenticated user)
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
-router.get("/favorites", extractUser, getFavoriteMovies);
+router.get("/favorites", extractUser, validate(moviePaginationQuerySchema), getFavoriteMovies);
 
 /**
  * @route   GET /api/movies/watchlists
  * @desc    Get paginated watchlist movies for a target user (or authenticated user)
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
-router.get("/watchlists", extractUser, getWatchlistMovies);
+router.get("/watchlists", extractUser, validate(moviePaginationQuerySchema), getWatchlistMovies);
 
 /**
  * @route   GET /api/movies/watched
  * @desc    Get paginated watched movies history for a target user (or authenticated user)
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
-router.get("/watched", extractUser, getWatchedMovies);
+router.get("/watched", extractUser, validate(moviePaginationQuerySchema), getWatchedMovies);
 
 /**
  * @route   GET /api/movies/liked
  * @desc    Get paginated liked movies for a target user (or authenticated user)
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
-router.get("/liked", extractUser, getLikedMoviesList);
+router.get("/liked", extractUser, validate(moviePaginationQuerySchema), getLikedMoviesList);
 
 /* ==========================================================================
    Custom Movie Lists Routes
@@ -58,20 +62,20 @@ router.get("/liked", extractUser, getLikedMoviesList);
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  * @note    Must be defined BEFORE GET /lists to prevent static route collision
  */
-router.get("/lists/liked", extractUser, getLikedMovieLists);
+router.get("/lists/liked", extractUser, validate(moviePaginationQuerySchema), getLikedMovieLists);
 
 /**
  * @route   GET /api/movies/lists
  * @desc    Get custom movie lists created by a target user (or authenticated user)
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
-router.get("/lists", extractUser, getMovieLists);
+router.get("/lists", extractUser, validate(moviePaginationQuerySchema), getMovieLists);
 
 /**
  * @route   POST /api/movies/lists
  * @desc    Create a new custom movie list for the authenticated user
  * @access  Private (Requires valid Access Token)
  */
-router.post("/lists", verifyToken, createMovieList);
+router.post("/lists", verifyToken, validate(createMovieListSchema), createMovieList);
 
 export default router;
