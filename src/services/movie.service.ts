@@ -6,6 +6,7 @@ import { ApiError } from "@/utils/error";
 import {
     // Entity Models
     IMovieList,
+    IWatchedMovie,
 
     // Data Transfer Objects (DTOs)
     CreateMovieListDto,
@@ -15,6 +16,7 @@ import {
     GetUserListsDto,
     GetWatchedMoviesDto,
     GetWatchlistDto,
+    MarkAsWatchedDto,
 
     // Response Contracts & Items
     GetFavoritesResponse,
@@ -187,4 +189,21 @@ export const createList = async (dto: CreateMovieListDto): Promise<IMovieList> =
     }
 
     return movieList;
+};
+
+/**
+ * Marks a movie as watched by adding a record to the WatchedMovie table.
+ *
+ * @param dto - Data transfer object containing userId and movieId.
+ * @returns The newly created WatchedMovie record.
+ * @throws {ApiError} 400 Bad Request if userId is missing.
+ */
+export const markAsWatched = async (dto: MarkAsWatchedDto): Promise<IWatchedMovie> => {
+    if (!dto.userId) {
+        throw new ApiError("userId is invalid", 400);
+    }
+
+    const result = await pool.query<IWatchedMovie>(movieQueries.movies.watched.add, [dto.userId, dto.movieId]);
+
+    return result.rows[0];
 };

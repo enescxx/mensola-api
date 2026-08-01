@@ -54,6 +54,7 @@ interface IMovieListOwner {
  * Represents a record of a user having watched a specific movie.
  */
 interface IWatchedMovie {
+    id: string;
     userId: string;
     movieId: string;
     watchedAt: Date | string;
@@ -85,6 +86,11 @@ type GetLikedListsDto = BaseUserQueryDto;
  * Body payload DTO for creating a new custom movie list.
  */
 type CreateMovieListDto = Omit<IMovieList, "id">;
+
+/**
+ * Data Transfer Object for marking a movie as watched.
+ */
+type MarkAsWatchedDto = { userId: UserId; movieId: IMovie["id"] };
 
 /* ==========================================================================
    Response Types & Payload Items
@@ -184,6 +190,7 @@ export {
     GetUserListsDto,
     GetWatchedMoviesDto,
     GetWatchlistDto,
+    MarkAsWatchedDto,
 
     // Response Contracts & Payload Items
     MovieResponseItem,

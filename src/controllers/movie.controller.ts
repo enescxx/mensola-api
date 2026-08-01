@@ -8,14 +8,15 @@ import {
     getLikedMovies,
     getUserLists,
     getLikedLists,
-    createList
+    createList,
+    markAsWatched
 } from "@/services/movie";
 
 // Utilities
 import { sendResponse } from "@/utils/response";
 
 // Types
-import { TypedRequestBody, TypedRequestQuery } from "@/types/express";
+import { TypedRequestBody, TypedRequestQuery, TypedRequest } from "@/types/express";
 import {
     GetFavoritesDto,
     GetWatchlistDto,
@@ -234,6 +235,24 @@ const createMovieList = async (
     }
 };
 
+/**
+ * Marks a specific movie as watched for the authenticated user.
+ *
+ * @route   POST /api/movies/:movieId/watched
+ * @access  Private (Requires Access Token)
+ */
+const markMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user!.id;
+        const movieId = req.params.movieId;
+
+        const watchedMovie = await markAsWatched({ userId, movieId });
+        return sendResponse(res, 201, watchedMovie, "Movie has marked as watched successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -245,5 +264,6 @@ export {
     getLikedMoviesList,
     getMovieLists,
     getLikedMovieLists,
-    createMovieList
+    createMovieList,
+    markMovieAsWatched
 };

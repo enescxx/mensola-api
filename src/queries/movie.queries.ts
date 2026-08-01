@@ -158,7 +158,14 @@ export const movieQueries = {
                 WHERE wm."userId" = $1
                 LIMIT $2 OFFSET $3;`,
 
-            add: ``,
+            /**
+             * Inserts a new record into the WatchedMovie table to mark a movie as watched
+             * and returns the newly created row.
+             */
+            add: `
+                INSERT INTO "WatchedMovie" (id, "userId", "movieId", "watchedAt")
+                VALUES (gen_random_uuid(), $1, $2, NOW())
+                RETURNING *`,
             remove: ``
         },
 

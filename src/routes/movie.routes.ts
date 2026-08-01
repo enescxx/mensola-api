@@ -8,7 +8,8 @@ import {
     getLikedMoviesList,
     getMovieLists,
     getLikedMovieLists,
-    createMovieList
+    createMovieList,
+    markMovieAsWatched
 } from "@/controllers/movie";
 
 // Middlewares
@@ -16,7 +17,7 @@ import { verifyToken, extractUser } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";
 
 // Validation
-import { moviePaginationQuerySchema, createMovieListSchema } from "@/validations/movie";
+import { moviePaginationQuerySchema, createMovieListSchema, markAsWatchedSchema } from "@/validations/movie";
 
 const router = Router();
 
@@ -77,5 +78,12 @@ router.get("/lists", extractUser, validate(moviePaginationQuerySchema), getMovie
  * @access  Private (Requires valid Access Token)
  */
 router.post("/lists", verifyToken, validate(createMovieListSchema), createMovieList);
+
+/**
+ * @route   POST /api/movies/:movieId/watched
+ * @desc    Mark a movie as watched for the authenticated user
+ * @access  Private (Requires valid Access Token)
+ */
+router.post("/:movieId/watched", verifyToken, validate(markAsWatchedSchema), markMovieAsWatched);
 
 export default router;

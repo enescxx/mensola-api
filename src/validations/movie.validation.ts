@@ -58,3 +58,16 @@ export const createMovieListSchema = z.object({
         isPrivate: z.boolean({ message: "isPrivate flag is required and must be a boolean (true/false)." })
     })
 });
+
+/**
+ * Validation schema for marking a movie as watched.
+ * Validates the `movieId` URL parameter.
+ */
+export const markAsWatchedSchema = z.object({
+    params: z.object({
+        movieId: z
+            .string({ message: "Movie Id is required and must be a string." })
+            .uuid("Invalid movie ID format.")
+            .trim()
+    })
+});
