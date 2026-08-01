@@ -9,7 +9,8 @@ import {
     getMovieLists,
     getLikedMovieLists,
     createMovieList,
-    markMovieAsWatched
+    markMovieAsWatched,
+    unmarkMovieAsWatched
 } from "@/controllers/movie";
 
 // Middlewares
@@ -17,7 +18,7 @@ import { verifyToken, extractUser } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";
 
 // Validation
-import { moviePaginationQuerySchema, createMovieListSchema, markAsWatchedSchema } from "@/validations/movie";
+import { moviePaginationQuerySchema, createMovieListSchema, movieIdParamSchema } from "@/validations/movie";
 
 const router = Router();
 
@@ -84,6 +85,13 @@ router.post("/lists", verifyToken, validate(createMovieListSchema), createMovieL
  * @desc    Mark a movie as watched for the authenticated user
  * @access  Private (Requires valid Access Token)
  */
-router.post("/:movieId/watched", verifyToken, validate(markAsWatchedSchema), markMovieAsWatched);
+router.post("/:movieId/watched", verifyToken, validate(movieIdParamSchema), markMovieAsWatched);
+
+/**
+ * @route   DELETE /api/movies/:movieId/watched
+ * @desc    Completely remove a movie from watched history
+ * @access  Private (Requires valid Access Token)
+ */
+router.delete("/:movieId/watched", verifyToken, validate(movieIdParamSchema), unmarkMovieAsWatched);
 
 export default router;

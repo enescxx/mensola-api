@@ -9,11 +9,13 @@ import {
     getUserLists,
     getLikedLists,
     createList,
-    markAsWatched
+    markAsWatched,
+    unmarkAsWatched
 } from "@/services/movie";
 
 // Utilities
 import { sendResponse } from "@/utils/response";
+import { ApiError } from "@/utils/error";
 
 // Types
 import { TypedRequestBody, TypedRequestQuery, TypedRequest } from "@/types/express";
@@ -253,6 +255,30 @@ const markMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res: R
     }
 };
 
+/**
+ * Removes all watch records of a specific movie for the authenticated user.
+ *
+ * @route   DELETE /api/movies/:movieId/watched
+ * @desc    Completely removes the movie from the user's watched history.
+ * @access  Private (Requires Access Token)
+ */
+
+const unmarkMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user!.id;
+        const movieId = req.params.movieId;
+
+        const deletedRecord = await unmarkAsWatched({ userId, movieId });
+        if (!deletedRecord) {
+            throw new ApiError("Movie is not in your watched history.", 404);
+        }
+
+        return sendResponse(res, 201, null, "Movie has been removed from watched history successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -265,5 +291,6 @@ export {
     getMovieLists,
     getLikedMovieLists,
     createMovieList,
-    markMovieAsWatched
+    markMovieAsWatched,
+    unmarkMovieAsWatched
 };

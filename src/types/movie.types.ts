@@ -88,9 +88,13 @@ type GetLikedListsDto = BaseUserQueryDto;
 type CreateMovieListDto = Omit<IMovieList, "id">;
 
 /**
- * Data Transfer Object for marking a movie as watched.
+ * Data Transfer Object for user-movie interactions.
+ * Used for actions like marking as watched, adding to favorites, or liking a movie.
  */
-type MarkAsWatchedDto = { userId: UserId; movieId: IMovie["id"] };
+type UserMovieActionDto = {
+    userId: UserId;
+    movieId: IMovie["id"];
+};
 
 /* ==========================================================================
    Response Types & Payload Items
@@ -190,7 +194,7 @@ export {
     GetUserListsDto,
     GetWatchedMoviesDto,
     GetWatchlistDto,
-    MarkAsWatchedDto,
+    UserMovieActionDto,
 
     // Response Contracts & Payload Items
     MovieResponseItem,

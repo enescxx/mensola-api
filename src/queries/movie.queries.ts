@@ -166,7 +166,15 @@ export const movieQueries = {
                 INSERT INTO "WatchedMovie" (id, "userId", "movieId", "watchedAt")
                 VALUES (gen_random_uuid(), $1, $2, NOW())
                 RETURNING *`,
-            remove: ``
+
+            /**
+             * Completely removes a movie from the user's watched history by deleting
+             * all associated watch records for that specific movie.
+             */
+            remove: `
+                DELETE FROM "WatchedMovie"
+                WHERE "userId" = $1 AND "movieId" = $2
+                RETURNING *;`
         },
 
         /**

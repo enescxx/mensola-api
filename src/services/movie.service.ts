@@ -16,7 +16,7 @@ import {
     GetUserListsDto,
     GetWatchedMoviesDto,
     GetWatchlistDto,
-    MarkAsWatchedDto,
+    UserMovieActionDto,
 
     // Response Contracts & Items
     GetFavoritesResponse,
@@ -196,14 +196,21 @@ export const createList = async (dto: CreateMovieListDto): Promise<IMovieList> =
  *
  * @param dto - Data transfer object containing userId and movieId.
  * @returns The newly created WatchedMovie record.
- * @throws {ApiError} 400 Bad Request if userId is missing.
  */
-export const markAsWatched = async (dto: MarkAsWatchedDto): Promise<IWatchedMovie> => {
-    if (!dto.userId) {
-        throw new ApiError("userId is invalid", 400);
-    }
-
+export const markAsWatched = async (dto: UserMovieActionDto): Promise<IWatchedMovie> => {
     const result = await pool.query<IWatchedMovie>(movieQueries.movies.watched.add, [dto.userId, dto.movieId]);
-
     return result.rows[0];
+};
+
+/**
+ * Completely removes a movie from the user's watched history.
+ * If the user has watched the movie multiple times, this will delete all of those records.
+ *
+ * @param dto - Data transfer object containing userId and movieId.
+ * @returns The deleted WatchedMovie record or null if not found.
+ */
+
+export const unmarkAsWatched = async (dto: UserMovieActionDto): Promise<IWatchedMovie[]> => {
+    const result = await pool.query<IWatchedMovie>(movieQueries.movies.watched.remove, [dto.userId, dto.movieId]);
+    return result.rows;
 };

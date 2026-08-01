@@ -59,14 +59,18 @@ export const createMovieListSchema = z.object({
     })
 });
 
+/* ==========================================================================
+   Params Validations
+   ========================================================================== */
+
 /**
- * Validation schema for marking a movie as watched.
- * Validates the `movieId` URL parameter.
+ * Validation schema for endpoints that require a valid `movieId` parameter.
+ * Can be used for marking/unmarking watched, adding to favorites, etc.
  */
-export const markAsWatchedSchema = z.object({
+export const movieIdParamSchema = z.object({
     params: z.object({
         movieId: z
-            .string({ message: "Movie Id is required and must be a string." })
+            .string({ message: "Movie ID is required and must be a string." })
             .uuid("Invalid movie ID format.")
             .trim()
     })
