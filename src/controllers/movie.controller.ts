@@ -10,7 +10,8 @@ import {
     getLikedLists,
     createList,
     markAsWatched,
-    unmarkAsWatched
+    unmarkAsWatched,
+    getMovie
 } from "@/services/movie";
 
 // Utilities
@@ -26,7 +27,8 @@ import {
     GetLikedMoviesDto,
     GetUserListsDto,
     GetLikedListsDto,
-    CreateMovieListDto
+    CreateMovieListDto,
+    GetMovieDto
 } from "@/types/movie";
 
 /* ==========================================================================
@@ -279,6 +281,28 @@ const unmarkMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res:
     }
 };
 
+/**
+ * Retrieves a movie's details and its latest interactions by ID.
+ *
+ * @route   GET /api/movies/:movieId
+ * @desc    Get detailed information about a specific movie.
+ * @access  Public (or Private depending on your auth setup)
+ */
+const getMovieById = async (req: TypedRequest<GetMovieDto>, res: Response, next: NextFunction) => {
+    try {
+        const movieId = req.params.movieId;
+
+        const movie = await getMovie({ movieId });
+        if (!movie) {
+            throw new ApiError("The movie is not found.", 404);
+        }
+
+        return sendResponse(res, 200, movie);
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -292,5 +316,6 @@ export {
     getLikedMovieLists,
     createMovieList,
     markMovieAsWatched,
-    unmarkMovieAsWatched
+    unmarkMovieAsWatched,
+    getMovieById
 };

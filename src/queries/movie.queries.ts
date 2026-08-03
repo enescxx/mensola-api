@@ -112,6 +112,56 @@ export const movieQueries = {
        ========================================================================== */
     movies: {
         /**
+         * Fetches all details of a specific movie by its ID, including up to 3 recent
+         * top-level user interactions that have a comment.
+         */
+        getById: `
+            SELECT 
+                m.*,
+                COALESCE(interactions_data.interactions, '[]') AS interactions
+            FROM "Movie" m
+            LEFT JOIN LATERAL (
+                SELECT json_agg(
+                    json_build_object(
+                        'id', int_data.id,
+                        'user', json_build_object(
+                            'id', int_data.uid,
+                            'username', int_data.username,
+                            'fullname', int_data.fullname,
+                            'avatar', int_data.avatar
+                        ),
+                        'rating', int_data."rating",
+                        'isLiked', COALESCE(int_data."isLiked", false),
+                        'comment', json_build_object(
+                            'id', int_data.cid,
+                            'content', int_data.content,
+                            'date', int_data."createdDate"
+                        )
+                    )
+                ) AS interactions
+                FROM (
+                    SELECT 
+                        m_int.id, 
+                        m_int."rating", 
+                        m_int."isLiked",
+                        c.id AS cid, 
+                        c.content, 
+                        c."createdDate",
+                        u.id AS uid, 
+                        u.username, 
+                        u.fullname, 
+                        u.avatar
+                    FROM "Interaction" m_int
+                    JOIN "Comment" c ON c."interactionId" = m_int.id AND c."parentId" IS NULL
+                    LEFT JOIN "User" u ON u.id = m_int."userId"
+                    WHERE m_int."targetId" = m.id AND m_int."targetType" = 'movie'
+                    ORDER BY c."createdDate" DESC -- En yeni yorumlar gelsin diye ekleyebilirsin
+                    LIMIT 3
+                ) int_data
+            ) interactions_data ON true
+            WHERE m.id = $1;`,
+
+        /**
          * Watchlist management (System MovieList where listType = 'watchlist')
          */
         watchlist: {

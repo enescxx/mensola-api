@@ -1,4 +1,5 @@
-import { UserId } from "@/types/user";
+import { IUser, UserId } from "@/types/user";
+import { IInteraction, IComment } from "@/types/interaction";
 
 /* ==========================================================================
    Database Model Interfaces (Entities)
@@ -96,6 +97,12 @@ type UserMovieActionDto = {
     movieId: IMovie["id"];
 };
 
+/**
+ * Data Transfer Object for fetching a specific movie.
+ */
+type GetMovieDto = {
+    movieId: IMovie["id"];
+};
 /* ==========================================================================
    Response Types & Payload Items
    ========================================================================== */
@@ -173,6 +180,21 @@ type GetLikedListsResponseItem = MovieListResponseItem;
 type GetUserListsResponse = GetUserListsResponseItem[];
 type GetLikedListsResponse = GetLikedListsResponseItem[];
 
+/**
+ * Represents a user's interaction with a movie, specifically containing their review/comment.
+ */
+type GetMovieInteractionsItem = Pick<IInteraction, "id" | "isLiked" | "rating"> & {
+    user: Pick<IUser, "id" | "username" | "fullname" | "avatar">;
+    comment: Pick<IComment, "id" | "content"> & { date: IComment["createdAt"] };
+};
+
+/**
+ * The response structure for a movie detail request, containing movie data and its recent commented interactions.
+ */
+type GetMovieResponse = IMovie & {
+    interactions: GetMovieInteractionsItem[];
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -195,6 +217,7 @@ export {
     GetWatchedMoviesDto,
     GetWatchlistDto,
     UserMovieActionDto,
+    GetMovieDto,
 
     // Response Contracts & Payload Items
     MovieResponseItem,
@@ -210,5 +233,7 @@ export {
     GetWatchedMoviesResponseItem,
     GetWatchlistResponse,
     GetWatchlistResponseItem,
-    PreviewMoviesItem
+    PreviewMoviesItem,
+    GetMovieInteractionsItem,
+    GetMovieResponse
 };

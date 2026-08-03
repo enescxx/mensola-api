@@ -17,6 +17,7 @@ import {
     GetWatchedMoviesDto,
     GetWatchlistDto,
     UserMovieActionDto,
+    GetMovieDto,
 
     // Response Contracts & Items
     GetFavoritesResponse,
@@ -30,7 +31,8 @@ import {
     GetWatchedMoviesResponse,
     GetWatchedMoviesResponseItem,
     GetWatchlistResponse,
-    GetWatchlistResponseItem
+    GetWatchlistResponseItem,
+    GetMovieResponse
 } from "@/types/movie";
 
 /**
@@ -209,8 +211,18 @@ export const markAsWatched = async (dto: UserMovieActionDto): Promise<IWatchedMo
  * @param dto - Data transfer object containing userId and movieId.
  * @returns The deleted WatchedMovie record or null if not found.
  */
-
 export const unmarkAsWatched = async (dto: UserMovieActionDto): Promise<IWatchedMovie[]> => {
     const result = await pool.query<IWatchedMovie>(movieQueries.movies.watched.remove, [dto.userId, dto.movieId]);
     return result.rows;
+};
+
+/**
+ * Fetches detailed information about a movie by its ID, including up to 3 recent user comments.
+ *
+ * @param {GetMovieDto} dto - Data transfer object containing the movie ID.
+ * @returns {<GetMovieResponse>} The movie details along with its recent interactions.
+ */
+export const getMovie = async (dto: GetMovieDto): Promise<GetMovieResponse> => {
+    const result = await pool.query<GetMovieResponse>(movieQueries.movies.getById, [dto.movieId]);
+    return result.rows[0];
 };

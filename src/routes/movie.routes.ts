@@ -10,7 +10,8 @@ import {
     getLikedMovieLists,
     createMovieList,
     markMovieAsWatched,
-    unmarkMovieAsWatched
+    unmarkMovieAsWatched,
+    getMovieById
 } from "@/controllers/movie";
 
 // Middlewares
@@ -93,5 +94,12 @@ router.post("/:movieId/watched", verifyToken, validate(movieIdParamSchema), mark
  * @access  Private (Requires valid Access Token)
  */
 router.delete("/:movieId/watched", verifyToken, validate(movieIdParamSchema), unmarkMovieAsWatched);
+
+/**
+ * @route   GET /api/movies/:movieId
+ * @desc    Fetch movie details along with top user reviews
+ * @access  Public
+ */
+router.get("/:movieId", validate(movieIdParamSchema), getMovieById);
 
 export default router;
