@@ -14,6 +14,8 @@ import {
     getMovieById,
     addMovieToWatchlist,
     removeMovieFromWatchlist,
+    addMovieToFavorites,
+    removeMovieFromFavorites,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -110,6 +112,20 @@ router.post("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), ad
  * @access  Private (Requires valid Access Token)
  */
 router.delete("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), removeMovieFromWatchlist);
+
+/**
+ * @route   POST /api/movies/:movieId/favorites
+ * @desc    Add a movie to the authenticated user's favorites list
+ * @access  Private (Requires valid Access Token)
+ */
+router.post("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), addMovieToFavorites);
+
+/**
+ * @route   DELETE /api/movies/:movieId/favorites
+ * @desc    Completely remove a movie from the authenticated user's favorites list
+ * @access  Private (Requires valid Access Token)
+ */
+router.delete("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), removeMovieFromFavorites);
 
 /**
  * @route   GET /api/movies/:movieId

@@ -14,6 +14,8 @@ import {
     getMovie,
     addToWatchlist,
     removeFromWatchlist,
+    addToFavorites,
+    removeFromFavorites,
 } from "@/services/movie";
 
 // Utilities
@@ -347,6 +349,48 @@ const removeMovieFromWatchlist = async (req: TypedRequest<{ movieId: string }>, 
     }
 };
 
+/**
+ * Adds a specific movie to the authenticated user's favorites list.
+ *
+ * @route   POST /api/movies/:movieId/favorites
+ * @desc    Add a movie to the authenticated user's favorites list
+ * @access  Private (Requires Access Token)
+ */
+const addMovieToFavorites = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user!.id;
+        const movieId = req.params.movieId;
+
+        const favoriteItem = await addToFavorites({ userId, movieId });
+        return sendResponse(res, 201, favoriteItem, "Movie has been added to favorites successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Removes a specific movie from the authenticated user's favorites list.
+ *
+ * @route   DELETE /api/movies/:movieId/favorites
+ * @desc    Completely removes a movie from the user's favorites list.
+ * @access  Private (Requires Access Token)
+ */
+const removeMovieFromFavorites = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user!.id;
+        const movieId = req.params.movieId;
+
+        const deletedRecord = await removeFromFavorites({ userId, movieId });
+        if (!deletedRecord || deletedRecord.length === 0) {
+            throw new ApiError("Movie is not in your favorites list.", 404);
+        }
+
+        return sendResponse(res, 200, null, "Movie has been removed from favorites successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -364,4 +408,6 @@ export {
     getMovieById,
     addMovieToWatchlist,
     removeMovieFromWatchlist,
+    addMovieToFavorites,
+    removeMovieFromFavorites,
 };

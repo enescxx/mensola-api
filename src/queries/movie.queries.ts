@@ -267,8 +267,23 @@ export const movieQueries = {
                 WHERE ml."listType" = 'favorites' AND ml."creatorId" = $1
                 LIMIT $2 OFFSET $3;`,
 
-            add: ``,
-            remove: ``,
+            /**
+             * Inserts a new record into the MovieListItem table to add a movie to the user's favorites list.
+             * Returns the newly created row.
+             */
+            add: `
+                INSERT INTO "MovieListItem" (id, "movieListId", "movieId", "addedAt")
+                VALUES (gen_random_uuid(), (SELECT id FROM "MovieList" WHERE "listType" = 'favorites' AND "creatorId" = $1), $2, NOW())
+                RETURNING *;`,
+
+            /**
+             * Completely removes a movie from the user's favorites list by deleting all associated records
+             * for that specific movie in the MovieListItem table.
+             */
+            remove: `
+                DELETE FROM "MovieListItem"
+                WHERE "movieListId" = (SELECT id FROM "MovieList" WHERE "listType" = 'favorites' AND "creatorId" = $1) AND "movieId" = $2
+                RETURNING *;`,
         },
 
         /**

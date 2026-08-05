@@ -230,6 +230,7 @@ export const getMovie = async (dto: GetMovieDto): Promise<GetMovieResponse> => {
 
 /**
  * Adds a specific movie to the authenticated user's watchlist.
+ *
  * @param dto - Data transfer object containing userId and movieId.
  * @returns The newly created MovieListItem record representing the watchlist entry.
  */
@@ -247,5 +248,27 @@ export const addToWatchlist = async (dto: UserMovieActionDto): Promise<IMovieLis
  */
 export const removeFromWatchlist = async (dto: UserMovieActionDto): Promise<IMovieListItem[]> => {
     const result = await pool.query<IMovieListItem>(movieQueries.movies.watchlist.remove, [dto.userId, dto.movieId]);
+    return result.rows;
+};
+
+/**
+ * Adds a specific movie to the authenticated user's favorites list.
+ *
+ * @param dto - Data transfer object containing userId and movieId.
+ * @returns The newly created MovieListItem record representing the favorite entry.
+ */
+export const addToFavorites = async (dto: UserMovieActionDto): Promise<IMovieListItem> => {
+    const result = await pool.query<IMovieListItem>(movieQueries.movies.favorites.add, [dto.userId, dto.movieId]);
+    return result.rows[0];
+};
+
+/**
+ * Completely removes a specific movie from the authenticated user's favorites list.
+ *
+ * @param dto - Data transfer object containing userId and movieId.
+ * @returns The deleted MovieListItem record or null if the movie was not in the favorites list.
+ */
+export const removeFromFavorites = async (dto: UserMovieActionDto): Promise<IMovieListItem[]> => {
+    const result = await pool.query<IMovieListItem>(movieQueries.movies.favorites.remove, [dto.userId, dto.movieId]);
     return result.rows;
 };
