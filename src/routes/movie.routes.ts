@@ -2,17 +2,18 @@ import { Router } from "express";
 
 // Controllers
 import {
-  getFavoriteMovies,
-  getWatchlistMovies,
-  getWatchedMovies,
-  getLikedMoviesList,
-  getMovieLists,
-  getLikedMovieLists,
-  createMovieList,
-  markMovieAsWatched,
-  unmarkMovieAsWatched,
-  getMovieById,
-  addMovieToWatchlist,
+    getFavoriteMovies,
+    getWatchlistMovies,
+    getWatchedMovies,
+    getLikedMoviesList,
+    getMovieLists,
+    getLikedMovieLists,
+    createMovieList,
+    markMovieAsWatched,
+    unmarkMovieAsWatched,
+    getMovieById,
+    addMovieToWatchlist,
+    removeMovieFromWatchlist,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -102,6 +103,13 @@ router.delete("/:movieId/watched", verifyToken, validate(movieIdParamSchema), un
  * @access  Private (Requires valid Access Token)
  */
 router.post("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), addMovieToWatchlist);
+
+/**
+ * @route   DELETE /api/movies/:movieId/watchlist
+ * @desc    Completely remove a movie from the authenticated user's watchlist
+ * @access  Private (Requires valid Access Token)
+ */
+router.delete("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), removeMovieFromWatchlist);
 
 /**
  * @route   GET /api/movies/:movieId
