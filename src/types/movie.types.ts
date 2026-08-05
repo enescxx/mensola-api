@@ -133,6 +133,15 @@ type GetListByIdDto = {
  */
 type GetListItemsDto = GetListByIdDto;
 
+/**
+ * Data Transfer Object for adding a movie to a specific movie list.
+ */
+type AddItemToListDto = {
+    listId: IMovieList["id"];
+    movieId: IMovie["id"];
+    userId: UserId;
+};
+
 /* ==========================================================================
    Response Types & Payload Items
    ========================================================================== */
@@ -286,6 +295,7 @@ export {
     DeleteListDto,
     GetListByIdDto,
     GetListItemsDto,
+    AddItemToListDto,
 
     // Response Contracts & Payload Items
     MovieSummary,

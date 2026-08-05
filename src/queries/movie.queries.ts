@@ -166,6 +166,10 @@ export const movieQueries = {
             RETURNING *;`,
 
         items: {
+            /**
+             * Fetches all movies contained in a specific custom movie list, including
+             * user's interaction details (rating, like status, review existence).
+             */
             getMovies: `
                 SELECT
                     m.id,
@@ -187,7 +191,26 @@ export const movieQueries = {
                         ))
                     );
                 LIMIT $2 OFFSET $3;`,
-            addMovie: ``,
+
+            /**
+             * Inserts a new record into the MovieListItem table to add a movie to a specific custom movie list.
+             * Returns the newly created row.
+             */
+            addMovie: `
+                INSERT INTO "MovieListItem" ("movieListId", "movieId", "addedBy")
+                SELECT $1, $2, $3
+                FROM "MovieList" ml
+                WHERE ml.id = $1 
+                AND (
+                    ml."creatorId" = $3 
+                    OR EXISTS (
+                        SELECT 1 FROM "MovieListOwner" mlo 
+                        WHERE mlo."movieListId" = ml.id AND mlo."userId" = $3
+                    )
+                )
+                ON CONFLICT ("movieListId", "movieId") DO NOTHING
+                RETURNING "movieListId", "movieId", "addedBy", "addedAt";`,
+
             removeMovie: ``,
         },
 

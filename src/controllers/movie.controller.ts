@@ -20,6 +20,7 @@ import {
     deleteList,
     getListById,
     getListItems,
+    addItemToList,
 } from "@/services/movie";
 
 // Utilities
@@ -38,6 +39,7 @@ import {
     CreateMovieListDto,
     GetMovieDto,
     UpdateMovieListDto,
+    AddItemToListDto,
 } from "@/types/movie";
 
 /* ==========================================================================
@@ -477,6 +479,25 @@ const getMovieListItems = async (req: TypedRequest<{ listId: string }>, res: Res
     }
 };
 
+/**
+ * Adds a specific movie to a custom movie list for the authenticated user.
+ *
+ * @route   POST /api/movies/lists/:listId/items
+ * @desc    Adds a movie to a specific movie list.
+ * @access  VerifyToken (Requires valid Access Token)
+ */
+const addMovieToList = async (req: TypedRequestBody<AddItemToListDto>, res: Response, next: NextFunction) => {
+    try {
+        const { listId, movieId } = req.body;
+        const userId = req.user!.id;
+
+        const addedItem = await addItemToList({ listId, movieId, userId });
+        return sendResponse(res, 201, addedItem, "Movie has been added to the list successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -500,4 +521,5 @@ export {
     deleteMovieList,
     getMovieListById,
     getMovieListItems,
+    addMovieToList,
 };

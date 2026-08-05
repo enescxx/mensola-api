@@ -20,6 +20,7 @@ import {
     deleteMovieList,
     getMovieListById,
     getMovieListItems,
+    addMovieToList,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -122,6 +123,13 @@ router.delete("/lists/:listId", verifyToken, validate(listIdParamSchema), delete
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
 router.get("/lists/:listId/items", extractUser, validate(listIdParamSchema), getMovieListItems);
+
+/**
+ * @route   POST /api/movies/lists/:listId/items
+ * @desc    Adds a specific movie to a custom movie list for the authenticated user
+ * @access  Private (Requires valid Access Token)
+ */
+router.post("/lists/:listId/items", verifyToken, validate(listIdParamSchema), addMovieToList);
 
 /**
  * @route   POST /api/movies/:movieId/watched

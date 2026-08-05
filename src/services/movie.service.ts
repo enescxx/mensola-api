@@ -40,6 +40,7 @@ import {
     GetListItemsResponse,
     GetListItemsDto,
     MovieSummary,
+    AddItemToListDto,
 } from "@/types/movie";
 
 /**
@@ -360,4 +361,27 @@ export const getListItems = async (dto: GetListItemsDto): Promise<GetListItemsRe
     }
 
     return movieItems;
+};
+
+/**
+ * Adds a specific movie to a custom movie list.
+ *
+ * @param dto - Data transfer object containing the movie list ID, movie ID, and user ID of the person adding the movie.
+ * @returns The newly created MovieListItem record representing the added movie.
+ * @throws {ApiError} 404 Not Found if the movie list does not exist, the movie already exists in the list, or the user does not have permission to modify it.
+ */
+export const addItemToList = async (dto: AddItemToListDto): Promise<IMovieListItem> => {
+    const { listId, movieId, userId } = dto;
+
+    const result = await pool.query<IMovieListItem>(movieQueries.lists.items.addMovie, [listId, movieId, userId]);
+    const addedItem = result.rows[0];
+
+    if (!addedItem) {
+        throw new ApiError(
+            "Movie list not found, movie already exists in the list, or you don't have permission to modify it.",
+            404,
+        );
+    }
+
+    return addedItem;
 };
