@@ -19,6 +19,7 @@ import {
     updateList,
     deleteList,
     getListById,
+    getListItems,
 } from "@/services/movie";
 
 // Utilities
@@ -443,7 +444,7 @@ const deleteMovieList = async (req: TypedRequest<{ listId: string }>, res: Respo
  *
  * @route   GET /api/movies/lists/:listId
  * @desc    Fetches a specific movie list with detailed information.
- * @access  Private (Requires Access Token)
+ * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
 const getMovieListById = async (req: TypedRequest<{ listId: string }>, res: Response, next: NextFunction) => {
     try {
@@ -452,6 +453,25 @@ const getMovieListById = async (req: TypedRequest<{ listId: string }>, res: Resp
 
         const movieList = await getListById({ listId, userId });
         return sendResponse(res, 200, movieList, "Movie list retrieved successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Retrieves all movies within a specific movie list, including their interactions.
+ *
+ * @route   GET /api/movies/lists/:listId/items
+ * @desc    Fetches all movies contained in a specific movie list.
+ * @access  Public / Optional Auth (Attaches viewer context if token provided)
+ */
+const getMovieListItems = async (req: TypedRequest<{ listId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?.id;
+        const listId = req.params.listId;
+
+        const movieItems = await getListItems({ listId, userId });
+        return sendResponse(res, 200, movieItems, "Movie items retrieved successfully.");
     } catch (error) {
         next(error);
     }
@@ -479,4 +499,5 @@ export {
     updateMovieList,
     deleteMovieList,
     getMovieListById,
+    getMovieListItems,
 };

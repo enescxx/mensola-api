@@ -166,7 +166,27 @@ export const movieQueries = {
             RETURNING *;`,
 
         items: {
-            getMovies: ``,
+            getMovies: `
+                SELECT
+                    m.id,
+                    m.title,
+                    m.poster
+                FROM "MovieList" ml
+                JOIN "MovieListItem" mli ON ml.id = mli."movieListId"
+                JOIN "Movie" m ON mli."movieId" = m.id
+                WHERE ml.id = $1
+                    AND ml."listType" = 'custom'
+                    AND (
+                        ml."isPrivate" = false 
+                        OR ($2::uuid IS NOT NULL AND (
+                            ml."creatorId" = $2 
+                            OR EXISTS (
+                                SELECT 1 FROM "MovieListOwner" mlo 
+                                WHERE mlo."movieListId" = ml.id AND mlo."userId" = $2
+                            )
+                        ))
+                    );
+                LIMIT $2 OFFSET $3;`,
             addMovie: ``,
             removeMovie: ``,
         },

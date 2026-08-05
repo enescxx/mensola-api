@@ -32,12 +32,14 @@ import {
     GetWatchedMoviesResponse,
     GetWatchedMoviesResponseItem,
     GetWatchlistResponse,
-    GetWatchlistResponseItem,
     GetMovieResponse,
     UpdateMovieListDto,
     DeleteListDto,
     GetListByIdDto,
     GetListByIdResponse,
+    GetListItemsResponse,
+    GetListItemsDto,
+    MovieSummary,
 } from "@/types/movie";
 
 /**
@@ -77,11 +79,7 @@ export const getWatchlist = async (dto: GetWatchlistDto): Promise<GetWatchlistRe
 
     const offset = (dto.page - 1) * dto.limit;
 
-    const result = await pool.query<GetWatchlistResponseItem>(movieQueries.movies.watchlist.get, [
-        dto.userId,
-        dto.limit,
-        offset,
-    ]);
+    const result = await pool.query<MovieSummary>(movieQueries.movies.watchlist.get, [dto.userId, dto.limit, offset]);
 
     return result.rows;
 };
@@ -342,4 +340,24 @@ export const getListById = async (dto: GetListByIdDto): Promise<GetListByIdRespo
     }
 
     return movieList;
+};
+
+/**
+ * Retrieves all movies within a specific movie list, including their interactions.
+ *
+ * @param dto - Data transfer object containing the movie list ID and optional user ID for context.
+ * @returns An array of movie summary items with interaction details.
+ * @throws {ApiError} 404 Not Found if the movie list does not exist or the user does not have permission to access it.
+ */
+export const getListItems = async (dto: GetListItemsDto): Promise<GetListItemsResponse> => {
+    const { listId, userId } = dto;
+
+    const result = await pool.query<MovieSummary>(movieQueries.lists.items.getMovies, [listId, userId ?? null]);
+    const movieItems = result.rows;
+
+    if (movieItems.length === 0) {
+        throw new ApiError("Movie list not found or you don't have permission to access it.", 404);
+    }
+
+    return movieItems;
 };

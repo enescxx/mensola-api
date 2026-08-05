@@ -19,6 +19,7 @@ import {
     updateMovieList,
     deleteMovieList,
     getMovieListById,
+    getMovieListItems,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -114,6 +115,13 @@ router.patch("/lists/:listId", verifyToken, validate(updateMovieListSchema), upd
  * @access  Private (Requires valid Access Token)
  */
 router.delete("/lists/:listId", verifyToken, validate(listIdParamSchema), deleteMovieList);
+
+/**
+ * @route   GET /api/movies/lists/:listId/items
+ * @desc    Fetches all movies contained in a specific movie list
+ * @access  Public / Optional Auth (Attaches viewer context if token provided)
+ */
+router.get("/lists/:listId/items", extractUser, validate(listIdParamSchema), getMovieListItems);
 
 /**
  * @route   POST /api/movies/:movieId/watched

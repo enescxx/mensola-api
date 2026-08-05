@@ -128,14 +128,24 @@ type GetListByIdDto = {
     userId?: UserId;
 };
 
+/**
+ * Data Transfer Object for fetching movies within a specific movie list.
+ */
+type GetListItemsDto = GetListByIdDto;
+
 /* ==========================================================================
    Response Types & Payload Items
    ========================================================================== */
 
 /**
+ * Minimal movie representation used for list items, cards, and previews.
+ */
+type MovieSummary = Pick<IMovie, "id" | "title" | "poster">;
+
+/**
  * Base item structure for user movie library responses (Favorites, Likes, etc.).
  */
-type MovieResponseItem = Pick<IMovie, "id" | "title" | "poster"> & {
+type MovieResponseItem = MovieSummary & {
     rating?: number;
     isLiked?: boolean;
     hasReview?: boolean;
@@ -155,19 +165,14 @@ type GetFavoritesResponse = GetFavoritesResponseItem[];
 type GetLikedMoviesResponse = GetLikedMoviesResponseItem[];
 
 /**
- * Individual item structure for GetWatchlistResponse payload.
- */
-type GetWatchlistResponseItem = Pick<IMovie, "id" | "title" | "poster">;
-
-/**
  * Paginated array response for user watchlist movies.
  */
-type GetWatchlistResponse = GetWatchlistResponseItem[];
+type GetWatchlistResponse = MovieSummary[];
 
 /**
  * Individual item structure for GetWatchedMoviesResponse payload.
  */
-type GetWatchedMoviesResponseItem = Pick<IMovie, "id" | "title" | "poster"> & {
+type GetWatchedMoviesResponseItem = MovieSummary & {
     rating?: number;
     isLiked?: boolean;
     hasReview?: boolean;
@@ -182,7 +187,7 @@ type GetWatchedMoviesResponse = GetWatchedMoviesResponseItem[];
 /**
  * Preview item structure for movies embedded inside list previews.
  */
-type PreviewMoviesItem = Pick<IMovie, "id" | "title" | "poster"> & {
+type PreviewMoviesItem = MovieSummary & {
     rating?: number;
     isLiked?: boolean;
 };
@@ -245,9 +250,14 @@ type MovieListLatestCommentItem = {
  */
 type GetListByIdResponse = IMovieList & {
     owners: Pick<IUser, "id" | "username" | "fullname" | "avatar">[];
-    previewMovies: Pick<IMovie, "id" | "title" | "poster">[];
+    previewMovies: MovieSummary[];
     latestComments: MovieListLatestCommentItem[];
 };
+
+/**
+ * Paginated array response for fetching movies within a specific movie list.
+ */
+type GetListItemsResponse = MovieSummary[];
 
 /* ==========================================================================
    Exports
@@ -275,8 +285,10 @@ export {
     UpdateMovieListDto,
     DeleteListDto,
     GetListByIdDto,
+    GetListItemsDto,
 
     // Response Contracts & Payload Items
+    MovieSummary,
     MovieResponseItem,
     GetFavoritesResponse,
     GetFavoritesResponseItem,
@@ -289,10 +301,10 @@ export {
     GetWatchedMoviesResponse,
     GetWatchedMoviesResponseItem,
     GetWatchlistResponse,
-    GetWatchlistResponseItem,
     PreviewMoviesItem,
     GetMovieInteractionsItem,
     GetMovieResponse,
     MovieListLatestCommentItem,
     GetListByIdResponse,
+    GetListItemsResponse,
 };
