@@ -42,7 +42,95 @@ export const movieQueries = {
             GROUP BY ml.id
             LIMIT $2 OFFSET $3;`,
 
-        getById: ``,
+        getById: `
+            SELECT 
+                ml.*,
+                COALESCE(list_owners.owners, '[]'::json) AS "owners",
+                COALESCE(preview_movies.movies, '[]'::json) AS "previewMovies",
+                COALESCE(latest_comments.comments, '[]'::json) AS "latestComments"
+            FROM "MovieList" ml
+
+            LEFT JOIN LATERAL (
+                SELECT json_agg(ml_owners) AS owners
+                FROM (
+                    SELECT 
+                        u.id AS "id",
+                        u.username AS "username",
+                        u.fullname AS "fullname",
+                        u.avatar AS "avatar"
+                    FROM "MovieListOwner" mlo
+                    JOIN "User" u ON u.id = mlo."userId"
+                    WHERE mlo."movieListId" = ml.id
+                ) ml_owners
+            ) list_owners ON true
+            
+            LEFT JOIN LATERAL (
+                SELECT json_agg(pm) AS movies
+                FROM (
+                    SELECT
+                        m.id AS "id",
+                        m.title AS "title",
+                        m.poster AS "poster"
+                    FROM "MovieListItem" mli
+                    JOIN "Movie" m ON m.id = mli."movieId"
+                    WHERE mli."movieListId" = ml.id
+                    ORDER BY mli."addedAt" DESC
+                    LIMIT 3
+                ) pm
+            ) preview_movies ON true
+            
+            LEFT JOIN LATERAL (
+                SELECT json_agg(
+                    json_build_object(
+                        'commentId', lc."commentId",
+                        'content', lc.content,
+                        'date', lc."createdDate",
+                        'interactionId', lc."interactionId",
+                        'rating', lc."rating",
+                        'isLiked', lc."isLiked",
+                        'user', json_build_object(
+                            'id', lc."userId",
+                            'username', lc.username,
+                            'fullname', lc.fullname,
+                            'avatar', lc.avatar
+                        )
+                    )
+                ) AS comments
+                FROM (
+                    SELECT 
+                        c.id AS "commentId",
+                        c.content, 
+                        c."createdDate",
+                        m_int.id AS "interactionId", 
+                        m_int."rating", 
+                        COALESCE(m_int."isLiked", false) AS "isLiked",
+                        int_u.id AS "userId", 
+                        int_u.username, 
+                        int_u.fullname, 
+                        int_u.avatar
+                    FROM "Comment" c
+                    JOIN "Interaction" m_int ON c."interactionId" = m_int.id
+                    JOIN "User" int_u ON int_u.id = m_int."userId" 
+                    WHERE m_int."targetId" = ml.id 
+                    AND m_int."targetType" = 'movieList'
+                    AND c."parentId" IS NULL
+                    ORDER BY c."createdDate" DESC
+                    LIMIT 3
+                ) lc
+            ) latest_comments ON true
+
+            WHERE ml.id = $1 
+                AND ml."listType" = 'custom'
+                AND (
+                    ml."isPrivate" = false 
+                    OR ($2::uuid IS NOT NULL AND (
+                        ml."creatorId" = $2 
+                        OR EXISTS (
+                            SELECT 1 FROM "MovieListOwner" mlo 
+                            WHERE mlo."movieListId" = ml.id AND mlo."userId" = $2
+                        )
+                    ))
+                );`,
 
         /**
          * Inserts a new custom movie list into the database and returns created record.

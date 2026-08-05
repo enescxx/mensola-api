@@ -36,6 +36,8 @@ import {
     GetMovieResponse,
     UpdateMovieListDto,
     DeleteListDto,
+    GetListByIdDto,
+    GetListByIdResponse,
 } from "@/types/movie";
 
 /**
@@ -320,4 +322,24 @@ export const deleteList = async (dto: DeleteListDto): Promise<IMovieList> => {
     }
 
     return deletedList;
+};
+
+/**
+ * Retrieves a movie list by its ID, including owners, preview movies, and latest comments.
+ *
+ * @param dto - Data transfer object containing the movie list ID and optional user ID for permission checks.
+ * @returns The movie list details along with owners, preview movies, and latest comments.
+ * @throws {ApiError} 404 Not Found if the movie list does not exist or the user does not have permission to access it.
+ */
+export const getListById = async (dto: GetListByIdDto): Promise<GetListByIdResponse> => {
+    const { listId, userId } = dto;
+
+    const result = await pool.query<GetListByIdResponse>(movieQueries.lists.getById, [listId, userId ?? null]);
+    const movieList = result.rows[0];
+
+    if (!movieList) {
+        throw new ApiError("Movie list not found or you don't have permission to access it.", 404);
+    }
+
+    return movieList;
 };

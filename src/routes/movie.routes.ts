@@ -18,6 +18,7 @@ import {
     removeMovieFromFavorites,
     updateMovieList,
     deleteMovieList,
+    getMovieListById,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -92,6 +93,13 @@ router.get("/lists", extractUser, validate(moviePaginationQuerySchema), getMovie
  * @access  Private (Requires valid Access Token)
  */
 router.post("/lists", verifyToken, validate(createMovieListSchema), createMovieList);
+
+/**
+ * @route   GET /api/movies/lists/:listId
+ * @desc    Fetch a specific movie list by its ID, including owners, preview movies, and latest comments
+ * @access  Public / Optional Auth (Attaches viewer context if token provided)
+ */
+router.get("/lists/:listId", extractUser, validate(listIdParamSchema), getMovieListById);
 
 /**
  * @route   PATCH /api/movies/lists/:listId

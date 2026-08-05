@@ -18,6 +18,7 @@ import {
     removeFromFavorites,
     updateList,
     deleteList,
+    getListById,
 } from "@/services/movie";
 
 // Utilities
@@ -437,6 +438,25 @@ const deleteMovieList = async (req: TypedRequest<{ listId: string }>, res: Respo
     }
 };
 
+/**
+ * Retrieves a movie list by its ID, including owners, preview movies, and latest comments.
+ *
+ * @route   GET /api/movies/lists/:listId
+ * @desc    Fetches a specific movie list with detailed information.
+ * @access  Private (Requires Access Token)
+ */
+const getMovieListById = async (req: TypedRequest<{ listId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?.id;
+        const listId = req.params.listId;
+
+        const movieList = await getListById({ listId, userId });
+        return sendResponse(res, 200, movieList, "Movie list retrieved successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -458,4 +478,5 @@ export {
     removeMovieFromFavorites,
     updateMovieList,
     deleteMovieList,
+    getMovieListById,
 };

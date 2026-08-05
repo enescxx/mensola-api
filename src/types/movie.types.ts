@@ -120,6 +120,14 @@ type DeleteListDto = {
     listId: IMovieList["id"];
 };
 
+/**
+ * Data Transfer Object for fetching a specific movie list by its ID.
+ */
+type GetListByIdDto = {
+    listId: IMovieList["id"];
+    userId?: UserId;
+};
+
 /* ==========================================================================
    Response Types & Payload Items
    ========================================================================== */
@@ -212,6 +220,35 @@ type GetMovieResponse = IMovie & {
     interactions: GetMovieInteractionsItem[];
 };
 
+/**
+ * Represents a simplified comment item with user details and interaction data,
+ * used for recent comment previews on a movie list.
+ */
+type MovieListLatestCommentItem = {
+    commentId: string;
+    content: string;
+    date: Date | string;
+    interactionId: string;
+    rating: number | null;
+    isLiked: boolean;
+    user: {
+        id: UserId;
+        username: string;
+        fullname: string;
+        avatar: string | null;
+    };
+};
+
+/**
+ * Detailed custom movie list response type returned by the getById query.
+ * Extends base IMovieList with populated JSON aggregated fields.
+ */
+type GetListByIdResponse = IMovieList & {
+    owners: Pick<IUser, "id" | "username" | "fullname" | "avatar">[];
+    previewMovies: Pick<IMovie, "id" | "title" | "poster">[];
+    latestComments: MovieListLatestCommentItem[];
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -237,6 +274,7 @@ export {
     GetMovieDto,
     UpdateMovieListDto,
     DeleteListDto,
+    GetListByIdDto,
 
     // Response Contracts & Payload Items
     MovieResponseItem,
@@ -255,4 +293,6 @@ export {
     PreviewMoviesItem,
     GetMovieInteractionsItem,
     GetMovieResponse,
+    MovieListLatestCommentItem,
+    GetListByIdResponse,
 };
