@@ -34,6 +34,7 @@ import {
     GetWatchlistResponse,
     GetWatchlistResponseItem,
     GetMovieResponse,
+    UpdateMovieListDto,
 } from "@/types/movie";
 
 /**
@@ -271,4 +272,31 @@ export const addToFavorites = async (dto: UserMovieActionDto): Promise<IMovieLis
 export const removeFromFavorites = async (dto: UserMovieActionDto): Promise<IMovieListItem[]> => {
     const result = await pool.query<IMovieListItem>(movieQueries.movies.favorites.remove, [dto.userId, dto.movieId]);
     return result.rows;
+};
+
+/**
+ * Updates the details of an existing movie list.
+ *
+ * @param dto - Data transfer object containing the movie list ID and updated details.
+ * @returns The updated MovieList record.
+ * @throws {ApiError} 404 Not Found if the movie list does not exist.
+ */
+export const updateList = async (dto: UpdateMovieListDto): Promise<IMovieList> => {
+    const { listId, userId, title, description, image, isPrivate } = dto;
+
+    const result = await pool.query<IMovieList>(movieQueries.lists.update, [
+        title ?? null,
+        description ?? null,
+        image ?? null,
+        isPrivate ?? null,
+        listId,
+        userId,
+    ]);
+    const updatedList = result.rows[0];
+
+    if (!updatedList) {
+        throw new ApiError("Movie list not found or you don't have permission to update it.", 404);
+    }
+
+    return updatedList;
 };

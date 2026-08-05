@@ -16,6 +16,7 @@ import {
     removeFromWatchlist,
     addToFavorites,
     removeFromFavorites,
+    updateList,
 } from "@/services/movie";
 
 // Utilities
@@ -33,6 +34,7 @@ import {
     GetLikedListsDto,
     CreateMovieListDto,
     GetMovieDto,
+    UpdateMovieListDto,
 } from "@/types/movie";
 
 /* ==========================================================================
@@ -391,6 +393,30 @@ const removeMovieFromFavorites = async (req: TypedRequest<{ movieId: string }>, 
     }
 };
 
+/**
+ * Updates a custom movie list if the authenticated user is the creator or a co-owner.
+ *
+ * @route   PATCH /api/movies/lists/:listId
+ * @desc    Updates the details of an existing movie list.
+ * @access  Private (Requires Access Token)
+ */
+const updateMovieList = async (
+    req: TypedRequest<{ listId: string }, Omit<UpdateMovieListDto, "listId" | "userId">>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const listId = req.params.listId;
+        const { title, description, image, isPrivate } = req.body;
+
+        const updatedList = await updateList({ listId, userId, title, description, image, isPrivate });
+        return sendResponse(res, 200, updatedList, "Movie list has been updated successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -410,4 +436,5 @@ export {
     removeMovieFromWatchlist,
     addMovieToFavorites,
     removeMovieFromFavorites,
+    updateMovieList,
 };

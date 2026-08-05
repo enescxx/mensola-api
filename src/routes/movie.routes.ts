@@ -16,6 +16,7 @@ import {
     removeMovieFromWatchlist,
     addMovieToFavorites,
     removeMovieFromFavorites,
+    updateMovieList,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -23,7 +24,12 @@ import { verifyToken, extractUser } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";
 
 // Validation
-import { moviePaginationQuerySchema, createMovieListSchema, movieIdParamSchema } from "@/validations/movie";
+import {
+    moviePaginationQuerySchema,
+    createMovieListSchema,
+    movieIdParamSchema,
+    updateMovieListSchema,
+} from "@/validations/movie";
 
 const router = Router();
 
@@ -84,6 +90,13 @@ router.get("/lists", extractUser, validate(moviePaginationQuerySchema), getMovie
  * @access  Private (Requires valid Access Token)
  */
 router.post("/lists", verifyToken, validate(createMovieListSchema), createMovieList);
+
+/**
+ * @route   PATCH /api/movies/lists/:listId
+ * @desc    Updates the details of an existing movie list
+ * @access  Private (Requires valid Access Token)
+ */
+router.patch("/lists/:listId", verifyToken, validate(updateMovieListSchema), updateMovieList);
 
 /**
  * @route   POST /api/movies/:movieId/watched

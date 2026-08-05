@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /* ==========================================================================
-   Query Validations
+   Shared & Query Validations
    ========================================================================== */
 
 /**
@@ -15,7 +15,6 @@ export const moviePaginationQuerySchema = z.object({
             .uuid("Invalid user ID format. Must be a valid UUID.")
             .optional(),
 
-        // Zod'un coerce özelliği ile URL'den gelen string değerleri otomatik olarak number'a çeviriyoruz
         page: z.coerce
             .number({ message: "Page must be a number." })
             .int("Page must be an integer.")
@@ -27,17 +26,28 @@ export const moviePaginationQuerySchema = z.object({
             .int("Limit must be an integer.")
             .min(1, "Limit must be at least 1.")
             .max(100, "Limit cannot exceed 100 items per request.")
-            .optional()
-    })
+            .optional(),
+    }),
+});
+
+/**
+ * Validation schema for endpoints that require a valid `movieId` parameter.
+ */
+export const movieIdParamSchema = z.object({
+    params: z.object({
+        movieId: z
+            .string({ message: "Movie ID is required and must be a string." })
+            .uuid("Invalid movie ID format.")
+            .trim(),
+    }),
 });
 
 /* ==========================================================================
-   Body Validations
+   Movie List Validations (Custom Lists)
    ========================================================================== */
 
 /**
  * Validation schema for creating a new custom movie list.
- * Validates the `title`, `description`, `image`, and `isPrivate` fields in the request body.
  */
 export const createMovieListSchema = z.object({
     body: z.object({
@@ -55,23 +65,21 @@ export const createMovieListSchema = z.object({
 
         image: z.string({ message: "Image URL must be a string." }).url("Image must be a valid URL.").optional(),
 
-        isPrivate: z.boolean({ message: "isPrivate flag is required and must be a boolean (true/false)." })
-    })
+        isPrivate: z.boolean({ message: "isPrivate flag is required and must be a boolean (true/false)." }),
+    }),
 });
 
-/* ==========================================================================
-   Params Validations
-   ========================================================================== */
-
 /**
- * Validation schema for endpoints that require a valid `movieId` parameter.
- * Can be used for marking/unmarking watched, adding to favorites, etc.
+ * Validation schema for updating a custom movie list.
  */
-export const movieIdParamSchema = z.object({
+export const updateMovieListSchema = z.object({
     params: z.object({
-        movieId: z
-            .string({ message: "Movie ID is required and must be a string." })
-            .uuid("Invalid movie ID format.")
-            .trim()
-    })
+        listId: z.string().uuid("Invalid list ID format.").trim(),
+    }),
+    body: z.object({
+        title: z.string().min(1, "Title cannot be empty.").max(100).trim().optional(),
+        description: z.string().max(500).trim().optional(),
+        image: z.string().url("Invalid image URL format.").optional().nullable(),
+        isPrivate: z.boolean().optional(),
+    }),
 });

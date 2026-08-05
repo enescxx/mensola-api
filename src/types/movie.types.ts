@@ -103,6 +103,15 @@ type UserMovieActionDto = {
 type GetMovieDto = {
     movieId: IMovie["id"];
 };
+
+/**
+ * Data Transfer Object for updating an existing movie list.
+ */
+type UpdateMovieListDto = Omit<IMovieList, "id" | "creatorId" | "listType"> & {
+    listId: string;
+    userId: UserId;
+};
+
 /* ==========================================================================
    Response Types & Payload Items
    ========================================================================== */
@@ -218,6 +227,7 @@ export {
     GetWatchlistDto,
     UserMovieActionDto,
     GetMovieDto,
+    UpdateMovieListDto,
 
     // Response Contracts & Payload Items
     MovieResponseItem,
@@ -235,5 +245,5 @@ export {
     GetWatchlistResponseItem,
     PreviewMoviesItem,
     GetMovieInteractionsItem,
-    GetMovieResponse
+    GetMovieResponse,
 };

@@ -52,7 +52,24 @@ export const movieQueries = {
             VALUES (gen_random_uuid(), $1, $2, $3, $4, $5) 
             RETURNING id, title, description, image, "isPrivate","creatorId";`,
 
-        update: ``,
+        update: `
+            UPDATE "MovieList" ml
+            SET 
+                title = COALESCE($1, ml.title),
+                description = COALESCE($2, ml.description),
+                image = COALESCE($3, ml.image),
+                "isPrivate" = COALESCE($4, ml."isPrivate")
+            WHERE ml.id = $5 
+              AND ml."listType" = 'custom'
+              AND (
+                  ml."creatorId" = $6 
+                  OR EXISTS (
+                      SELECT 1 FROM "MovieListOwner" mlo 
+                      WHERE mlo."movieListId" = ml.id AND mlo."userId" = $6
+                  )
+              )
+            RETURNING ml.*;`,
+
         delete: ``,
 
         items: {
