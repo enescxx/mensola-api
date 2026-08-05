@@ -2,16 +2,17 @@ import { Router } from "express";
 
 // Controllers
 import {
-    getFavoriteMovies,
-    getWatchlistMovies,
-    getWatchedMovies,
-    getLikedMoviesList,
-    getMovieLists,
-    getLikedMovieLists,
-    createMovieList,
-    markMovieAsWatched,
-    unmarkMovieAsWatched,
-    getMovieById
+  getFavoriteMovies,
+  getWatchlistMovies,
+  getWatchedMovies,
+  getLikedMoviesList,
+  getMovieLists,
+  getLikedMovieLists,
+  createMovieList,
+  markMovieAsWatched,
+  unmarkMovieAsWatched,
+  getMovieById,
+  addMovieToWatchlist,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -39,7 +40,7 @@ router.get("/favorites", extractUser, validate(moviePaginationQuerySchema), getF
  * @desc    Get paginated watchlist movies for a target user (or authenticated user)
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
-router.get("/watchlists", extractUser, validate(moviePaginationQuerySchema), getWatchlistMovies);
+router.get("/watchlist", extractUser, validate(moviePaginationQuerySchema), getWatchlistMovies);
 
 /**
  * @route   GET /api/movies/watched
@@ -94,6 +95,13 @@ router.post("/:movieId/watched", verifyToken, validate(movieIdParamSchema), mark
  * @access  Private (Requires valid Access Token)
  */
 router.delete("/:movieId/watched", verifyToken, validate(movieIdParamSchema), unmarkMovieAsWatched);
+
+/**
+ * @route   POST /api/movies/:movieId/watchlist
+ * @desc    Add a movie to the authenticated user's watchlist
+ * @access  Private (Requires valid Access Token)
+ */
+router.post("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), addMovieToWatchlist);
 
 /**
  * @route   GET /api/movies/:movieId
