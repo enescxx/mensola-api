@@ -42,6 +42,12 @@ export const movieIdParamSchema = z.object({
     }),
 });
 
+export const listIdParamSchema = z.object({
+    params: z.object({
+        listId: z.string().uuid("Invalid list ID format.").trim(),
+    }),
+});
+
 /* ==========================================================================
    Movie List Validations (Custom Lists)
    ========================================================================== */
@@ -73,9 +79,7 @@ export const createMovieListSchema = z.object({
  * Validation schema for updating a custom movie list.
  */
 export const updateMovieListSchema = z.object({
-    params: z.object({
-        listId: z.string().uuid("Invalid list ID format.").trim(),
-    }),
+    params: listIdParamSchema.shape.params,
     body: z.object({
         title: z.string().min(1, "Title cannot be empty.").max(100).trim().optional(),
         description: z.string().max(500).trim().optional(),

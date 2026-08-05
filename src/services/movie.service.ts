@@ -35,6 +35,7 @@ import {
     GetWatchlistResponseItem,
     GetMovieResponse,
     UpdateMovieListDto,
+    DeleteListDto,
 } from "@/types/movie";
 
 /**
@@ -299,4 +300,24 @@ export const updateList = async (dto: UpdateMovieListDto): Promise<IMovieList> =
     }
 
     return updatedList;
+};
+
+/**
+ * Deletes a movie list and all associated items.
+ *
+ * @param dto - Data transfer object containing the movie list ID and user ID.
+ * @returns The deleted MovieList record.
+ * @throws {ApiError} 404 Not Found if the movie list does not exist or the user is not the creator.
+ */
+export const deleteList = async (dto: DeleteListDto): Promise<IMovieList> => {
+    const { listId, userId } = dto;
+
+    const result = await pool.query<IMovieList>(movieQueries.lists.delete, [listId, userId]);
+    const deletedList = result.rows[0];
+
+    if (!deletedList) {
+        throw new ApiError("Movie list not found or you don't have permission to delete it.", 404);
+    }
+
+    return deletedList;
 };

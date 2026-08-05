@@ -17,6 +17,7 @@ import {
     addToFavorites,
     removeFromFavorites,
     updateList,
+    deleteList,
 } from "@/services/movie";
 
 // Utilities
@@ -417,6 +418,25 @@ const updateMovieList = async (
     }
 };
 
+/**
+ * Deletes a custom movie list if the authenticated user is the creator or a co-owner.
+ *
+ * @route   DELETE /api/movies/lists/:listId
+ * @desc    Deletes an existing movie list.
+ * @access  Private (Requires Access Token)
+ */
+const deleteMovieList = async (req: TypedRequest<{ listId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user!.id;
+        const listId = req.params.listId;
+
+        const deletedList = await deleteList({ listId, userId });
+        return sendResponse(res, 200, deletedList, "Movie list has been deleted successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -437,4 +457,5 @@ export {
     addMovieToFavorites,
     removeMovieFromFavorites,
     updateMovieList,
+    deleteMovieList,
 };

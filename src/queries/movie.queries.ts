@@ -70,7 +70,12 @@ export const movieQueries = {
               )
             RETURNING ml.*;`,
 
-        delete: ``,
+        delete: `
+            DELETE FROM "MovieList" ml
+            WHERE ml.id = $1 
+              AND ml."listType" = 'custom'
+              AND ml."creatorId" = $2
+            RETURNING *;`,
 
         items: {
             getMovies: ``,

@@ -108,8 +108,16 @@ type GetMovieDto = {
  * Data Transfer Object for updating an existing movie list.
  */
 type UpdateMovieListDto = Omit<IMovieList, "id" | "creatorId" | "listType"> & {
-    listId: string;
+    listId: IMovieList["id"];
     userId: UserId;
+};
+
+/**
+ * Data Transfer Object for deleting a specific movie list.
+ */
+type DeleteListDto = {
+    userId: UserId;
+    listId: IMovieList["id"];
 };
 
 /* ==========================================================================
@@ -228,6 +236,7 @@ export {
     UserMovieActionDto,
     GetMovieDto,
     UpdateMovieListDto,
+    DeleteListDto,
 
     // Response Contracts & Payload Items
     MovieResponseItem,

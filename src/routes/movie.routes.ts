@@ -17,6 +17,7 @@ import {
     addMovieToFavorites,
     removeMovieFromFavorites,
     updateMovieList,
+    deleteMovieList,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -29,6 +30,7 @@ import {
     createMovieListSchema,
     movieIdParamSchema,
     updateMovieListSchema,
+    listIdParamSchema,
 } from "@/validations/movie";
 
 const router = Router();
@@ -97,6 +99,13 @@ router.post("/lists", verifyToken, validate(createMovieListSchema), createMovieL
  * @access  Private (Requires valid Access Token)
  */
 router.patch("/lists/:listId", verifyToken, validate(updateMovieListSchema), updateMovieList);
+
+/**
+ * @route   DELETE /api/movies/lists/:listId
+ * @desc    Deletes a specific movie list for the authenticated user
+ * @access  Private (Requires valid Access Token)
+ */
+router.delete("/lists/:listId", verifyToken, validate(listIdParamSchema), deleteMovieList);
 
 /**
  * @route   POST /api/movies/:movieId/watched
