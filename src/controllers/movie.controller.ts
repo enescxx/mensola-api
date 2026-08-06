@@ -282,7 +282,7 @@ const unmarkMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res:
         const movieId = req.params.movieId;
 
         const deletedRecord = await unmarkAsWatched({ userId, movieId });
-        if (!deletedRecord) {
+        if (deletedRecord.length === 0) {
             throw new ApiError("Movie is not in your watched history.", 404);
         }
 

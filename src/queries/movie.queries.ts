@@ -189,7 +189,7 @@ export const movieQueries = {
                                 WHERE mlo."movieListId" = ml.id AND mlo."userId" = $2
                             )
                         ))
-                    );
+                    )
                 LIMIT $2 OFFSET $3;`,
 
             /**
@@ -308,7 +308,7 @@ export const movieQueries = {
                     JOIN "Comment" c ON c."interactionId" = m_int.id AND c."parentId" IS NULL
                     LEFT JOIN "User" u ON u.id = m_int."userId"
                     WHERE m_int."targetId" = m.id AND m_int."targetType" = 'movie'
-                    ORDER BY c."createdDate" DESC -- En yeni yorumlar gelsin diye ekleyebilirsin
+                    ORDER BY c."createdAt" DESC
                     LIMIT 3
                 ) int_data
             ) interactions_data ON true
@@ -337,8 +337,8 @@ export const movieQueries = {
              * Returns the newly created row.
              */
             add: `
-                INSERT INTO "MovieListItem" (id, "movieListId", "movieId", "addedAt")
-                VALUES (gen_random_uuid(), (SELECT id FROM "MovieList" WHERE "listType" = 'watchlist' AND "creatorId" = $1), $2, NOW())
+                INSERT INTO "MovieListItem" ("movieListId", "movieId", "addedAt")
+                VALUES ((SELECT id FROM "MovieList" WHERE "listType" = 'watchlist' AND "creatorId" = $1), $2, NOW())
                 RETURNING *;`,
 
             /**
