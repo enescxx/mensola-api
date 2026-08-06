@@ -40,7 +40,7 @@ import {
     GetListItemsResponse,
     GetListItemsDto,
     MovieSummary,
-    AddItemToListDto,
+    MovieListItemDto,
 } from "@/types/movie";
 
 /**
@@ -370,7 +370,7 @@ export const getListItems = async (dto: GetListItemsDto): Promise<GetListItemsRe
  * @returns The newly created MovieListItem record representing the added movie.
  * @throws {ApiError} 404 Not Found if the movie list does not exist, the movie already exists in the list, or the user does not have permission to modify it.
  */
-export const addItemToList = async (dto: AddItemToListDto): Promise<IMovieListItem> => {
+export const addItemToList = async (dto: MovieListItemDto): Promise<IMovieListItem> => {
     const { listId, movieId, userId } = dto;
 
     const result = await pool.query<IMovieListItem>(movieQueries.lists.items.addMovie, [listId, movieId, userId]);
@@ -384,4 +384,15 @@ export const addItemToList = async (dto: AddItemToListDto): Promise<IMovieListIt
     }
 
     return addedItem;
+};
+
+export const removeItemFromList = async (dto: MovieListItemDto): Promise<void> => {
+    const { listId, movieId, userId } = dto;
+
+    const result = await pool.query<IMovieListItem>(movieQueries.lists.items.removeMovie, [listId, movieId, userId]);
+    const removedItems = result.rows;
+
+    if (removedItems.length === 0) {
+        throw new ApiError("Movie not found in the list or you don't have permission to modify it.", 404);
+    }
 };

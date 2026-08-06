@@ -21,6 +21,7 @@ import {
     getListById,
     getListItems,
     addItemToList,
+    removeItemFromList,
 } from "@/services/movie";
 
 // Utilities
@@ -39,7 +40,7 @@ import {
     CreateMovieListDto,
     GetMovieDto,
     UpdateMovieListDto,
-    AddItemToListDto,
+    MovieListItemDto,
 } from "@/types/movie";
 
 /* ==========================================================================
@@ -486,13 +487,40 @@ const getMovieListItems = async (req: TypedRequest<{ listId: string }>, res: Res
  * @desc    Adds a movie to a specific movie list.
  * @access  VerifyToken (Requires valid Access Token)
  */
-const addMovieToList = async (req: TypedRequestBody<AddItemToListDto>, res: Response, next: NextFunction) => {
+const addMovieToList = async (
+    req: TypedRequest<Omit<MovieListItemDto, "userId">>,
+    res: Response,
+    next: NextFunction,
+) => {
     try {
-        const { listId, movieId } = req.body;
+        const { listId, movieId } = req.params;
         const userId = req.user!.id;
 
         const addedItem = await addItemToList({ listId, movieId, userId });
         return sendResponse(res, 201, addedItem, "Movie has been added to the list successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Removes a specific movie from a custom movie list for the authenticated user.
+ *
+ * @route   DELETE /api/movies/lists/:listId/items/:movieId
+ * @desc    Removes a movie from a specific movie list.
+ * @access  VerifyToken (Requires valid Access Token)
+ */
+const removeMovieFromList = async (
+    req: TypedRequest<Omit<MovieListItemDto, "userId">>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const { listId, movieId } = req.params;
+        const userId = req.user!.id;
+
+        await removeItemFromList({ listId, movieId, userId });
+        return sendResponse(res, 200, null, "Movie has been removed from the list successfully.");
     } catch (error) {
         next(error);
     }
@@ -522,4 +550,5 @@ export {
     getMovieListById,
     getMovieListItems,
     addMovieToList,
+    removeMovieFromList,
 };

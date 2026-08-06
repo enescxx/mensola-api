@@ -1,6 +1,5 @@
 import request from "supertest";
 import app from "@/app";
-import pool from "@/config/db";
 
 describe("User endpoints", () => {
     // Shared authentication tokens and user IDs for test suite setup
@@ -244,7 +243,7 @@ describe("User endpoints", () => {
             const response = await request(app)
                 .put("/api/users/me")
                 .set("Authorization", "Bearer invalid-token")
-                .send({ fullname: "John Doe" });
+                .send({fullname: "John Doe"});
 
             expect(response.status).toBe(403);
             expect(response.body.success).toBe(false);

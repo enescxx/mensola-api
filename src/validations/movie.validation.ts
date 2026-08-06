@@ -4,6 +4,42 @@ import { z } from "zod";
    Shared & Query Validations
    ========================================================================== */
 
+const movieIdRule = z
+    .string({ message: "Movie ID is required and must be a string." })
+    .uuid("Invalid movie ID format.")
+    .trim();
+
+const listIdRule = z.string().uuid("Invalid list ID format.").trim();
+
+/**
+ * Validation schema for endpoints that require a valid `movieId` parameter.
+ */
+export const movieIdParamSchema = z.object({
+    params: z.object({
+        movieId: movieIdRule,
+    }),
+});
+
+/**
+ * Validation schema for endpoints that require a valid `listId` parameter.
+ */
+export const listIdParamSchema = z.object({
+    params: z.object({
+        listId: listIdRule,
+    }),
+});
+
+/**
+ * Validation schema for endpoints that require both `listId` and `movieId` parameters.
+ * Ideal for adding or removing a movie from a list.
+ */
+export const listAndMovieParamsSchema = z.object({
+    params: z.object({
+        listId: listIdRule,
+        movieId: movieIdRule,
+    }),
+});
+
 /**
  * Validation schema for paginated movie and list endpoints.
  * Validates optional `userId`, `page`, and `limit` query parameters.
@@ -27,24 +63,6 @@ export const moviePaginationQuerySchema = z.object({
             .min(1, "Limit must be at least 1.")
             .max(100, "Limit cannot exceed 100 items per request.")
             .optional(),
-    }),
-});
-
-/**
- * Validation schema for endpoints that require a valid `movieId` parameter.
- */
-export const movieIdParamSchema = z.object({
-    params: z.object({
-        movieId: z
-            .string({ message: "Movie ID is required and must be a string." })
-            .uuid("Invalid movie ID format.")
-            .trim(),
-    }),
-});
-
-export const listIdParamSchema = z.object({
-    params: z.object({
-        listId: z.string().uuid("Invalid list ID format.").trim(),
     }),
 });
 

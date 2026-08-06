@@ -21,6 +21,7 @@ import {
     getMovieListById,
     getMovieListItems,
     addMovieToList,
+    removeMovieFromList,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -34,6 +35,7 @@ import {
     movieIdParamSchema,
     updateMovieListSchema,
     listIdParamSchema,
+    listAndMovieParamsSchema,
 } from "@/validations/movie";
 
 const router = Router();
@@ -125,11 +127,18 @@ router.delete("/lists/:listId", verifyToken, validate(listIdParamSchema), delete
 router.get("/lists/:listId/items", extractUser, validate(listIdParamSchema), getMovieListItems);
 
 /**
- * @route   POST /api/movies/lists/:listId/items
+ * @route   POST /api/movies/lists/:listId/items/:movieId
  * @desc    Adds a specific movie to a custom movie list for the authenticated user
  * @access  Private (Requires valid Access Token)
  */
-router.post("/lists/:listId/items", verifyToken, validate(listIdParamSchema), addMovieToList);
+router.post("/lists/:listId/items/:movieId", verifyToken, validate(listAndMovieParamsSchema), addMovieToList);
+
+/**
+ * @route   DELETE /api/movies/lists/:listId/items/:movieId
+ * @desc    Removes a specific movie from a custom movie list for the authenticated user
+ * @access  Private (Requires valid Access Token)
+ */
+router.delete("/lists/:listId/items/:movieId", verifyToken, validate(listAndMovieParamsSchema), removeMovieFromList);
 
 /**
  * @route   POST /api/movies/:movieId/watched

@@ -1,5 +1,5 @@
-import { ApiError } from "@/utils/error";
-import { Request, Response, NextFunction } from "express";
+import {ApiError} from "@/utils/error";
+import {Request, Response, NextFunction} from "express";
 import jwt from "jsonwebtoken";
 
 const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
@@ -20,10 +20,10 @@ const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
         const decoded = jwt.verify(token, secret) as { id: string };
 
         if (!decoded.id) {
-            throw new ApiError("Invalid or expired token.", 401);
+            throw new ApiError("Invalid or expired token.", 403);
         }
 
-        (req as any).user = { id: decoded.id };
+        (req as any).user = {id: decoded.id};
 
         next();
     } catch (error) {
@@ -50,14 +50,14 @@ const extractUser = (req: Request, res: Response, next: NextFunction) => {
         const decoded = jwt.verify(token, secret) as { id: string };
 
         if (!decoded.id) {
-            throw new ApiError("Invalid or expired token.", 401);
+            throw new ApiError("Invalid or expired token.", 403);
         }
 
-        (req as any).user = { id: decoded.id };
+        (req as any).user = {id: decoded.id};
         next();
     } catch (error) {
         next(error);
     }
 };
 
-export { verifyToken, extractUser };
+export {verifyToken, extractUser};

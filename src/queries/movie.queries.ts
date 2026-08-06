@@ -42,6 +42,10 @@ export const movieQueries = {
             GROUP BY ml.id
             LIMIT $2 OFFSET $3;`,
 
+        /**
+         * Fetches a specific custom movie list by its ID, including list metadata,
+         * top 3 preview movies, list owners, and up to 3 recent top-level comments.
+         */
         getById: `
             SELECT 
                 ml.*,
@@ -211,7 +215,25 @@ export const movieQueries = {
                 ON CONFLICT ("movieListId", "movieId") DO NOTHING
                 RETURNING "movieListId", "movieId", "addedBy", "addedAt";`,
 
-            removeMovie: ``,
+            /**
+             * Completely removes a movie from a specific custom movie list by deleting the associated record
+             * in the MovieListItem table, ensuring that only the list creator or an owner can perform this action.
+             */
+            removeMovie: `
+                DELETE FROM "MovieListItem"
+                WHERE "movieListId" = $1 
+                  AND "movieId" = $2
+                  AND EXISTS (
+                      SELECT 1 FROM "MovieList" ml
+                      WHERE ml.id = $1 AND (
+                          ml."creatorId" = $3 
+                          OR EXISTS (
+                              SELECT 1 FROM "MovieListOwner" mlo 
+                              WHERE mlo."movieListId" = ml.id AND mlo."userId" = $3
+                          )
+                      )
+                  )
+                RETURNING *;`,
         },
 
         likes: {
