@@ -151,6 +151,8 @@ type MovieListItemDto = {
     userId: UserId;
 };
 
+type LikeMovieDto = UserMovieActionDto;
+
 /* ==========================================================================
    Response Types & Payload Items
    ========================================================================== */
@@ -295,6 +297,13 @@ type LikeMovieListResponse = LikeMovieListResult;
  */
 type UnlikeMovieListResponse = LikeMovieListResult;
 
+type LikeMovieResult = {
+    movieId: IMovie["id"];
+    isLiked: boolean;
+};
+
+type LikeMovieResponse = LikeMovieResult;
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -326,6 +335,7 @@ export {
     UseMovieListKeyDto,
     LikeMovieListDto,
     UnlikeMovieListDto,
+    LikeMovieDto,
 
     // Response Contracts & Payload Items
     MovieSummary,
@@ -350,4 +360,6 @@ export {
     LikeMovieListResult,
     LikeMovieListResponse,
     UnlikeMovieListResponse,
+    LikeMovieResult,
+    LikeMovieResponse,
 };

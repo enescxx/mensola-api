@@ -45,6 +45,8 @@ import {
     LikeMovieListResponse,
     UnlikeMovieListDto,
     UnlikeMovieListResponse,
+    LikeMovieDto,
+    LikeMovieResponse,
 } from "@/types/movie";
 import { IInteraction } from "@/types/interaction";
 
@@ -418,7 +420,7 @@ export const removeItemFromList = async (dto: MovieListItemDto): Promise<void> =
  */
 export const likeList = async (dto: LikeMovieListDto): Promise<LikeMovieListResponse> => {
     const { userId, listId } = dto;
-    const result = await pool.query(movieQueries.lists.likes.add, [userId, listId]);
+    const result = await pool.query<LikeMovieListResponse>(movieQueries.lists.likes.add, [userId, listId]);
 
     if (result.rowCount === 0) {
         throw new ApiError("Failed to like the movie list. It may not exist or you may not have permission.", 404);
@@ -436,10 +438,29 @@ export const likeList = async (dto: LikeMovieListDto): Promise<LikeMovieListResp
  */
 export const unlikeList = async (dto: UnlikeMovieListDto): Promise<UnlikeMovieListResponse> => {
     const { userId, listId } = dto;
-    const result = await pool.query(movieQueries.lists.likes.remove, [userId, listId]);
+    const result = await pool.query<UnlikeMovieListResponse>(movieQueries.lists.likes.remove, [userId, listId]);
 
     if (result.rowCount === 0) {
         throw new ApiError("Failed to unlike the movie list. It may not exist or you may not have permission.", 404);
+    }
+
+    return result.rows[0];
+};
+
+
+/**
+ * Likes a specific movie for the authenticated user.
+ *
+ * @param dto - Data transfer object containing the userId and movieId.
+ * @returns An object containing the movieId and isLiked status.
+ * @throws {ApiError} 404 Not Found if the movie does not exist or the user does not have permission to like it.
+ */
+export const likeMovie = async (dto: LikeMovieDto): Promise<LikeMovieResponse> => {
+    const { userId, movieId } = dto;
+    const result = await pool.query<LikeMovieResponse>(movieQueries.movies.likes.add, [userId, movieId]);
+
+    if (result.rowCount === 0) {
+        throw new ApiError("Failed to like the movie. It may not exist or you may not have permission.", 404);
     }
 
     return result.rows[0];

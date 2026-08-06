@@ -144,6 +144,10 @@ export const movieQueries = {
             VALUES (gen_random_uuid(), $1, $2, $3, $4, $5) 
             RETURNING id, title, description, image, "isPrivate","creatorId";`,
 
+        /**
+         * Updates an existing custom movie list, allowing for modification of its title, description, image, and privacy status.
+         * Returns the updated record.
+         */
         update: `
             UPDATE "MovieList" ml
             SET 
@@ -162,6 +166,10 @@ export const movieQueries = {
               )
             RETURNING ml.*;`,
 
+        /**
+         * Completely removes a custom movie list by deleting the associated record
+         * in the MovieList table, ensuring that only the list creator or an owner can perform this action.
+         */
         delete: `
             DELETE FROM "MovieList" ml
             WHERE ml.id = $1 
@@ -500,7 +508,16 @@ export const movieQueries = {
                 WHERE m_int."userId" = $1 AND m_int."targetType" = 'movie' AND m_int."isLiked" = true
                 LIMIT $2 OFFSET $3;`,
 
-            add: ``,
+            /**
+             * Inserts a new record into the Interaction table to mark a movie as liked by the user.
+             * If the user has already liked the movie, it updates the existing record to ensure isLiked is true.
+             */
+            add: `
+                INSERT INTO "Interaction" ("userId", "targetId", "targetType", "isLiked")
+                VALUES ($1, $2, 'movie', true)
+                ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE SET "isLiked" = true
+                RETURNING "targetId" AS "movieId", "isLiked";`,
+
             remove: ``,
         },
     },

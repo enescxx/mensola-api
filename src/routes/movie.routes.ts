@@ -24,6 +24,7 @@ import {
     removeMovieFromList,
     likeMovieList,
     unlikeMovieList,
+    likeMovie
 } from "@/controllers/movie";
 
 // Middlewares
@@ -197,6 +198,13 @@ router.post("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), ad
  * @access  Private (Requires valid Access Token)
  */
 router.delete("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), removeMovieFromFavorites);
+
+/**
+ * @route   POST /api/movies/:movieId/like
+ * @desc    Likes or unlikes a specific movie for the authenticated user.
+ * @access  Private (Requires valid Access Token)
+ */
+router.post("/:movieId/like", verifyToken, validate(movieIdParamSchema), likeMovie);
 
 /**
  * @route   GET /api/movies/:movieId
