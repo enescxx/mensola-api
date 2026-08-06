@@ -125,6 +125,11 @@ type DeleteListDto = UseMovieListKeyDto;
 type LikeMovieListDto = UseMovieListKeyDto;
 
 /**
+ * Data Transfer Object for unliking a specific movie list.
+ */
+type UnlikeMovieListDto = UseMovieListKeyDto;
+
+/**
  * Data Transfer Object for fetching a specific movie list by its ID.
  */
 type GetListByIdDto = {
@@ -285,6 +290,11 @@ type LikeMovieListResult = {
  */
 type LikeMovieListResponse = LikeMovieListResult;
 
+/**
+ * Response type for unliking a movie list, indicating the list ID and the like status.
+ */
+type UnlikeMovieListResponse = LikeMovieListResult;
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -315,6 +325,7 @@ export {
     MovieListItemDto,
     UseMovieListKeyDto,
     LikeMovieListDto,
+    UnlikeMovieListDto,
 
     // Response Contracts & Payload Items
     MovieSummary,
@@ -338,4 +349,5 @@ export {
     GetListItemsResponse,
     LikeMovieListResult,
     LikeMovieListResponse,
+    UnlikeMovieListResponse,
 };

@@ -287,7 +287,15 @@ export const movieQueries = {
                 ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE SET "isLiked" = true
                 RETURNING "targetId" AS "listId", "isLiked";`,
 
-            remove: ``,
+            /**
+             * Updates the Interaction table to mark a custom movie list as unliked by the user.
+             * If the user has not liked the list before, it does nothing.
+             */
+            remove: `
+                UPDATE "Interaction"
+                SET "isLiked" = false
+                WHERE "userId" = $1 AND "targetId" = $2 AND "targetType" = 'movieList'
+                RETURNING "targetId" AS "listId", "isLiked";`,
         },
     },
 

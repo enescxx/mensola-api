@@ -23,6 +23,7 @@ import {
     addMovieToList,
     removeMovieFromList,
     likeMovieList,
+    unlikeMovieList,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -126,6 +127,13 @@ router.delete("/lists/:listId", verifyToken, validate(listIdParamSchema), delete
  * @access  Private (Requires valid Access Token)
  */
 router.post("/lists/:listId/like", verifyToken, validate(listIdParamSchema), likeMovieList);
+
+/**
+ * @route   DELETE /api/movies/lists/:listId/like
+ * @desc    Unlikes a specific movie list
+ * @access  Private (Requires valid Access Token)
+ */
+router.delete("/lists/:listId/like", verifyToken, validate(listIdParamSchema), unlikeMovieList);
 
 /**
  * @route   GET /api/movies/lists/:listId/items

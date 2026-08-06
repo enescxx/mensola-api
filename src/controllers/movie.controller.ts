@@ -23,6 +23,7 @@ import {
     addItemToList,
     removeItemFromList,
     likeList,
+    unlikeList,
 } from "@/services/movie";
 
 // Utilities
@@ -43,6 +44,7 @@ import {
     UpdateMovieListDto,
     MovieListItemDto,
     LikeMovieListDto,
+    UnlikeMovieListDto,
 } from "@/types/movie";
 
 /* ==========================================================================
@@ -548,6 +550,25 @@ const likeMovieList = async (req: TypedRequest<LikeMovieListDto>, res: Response,
     }
 };
 
+/**
+ * Unlikes a specific movie list for the authenticated user.
+ *
+ * @route   DELETE /api/movies/lists/:listId/like
+ * @desc    Unlikes a specific movie list.
+ * @access  Private (Requires valid Access Token)
+ */
+const unlikeMovieList = async (req: TypedRequest<UnlikeMovieListDto>, res: Response, next: NextFunction) => {
+    try {
+        const { listId } = req.params;
+        const userId = req.user!.id;
+
+        const unlikeResult = await unlikeList({ userId, listId });
+        return sendResponse(res, 200, unlikeResult, "Movie list unliked successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -574,4 +595,5 @@ export {
     addMovieToList,
     removeMovieFromList,
     likeMovieList,
+    unlikeMovieList,
 };

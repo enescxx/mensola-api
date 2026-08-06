@@ -43,6 +43,8 @@ import {
     MovieListItemDto,
     LikeMovieListDto,
     LikeMovieListResponse,
+    UnlikeMovieListDto,
+    UnlikeMovieListResponse,
 } from "@/types/movie";
 import { IInteraction } from "@/types/interaction";
 
@@ -420,6 +422,24 @@ export const likeList = async (dto: LikeMovieListDto): Promise<LikeMovieListResp
 
     if (result.rowCount === 0) {
         throw new ApiError("Failed to like the movie list. It may not exist or you may not have permission.", 404);
+    }
+
+    return result.rows[0];
+};
+
+/**
+ * Unlikes a specific movie list for the authenticated user.
+ *
+ * @param dto - Data transfer object containing the userId and listId.
+ * @returns An object containing the listId and isLiked status.
+ * @throws {ApiError} 404 Not Found if the movie list does not exist or the user does not have permission to unlike it.
+ */
+export const unlikeList = async (dto: UnlikeMovieListDto): Promise<UnlikeMovieListResponse> => {
+    const { userId, listId } = dto;
+    const result = await pool.query(movieQueries.lists.likes.remove, [userId, listId]);
+
+    if (result.rowCount === 0) {
+        throw new ApiError("Failed to unlike the movie list. It may not exist or you may not have permission.", 404);
     }
 
     return result.rows[0];
