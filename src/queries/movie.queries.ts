@@ -518,7 +518,14 @@ export const movieQueries = {
                 ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE SET "isLiked" = true
                 RETURNING "targetId" AS "movieId", "isLiked";`,
 
-            remove: ``,
+            /**
+             * Completely removes a movie from the user's liked movies by deleting all associated records
+             * for that specific movie in the Interaction table.
+             */
+            remove: `
+                DELETE FROM "Interaction"
+                WHERE "userId" = $1 AND "targetId" = $2 AND "targetType" = 'movie'
+                RETURNING "targetId" AS "movieId", "isLiked";`,
         },
     },
 };
