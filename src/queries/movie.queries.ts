@@ -277,7 +277,16 @@ export const movieQueries = {
                 GROUP BY ml.id
                 LIMIT $2 OFFSET $3;`,
 
-            add: ``,
+            /**
+             * Inserts a new record into the Interaction table to mark a custom movie list as liked by the user.
+             * If the user has already liked the list, it updates the existing record to ensure isLiked is true.
+             */
+            add: `
+                INSERT INTO "Interaction" ("userId", "targetId", "targetType", "isLiked")
+                VALUES ($1, $2, 'movieList', true)
+                ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE SET "isLiked" = true
+                RETURNING "targetId" AS "listId", "isLiked";`,
+
             remove: ``,
         },
     },

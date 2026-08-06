@@ -41,7 +41,10 @@ import {
     GetListItemsDto,
     MovieSummary,
     MovieListItemDto,
+    LikeMovieListDto,
+    LikeMovieListResponse,
 } from "@/types/movie";
+import { IInteraction } from "@/types/interaction";
 
 /**
  * Retrieves a paginated list of favorite movies for a given user.
@@ -386,6 +389,13 @@ export const addItemToList = async (dto: MovieListItemDto): Promise<IMovieListIt
     return addedItem;
 };
 
+/**
+ * Removes a specific movie from a custom movie list.
+ *
+ * @param dto - Data transfer object containing the movie list ID, movie ID, and user ID of the person removing the movie.
+ * @returns void
+ * @throws {ApiError} 404 Not Found if the movie list does not exist, the movie is not in the list, or the user does not have permission to modify it.
+ */
 export const removeItemFromList = async (dto: MovieListItemDto): Promise<void> => {
     const { listId, movieId, userId } = dto;
 
@@ -395,4 +405,22 @@ export const removeItemFromList = async (dto: MovieListItemDto): Promise<void> =
     if (removedItems.length === 0) {
         throw new ApiError("Movie not found in the list or you don't have permission to modify it.", 404);
     }
+};
+
+/**
+ * Likes a specific movie list for the authenticated user.
+ *
+ * @param dto - Data transfer object containing the userId and listId.
+ * @returns An object containing the listId and isLiked status.
+ * @throws {ApiError} 404 Not Found if the movie list does not exist or the user does not have permission to like it.
+ */
+export const likeList = async (dto: LikeMovieListDto): Promise<LikeMovieListResponse> => {
+    const { userId, listId } = dto;
+    const result = await pool.query(movieQueries.lists.likes.add, [userId, listId]);
+
+    if (result.rowCount === 0) {
+        throw new ApiError("Failed to like the movie list. It may not exist or you may not have permission.", 404);
+    }
+
+    return result.rows[0];
 };

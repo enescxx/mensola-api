@@ -104,21 +104,25 @@ type GetMovieDto = {
     movieId: IMovie["id"];
 };
 
+type UseMovieListKeyDto = {
+    userId: UserId;
+    listId: IMovieList["id"];
+};
+
 /**
  * Data Transfer Object for updating an existing movie list.
  */
-type UpdateMovieListDto = Omit<IMovieList, "id" | "creatorId" | "listType"> & {
-    listId: IMovieList["id"];
-    userId: UserId;
-};
+type UpdateMovieListDto = Omit<IMovieList, "id" | "creatorId" | "listType"> & UseMovieListKeyDto;
 
 /**
  * Data Transfer Object for deleting a specific movie list.
  */
-type DeleteListDto = {
-    userId: UserId;
-    listId: IMovieList["id"];
-};
+type DeleteListDto = UseMovieListKeyDto;
+
+/**
+ * Data Transfer Object for liking a specific movie list.
+ */
+type LikeMovieListDto = UseMovieListKeyDto;
 
 /**
  * Data Transfer Object for fetching a specific movie list by its ID.
@@ -268,6 +272,19 @@ type GetListByIdResponse = IMovieList & {
  */
 type GetListItemsResponse = MovieSummary[];
 
+/**
+ * Result type for liking a movie list, indicating the list ID and the like status.
+ */
+type LikeMovieListResult = {
+    listId: IMovieList["id"];
+    isLiked: boolean;
+};
+
+/**
+ * Response type for liking a movie list, indicating the list ID and the like status.
+ */
+type LikeMovieListResponse = LikeMovieListResult;
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -296,6 +313,8 @@ export {
     GetListByIdDto,
     GetListItemsDto,
     MovieListItemDto,
+    UseMovieListKeyDto,
+    LikeMovieListDto,
 
     // Response Contracts & Payload Items
     MovieSummary,
@@ -317,4 +336,6 @@ export {
     MovieListLatestCommentItem,
     GetListByIdResponse,
     GetListItemsResponse,
+    LikeMovieListResult,
+    LikeMovieListResponse,
 };
