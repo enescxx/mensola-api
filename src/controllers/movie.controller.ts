@@ -382,6 +382,7 @@ const addMovieToWatchlist = async (
       "Movie has been added to watchlist successfully.",
     );
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
