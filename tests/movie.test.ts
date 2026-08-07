@@ -6,6 +6,7 @@ import { IMovie, IMovieList } from "@/types/movie";
 
 import { createTestUser } from "./helpers/auth.helper";
 import {
+  addTestMovieToLikes,
   addTestMovieToList,
   addTestMovieToWatched,
   createTestMovie,
@@ -399,6 +400,145 @@ describe("Movie API", () => {
       it("should return 401 when authorization token is missing during deletion", async () => {
         const response = await request(app).delete(
           `/api/movies/${testMovie.id}/favorites`,
+        );
+
+        expect(response.status).toBe(401);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Access denied. No token provided/i,
+        );
+      });
+    });
+  });
+
+  describe("Movie Likes Endpoints", () => {
+    let testUser: Pick<IUser, "id" | "email" | "username"> & {
+      password: string;
+    };
+    let testUserToken: string;
+
+    let testMovie: Pick<IMovie, "id" | "tmdbId" | "title" | "poster">;
+
+    beforeEach(async () => {
+      ({ user: testUser, token: testUserToken } = await createTestUser());
+
+      testMovie = await createTestMovie();
+    });
+
+    /* ==========================================================================
+       GET /api/movies/liked
+       ========================================================================== */
+    describe("GET /api/movies/liked", () => {
+      it("should return 200 and list liked movies for authenticated user", async () => {
+        const interaction = await addTestMovieToLikes(
+          testUser.id,
+          testMovie.id,
+        );
+
+        const response = await request(app)
+          .get("/api/movies/liked")
+          .set("Authorization", `Bearer ${testUserToken}`);
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.length).toBe(1);
+        expect(responseData[0].id).toBe(testMovie.id);
+        expect(responseData[0].isLiked).toBe(true);
+      });
+
+      it("should return 200 and liked movies when userId query parameter is provided", async () => {
+        const interaction = await addTestMovieToLikes(
+          testUser.id,
+          testMovie.id,
+        );
+
+        const response = await request(app).get(
+          "/api/movies/liked?userId=" + testUser.id,
+        );
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.length).toBe(1);
+        expect(responseData[0].id).toBe(testMovie.id);
+        expect(responseData[0].isLiked).toBe(true);
+      });
+
+      it("should return 400 when neither token nor valid userId query parameter is provided", async () => {
+        const response = await request(app).get("/api/movies/liked");
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(/userId is invalid/i);
+      });
+    });
+
+    /* ==========================================================================
+       POST /api/movies/:movieId/like
+       ========================================================================== */
+    describe("POST /api/movies/:movieId/like", () => {
+      it("should like movie successfully and return 201", async () => {
+        const response = await request(app)
+          .post(`/api/movies/${testMovie.id}/like`)
+          .set("Authorization", `Bearer ${testUserToken}`);
+
+        const responseData = response.body.data;
+
+        expect(response.status).toBe(201);
+        expect(response.body.success).toBe(true);
+        expect(responseData.movieId).toBe(testMovie.id);
+        expect(responseData.isLiked).toBe(true);
+        expect(response.body.message).toMatch(/Movie liked successfully./i);
+      });
+
+      it("should return 401 when authorization token is missing", async () => {
+        const response = await request(app).post(
+          `/api/movies/${testMovie.id}/like`,
+        );
+
+        expect(response.status).toBe(401);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Access denied. No token provided/i,
+        );
+      });
+
+      it("should return 400 when movieId param is not a valid UUID", async () => {
+        const response = await request(app)
+          .post("/api/movies/invalid-movie-id/like")
+          .set("Authorization", `Bearer ${testUserToken}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toBe("Invalid movie ID format.");
+      });
+    });
+
+    /* ==========================================================================
+       DELETE /api/movies/:movieId/like
+       ========================================================================== */
+    describe("DELETE /api/movies/:movieId/like", () => {
+      it("should unlike movie successfully and return 200", async () => {
+        const interaction = await addTestMovieToLikes(
+          testUser.id,
+          testMovie.id,
+        );
+
+        const response = await request(app)
+          .delete(`/api/movies/${testMovie.id}/like`)
+          .set("Authorization", `Bearer ${testUserToken}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.message).toMatch(/Movie unliked successfully/i);
+      });
+
+      it("should return 401 when authorization token is missing during deletion", async () => {
+        const response = await request(app).delete(
+          `/api/movies/${testMovie.id}/like`,
         );
 
         expect(response.status).toBe(401);

@@ -728,7 +728,7 @@ const likeMovie = async (
     const userId = req.user!.id;
 
     const likeResult = await likeMovieService({ userId, movieId });
-    return sendResponse(res, 200, likeResult, "Movie liked successfully.");
+    return sendResponse(res, 201, likeResult, "Movie liked successfully.");
   } catch (error) {
     next(error);
   }

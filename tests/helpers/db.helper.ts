@@ -1,6 +1,6 @@
 import pool from "@/config/db";
 import crypto from "crypto";
-import { IMovieList, MovieListType } from "../../src/types/movie.types";
+import { IMovieList, MovieListType } from "@/types/movie.types";
 
 /**
  * Creates a mock movie directly in the database for testing.
@@ -91,6 +91,19 @@ export const addTestMovieToList = async (
         VALUES ($1, $2, $3) RETURNING *;`;
 
   const values = [listId, movieId, userId];
+
+  const result = await pool.query(query, values);
+  return result.rows[0];
+};
+
+export const addTestMovieToLikes = async (userId: string, movieId: string) => {
+  const id = crypto.randomUUID();
+
+  const query = `
+        INSERT INTO "Interaction" ("userId", "targetId", "targetType", "isLiked")
+        VALUES ($1, $2, 'movie', true) RETURNING *;`;
+
+  const values = [userId, movieId];
 
   const result = await pool.query(query, values);
   return result.rows[0];
