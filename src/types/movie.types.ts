@@ -382,5 +382,5 @@ export {
     UnlikeMovieListResponse,
     LikeMovieResult,
     LikeMovieResponse,
-    UnlikeMovieResponse
+    UnlikeMovieResponse,
 };

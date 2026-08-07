@@ -449,7 +449,6 @@ export const unlikeList = async (dto: UnlikeMovieListDto): Promise<UnlikeMovieLi
     return result.rows[0];
 };
 
-
 /**
  * Likes a specific movie for the authenticated user.
  *

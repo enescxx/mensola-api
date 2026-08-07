@@ -2,30 +2,30 @@ import { Response, NextFunction } from "express";
 
 // Services
 import {
-    getFavorites,
-    getWatchlist,
-    getWatched,
-    getLikedMovies,
-    getUserLists,
-    getLikedLists,
-    createList,
-    markAsWatched,
-    unmarkAsWatched,
-    getMovie,
-    addToWatchlist,
-    removeFromWatchlist,
-    addToFavorites,
-    removeFromFavorites,
-    updateList,
-    deleteList,
-    getListById,
-    getListItems,
-    addItemToList,
-    removeItemFromList,
-    likeList,
-    unlikeList,
-    likeMovie as likeMovieService,
-    unlikeMovie as unlikeMovieService,
+  getFavorites,
+  getWatchlist,
+  getWatched,
+  getLikedMovies,
+  getUserLists,
+  getLikedLists,
+  createList,
+  markAsWatched,
+  unmarkAsWatched,
+  getMovie,
+  addToWatchlist,
+  removeFromWatchlist,
+  addToFavorites,
+  removeFromFavorites,
+  updateList,
+  deleteList,
+  getListById,
+  getListItems,
+  addItemToList,
+  removeItemFromList,
+  likeList,
+  unlikeList,
+  likeMovie as likeMovieService,
+  unlikeMovie as unlikeMovieService,
 } from "@/services/movie";
 
 // Utilities
@@ -33,22 +33,26 @@ import { sendResponse } from "@/utils/response";
 import { ApiError } from "@/utils/error";
 
 // Types
-import { TypedRequestBody, TypedRequestQuery, TypedRequest } from "@/types/express";
 import {
-    GetFavoritesDto,
-    GetWatchlistDto,
-    GetWatchedMoviesDto,
-    GetLikedMoviesDto,
-    GetUserListsDto,
-    GetLikedListsDto,
-    CreateMovieListDto,
-    GetMovieDto,
-    UpdateMovieListDto,
-    MovieListItemDto,
-    LikeMovieListDto,
-    UnlikeMovieListDto,
-    LikeMovieDto,
-    UnlikeMovieDto,
+  TypedRequestBody,
+  TypedRequestQuery,
+  TypedRequest,
+} from "@/types/express";
+import {
+  GetFavoritesDto,
+  GetWatchlistDto,
+  GetWatchedMoviesDto,
+  GetLikedMoviesDto,
+  GetUserListsDto,
+  GetLikedListsDto,
+  CreateMovieListDto,
+  GetMovieDto,
+  UpdateMovieListDto,
+  MovieListItemDto,
+  LikeMovieListDto,
+  UnlikeMovieListDto,
+  LikeMovieDto,
+  UnlikeMovieDto,
 } from "@/types/movie";
 
 /* ==========================================================================
@@ -62,27 +66,27 @@ import {
  * @access  Public / Optional Auth
  */
 const getFavoriteMovies = async (
-    req: TypedRequestQuery<Partial<GetFavoritesDto>>,
-    res: Response,
-    next: NextFunction,
+  req: TypedRequestQuery<Partial<GetFavoritesDto>>,
+  res: Response,
+  next: NextFunction,
 ) => {
-    try {
-        const userId = (req.query.userId as string) || req.user?.id;
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 18;
+  try {
+    const userId = (req.query.userId as string) || req.user?.id;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 18;
 
-        // Service katmanı userId kontrolünü zaten yapıyor
-        const favoriteMovies = await getFavorites({ userId, limit, page });
+    // Service katmanı userId kontrolünü zaten yapıyor
+    const favoriteMovies = await getFavorites({ userId, limit, page });
 
-        return sendResponse(res, 200, {
-            items: favoriteMovies,
-            page,
-            limit,
-            hasMore: favoriteMovies.length === limit,
-        });
-    } catch (error) {
-        next(error);
-    }
+    return sendResponse(res, 200, {
+      items: favoriteMovies,
+      page,
+      limit,
+      hasMore: favoriteMovies.length === limit,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -92,26 +96,26 @@ const getFavoriteMovies = async (
  * @access  Public / Optional Auth
  */
 const getWatchlistMovies = async (
-    req: TypedRequestQuery<Partial<GetWatchlistDto>>,
-    res: Response,
-    next: NextFunction,
+  req: TypedRequestQuery<Partial<GetWatchlistDto>>,
+  res: Response,
+  next: NextFunction,
 ) => {
-    try {
-        const userId = (req.query.userId as string) || req.user?.id;
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 18;
+  try {
+    const userId = (req.query.userId as string) || req.user?.id;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 18;
 
-        const watchlist = await getWatchlist({ userId, limit, page });
+    const watchlist = await getWatchlist({ userId, limit, page });
 
-        return sendResponse(res, 200, {
-            items: watchlist,
-            page,
-            limit,
-            hasMore: watchlist.length === limit,
-        });
-    } catch (error) {
-        next(error);
-    }
+    return sendResponse(res, 200, {
+      items: watchlist,
+      page,
+      limit,
+      hasMore: watchlist.length === limit,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -121,26 +125,26 @@ const getWatchlistMovies = async (
  * @access  Public / Optional Auth
  */
 const getWatchedMovies = async (
-    req: TypedRequestQuery<Partial<GetWatchedMoviesDto>>,
-    res: Response,
-    next: NextFunction,
+  req: TypedRequestQuery<Partial<GetWatchedMoviesDto>>,
+  res: Response,
+  next: NextFunction,
 ) => {
-    try {
-        const userId = (req.query.userId as string) || req.user?.id;
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 18;
+  try {
+    const userId = (req.query.userId as string) || req.user?.id;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 18;
 
-        const watchedMovies = await getWatched({ userId, limit, page });
+    const watchedMovies = await getWatched({ userId, limit, page });
 
-        return sendResponse(res, 200, {
-            items: watchedMovies,
-            page,
-            limit,
-            hasMore: watchedMovies.length === limit,
-        });
-    } catch (error) {
-        next(error);
-    }
+    return sendResponse(res, 200, {
+      items: watchedMovies,
+      page,
+      limit,
+      hasMore: watchedMovies.length === limit,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -150,26 +154,26 @@ const getWatchedMovies = async (
  * @access  Public / Optional Auth
  */
 const getLikedMoviesList = async (
-    req: TypedRequestQuery<Partial<GetLikedMoviesDto>>,
-    res: Response,
-    next: NextFunction,
+  req: TypedRequestQuery<Partial<GetLikedMoviesDto>>,
+  res: Response,
+  next: NextFunction,
 ) => {
-    try {
-        const userId = (req.query.userId as string) || req.user?.id;
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 18;
+  try {
+    const userId = (req.query.userId as string) || req.user?.id;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 18;
 
-        const likedMovies = await getLikedMovies({ userId, limit, page });
+    const likedMovies = await getLikedMovies({ userId, limit, page });
 
-        return sendResponse(res, 200, {
-            items: likedMovies,
-            page,
-            limit,
-            hasMore: likedMovies.length === limit,
-        });
-    } catch (error) {
-        next(error);
-    }
+    return sendResponse(res, 200, {
+      items: likedMovies,
+      page,
+      limit,
+      hasMore: likedMovies.length === limit,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /* ==========================================================================
@@ -182,23 +186,27 @@ const getLikedMoviesList = async (
  * @route   GET /api/movies/lists
  * @access  Public / Optional Auth
  */
-const getMovieLists = async (req: TypedRequestQuery<Partial<GetUserListsDto>>, res: Response, next: NextFunction) => {
-    try {
-        const userId = (req.query.userId as string) || req.user?.id;
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 5;
+const getMovieLists = async (
+  req: TypedRequestQuery<Partial<GetUserListsDto>>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = (req.query.userId as string) || req.user?.id;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
 
-        const lists = await getUserLists({ userId, limit, page });
+    const lists = await getUserLists({ userId, limit, page });
 
-        return sendResponse(res, 200, {
-            items: lists,
-            page,
-            limit,
-            hasMore: lists.length === limit,
-        });
-    } catch (error) {
-        next(error);
-    }
+    return sendResponse(res, 200, {
+      items: lists,
+      page,
+      limit,
+      hasMore: lists.length === limit,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -208,26 +216,26 @@ const getMovieLists = async (req: TypedRequestQuery<Partial<GetUserListsDto>>, r
  * @access  Public / Optional Auth
  */
 const getLikedMovieLists = async (
-    req: TypedRequestQuery<Partial<GetLikedListsDto>>,
-    res: Response,
-    next: NextFunction,
+  req: TypedRequestQuery<Partial<GetLikedListsDto>>,
+  res: Response,
+  next: NextFunction,
 ) => {
-    try {
-        const userId = (req.query.userId as string) || req.user?.id;
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 5;
+  try {
+    const userId = (req.query.userId as string) || req.user?.id;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
 
-        const likedLists = await getLikedLists({ userId, limit, page });
+    const likedLists = await getLikedLists({ userId, limit, page });
 
-        return sendResponse(res, 200, {
-            items: likedLists,
-            page,
-            limit,
-            hasMore: likedLists.length === limit,
-        });
-    } catch (error) {
-        next(error);
-    }
+    return sendResponse(res, 200, {
+      items: likedLists,
+      page,
+      limit,
+      hasMore: likedLists.length === limit,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -237,26 +245,31 @@ const getLikedMovieLists = async (
  * @access  Private (Requires Access Token)
  */
 const createMovieList = async (
-    req: TypedRequestBody<Omit<CreateMovieListDto, "creatorId">>,
-    res: Response,
-    next: NextFunction,
+  req: TypedRequestBody<Omit<CreateMovieListDto, "creatorId">>,
+  res: Response,
+  next: NextFunction,
 ) => {
-    try {
-        const { title, description, image, isPrivate } = req.body;
-        const creatorId = req.user!.id;
+  try {
+    const { title, description, image, isPrivate } = req.body;
+    const creatorId = req.user!.id;
 
-        const newMovieList = await createList({
-            title,
-            description,
-            image,
-            isPrivate,
-            creatorId,
-        });
+    const newMovieList = await createList({
+      title,
+      description,
+      image,
+      isPrivate,
+      creatorId,
+    });
 
-        return sendResponse(res, 201, newMovieList, "Movie list created successfully.");
-    } catch (error) {
-        next(error);
-    }
+    return sendResponse(
+      res,
+      201,
+      newMovieList,
+      "Movie list created successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -265,16 +278,25 @@ const createMovieList = async (
  * @route   POST /api/movies/:movieId/watched
  * @access  Private (Requires Access Token)
  */
-const markMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user!.id;
-        const movieId = req.params.movieId;
+const markMovieAsWatched = async (
+  req: TypedRequest<{ movieId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.id;
+    const movieId = req.params.movieId;
 
-        const watchedMovie = await markAsWatched({ userId, movieId });
-        return sendResponse(res, 201, watchedMovie, "Movie has marked as watched successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const watchedMovie = await markAsWatched({ userId, movieId });
+    return sendResponse(
+      res,
+      201,
+      watchedMovie,
+      "Movie has marked as watched successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -285,20 +307,29 @@ const markMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res: R
  * @access  Private (Requires Access Token)
  */
 
-const unmarkMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user!.id;
-        const movieId = req.params.movieId;
+const unmarkMovieAsWatched = async (
+  req: TypedRequest<{ movieId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.id;
+    const movieId = req.params.movieId;
 
-        const deletedRecord = await unmarkAsWatched({ userId, movieId });
-        if (deletedRecord.length === 0) {
-            throw new ApiError("Movie is not in your watched history.", 404);
-        }
-
-        return sendResponse(res, 201, null, "Movie has been removed from watched history successfully.");
-    } catch (error) {
-        next(error);
+    const deletedRecord = await unmarkAsWatched({ userId, movieId });
+    if (deletedRecord.length === 0) {
+      throw new ApiError("Movie is not in your watched history.", 404);
     }
+
+    return sendResponse(
+      res,
+      200,
+      null,
+      "Movie has been removed from watched history successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -308,19 +339,23 @@ const unmarkMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res:
  * @desc    Get detailed information about a specific movie.
  * @access  Public (or Private depending on your auth setup)
  */
-const getMovieById = async (req: TypedRequest<GetMovieDto>, res: Response, next: NextFunction) => {
-    try {
-        const movieId = req.params.movieId;
+const getMovieById = async (
+  req: TypedRequest<GetMovieDto>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const movieId = req.params.movieId;
 
-        const movie = await getMovie({ movieId });
-        if (!movie) {
-            throw new ApiError("The movie is not found.", 404);
-        }
-
-        return sendResponse(res, 200, movie);
-    } catch (error) {
-        next(error);
+    const movie = await getMovie({ movieId });
+    if (!movie) {
+      throw new ApiError("The movie is not found.", 404);
     }
+
+    return sendResponse(res, 200, movie);
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -330,16 +365,25 @@ const getMovieById = async (req: TypedRequest<GetMovieDto>, res: Response, next:
  * @desc    Add a movie to the authenticated user's watchlist
  * @access  Private (Requires Access Token)
  */
-const addMovieToWatchlist = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user!.id;
-        const movieId = req.params.movieId;
+const addMovieToWatchlist = async (
+  req: TypedRequest<{ movieId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.id;
+    const movieId = req.params.movieId;
 
-        const watchlistItem = await addToWatchlist({ userId, movieId });
-        return sendResponse(res, 201, watchlistItem, "Movie has been added to watchlist successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const watchlistItem = await addToWatchlist({ userId, movieId });
+    return sendResponse(
+      res,
+      201,
+      watchlistItem,
+      "Movie has been added to watchlist successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -349,20 +393,29 @@ const addMovieToWatchlist = async (req: TypedRequest<{ movieId: string }>, res: 
  * @desc    Completely removes a movie from the user's watchlist.
  * @access  Private (Requires Access Token)
  */
-const removeMovieFromWatchlist = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user!.id;
-        const movieId = req.params.movieId;
+const removeMovieFromWatchlist = async (
+  req: TypedRequest<{ movieId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.id;
+    const movieId = req.params.movieId;
 
-        const deletedRecord = await removeFromWatchlist({ userId, movieId });
-        if (!deletedRecord || deletedRecord.length === 0) {
-            throw new ApiError("Movie is not in your watchlist.", 404);
-        }
-
-        return sendResponse(res, 200, null, "Movie has been removed from watchlist successfully.");
-    } catch (error) {
-        next(error);
+    const deletedRecord = await removeFromWatchlist({ userId, movieId });
+    if (!deletedRecord || deletedRecord.length === 0) {
+      throw new ApiError("Movie is not in your watchlist.", 404);
     }
+
+    return sendResponse(
+      res,
+      200,
+      null,
+      "Movie has been removed from watchlist successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -372,16 +425,25 @@ const removeMovieFromWatchlist = async (req: TypedRequest<{ movieId: string }>, 
  * @desc    Add a movie to the authenticated user's favorites list
  * @access  Private (Requires Access Token)
  */
-const addMovieToFavorites = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user!.id;
-        const movieId = req.params.movieId;
+const addMovieToFavorites = async (
+  req: TypedRequest<{ movieId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.id;
+    const movieId = req.params.movieId;
 
-        const favoriteItem = await addToFavorites({ userId, movieId });
-        return sendResponse(res, 201, favoriteItem, "Movie has been added to favorites successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const favoriteItem = await addToFavorites({ userId, movieId });
+    return sendResponse(
+      res,
+      201,
+      favoriteItem,
+      "Movie has been added to favorites successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -391,20 +453,29 @@ const addMovieToFavorites = async (req: TypedRequest<{ movieId: string }>, res: 
  * @desc    Completely removes a movie from the user's favorites list.
  * @access  Private (Requires Access Token)
  */
-const removeMovieFromFavorites = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user!.id;
-        const movieId = req.params.movieId;
+const removeMovieFromFavorites = async (
+  req: TypedRequest<{ movieId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.id;
+    const movieId = req.params.movieId;
 
-        const deletedRecord = await removeFromFavorites({ userId, movieId });
-        if (!deletedRecord || deletedRecord.length === 0) {
-            throw new ApiError("Movie is not in your favorites list.", 404);
-        }
-
-        return sendResponse(res, 200, null, "Movie has been removed from favorites successfully.");
-    } catch (error) {
-        next(error);
+    const deletedRecord = await removeFromFavorites({ userId, movieId });
+    if (!deletedRecord || deletedRecord.length === 0) {
+      throw new ApiError("Movie is not in your favorites list.", 404);
     }
+
+    return sendResponse(
+      res,
+      200,
+      null,
+      "Movie has been removed from favorites successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -415,20 +486,35 @@ const removeMovieFromFavorites = async (req: TypedRequest<{ movieId: string }>, 
  * @access  Private (Requires Access Token)
  */
 const updateMovieList = async (
-    req: TypedRequest<{ listId: string }, Omit<UpdateMovieListDto, "listId" | "userId">>,
-    res: Response,
-    next: NextFunction,
+  req: TypedRequest<
+    { listId: string },
+    Omit<UpdateMovieListDto, "listId" | "userId">
+  >,
+  res: Response,
+  next: NextFunction,
 ) => {
-    try {
-        const userId = req.user!.id;
-        const listId = req.params.listId;
-        const { title, description, image, isPrivate } = req.body;
+  try {
+    const userId = req.user!.id;
+    const listId = req.params.listId;
+    const { title, description, image, isPrivate } = req.body;
 
-        const updatedList = await updateList({ listId, userId, title, description, image, isPrivate });
-        return sendResponse(res, 200, updatedList, "Movie list has been updated successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const updatedList = await updateList({
+      listId,
+      userId,
+      title,
+      description,
+      image,
+      isPrivate,
+    });
+    return sendResponse(
+      res,
+      200,
+      updatedList,
+      "Movie list has been updated successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -438,16 +524,25 @@ const updateMovieList = async (
  * @desc    Deletes an existing movie list.
  * @access  Private (Requires Access Token)
  */
-const deleteMovieList = async (req: TypedRequest<{ listId: string }>, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user!.id;
-        const listId = req.params.listId;
+const deleteMovieList = async (
+  req: TypedRequest<{ listId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.id;
+    const listId = req.params.listId;
 
-        const deletedList = await deleteList({ listId, userId });
-        return sendResponse(res, 200, deletedList, "Movie list has been deleted successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const deletedList = await deleteList({ listId, userId });
+    return sendResponse(
+      res,
+      200,
+      deletedList,
+      "Movie list has been deleted successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -457,16 +552,25 @@ const deleteMovieList = async (req: TypedRequest<{ listId: string }>, res: Respo
  * @desc    Fetches a specific movie list with detailed information.
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
-const getMovieListById = async (req: TypedRequest<{ listId: string }>, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        const listId = req.params.listId;
+const getMovieListById = async (
+  req: TypedRequest<{ listId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user?.id;
+    const listId = req.params.listId;
 
-        const movieList = await getListById({ listId, userId });
-        return sendResponse(res, 200, movieList, "Movie list retrieved successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const movieList = await getListById({ listId, userId });
+    return sendResponse(
+      res,
+      200,
+      movieList,
+      "Movie list retrieved successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -476,16 +580,25 @@ const getMovieListById = async (req: TypedRequest<{ listId: string }>, res: Resp
  * @desc    Fetches all movies contained in a specific movie list.
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
-const getMovieListItems = async (req: TypedRequest<{ listId: string }>, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        const listId = req.params.listId;
+const getMovieListItems = async (
+  req: TypedRequest<{ listId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user?.id;
+    const listId = req.params.listId;
 
-        const movieItems = await getListItems({ listId, userId });
-        return sendResponse(res, 200, movieItems, "Movie items retrieved successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const movieItems = await getListItems({ listId, userId });
+    return sendResponse(
+      res,
+      200,
+      movieItems,
+      "Movie items retrieved successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -496,19 +609,24 @@ const getMovieListItems = async (req: TypedRequest<{ listId: string }>, res: Res
  * @access  VerifyToken (Requires valid Access Token)
  */
 const addMovieToList = async (
-    req: TypedRequest<Omit<MovieListItemDto, "userId">>,
-    res: Response,
-    next: NextFunction,
+  req: TypedRequest<Omit<MovieListItemDto, "userId">>,
+  res: Response,
+  next: NextFunction,
 ) => {
-    try {
-        const { listId, movieId } = req.params;
-        const userId = req.user!.id;
+  try {
+    const { listId, movieId } = req.params;
+    const userId = req.user!.id;
 
-        const addedItem = await addItemToList({ listId, movieId, userId });
-        return sendResponse(res, 201, addedItem, "Movie has been added to the list successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const addedItem = await addItemToList({ listId, movieId, userId });
+    return sendResponse(
+      res,
+      201,
+      addedItem,
+      "Movie has been added to the list successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -519,19 +637,24 @@ const addMovieToList = async (
  * @access  VerifyToken (Requires valid Access Token)
  */
 const removeMovieFromList = async (
-    req: TypedRequest<Omit<MovieListItemDto, "userId">>,
-    res: Response,
-    next: NextFunction,
+  req: TypedRequest<Omit<MovieListItemDto, "userId">>,
+  res: Response,
+  next: NextFunction,
 ) => {
-    try {
-        const { listId, movieId } = req.params;
-        const userId = req.user!.id;
+  try {
+    const { listId, movieId } = req.params;
+    const userId = req.user!.id;
 
-        await removeItemFromList({ listId, movieId, userId });
-        return sendResponse(res, 200, null, "Movie has been removed from the list successfully.");
-    } catch (error) {
-        next(error);
-    }
+    await removeItemFromList({ listId, movieId, userId });
+    return sendResponse(
+      res,
+      200,
+      null,
+      "Movie has been removed from the list successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -542,16 +665,20 @@ const removeMovieFromList = async (
  * @desc    Likes or unlikes a specific movie list.
  * @access  Private (Requires valid Access Token)
  */
-const likeMovieList = async (req: TypedRequest<LikeMovieListDto>, res: Response, next: NextFunction) => {
-    try {
-        const { listId } = req.params;
-        const userId = req.user!.id;
+const likeMovieList = async (
+  req: TypedRequest<LikeMovieListDto>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { listId } = req.params;
+    const userId = req.user!.id;
 
-        const likeResult = await likeList({ userId, listId });
-        return sendResponse(res, 200, likeResult, "Movie list liked successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const likeResult = await likeList({ userId, listId });
+    return sendResponse(res, 200, likeResult, "Movie list liked successfully.");
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -561,36 +688,49 @@ const likeMovieList = async (req: TypedRequest<LikeMovieListDto>, res: Response,
  * @desc    Unlikes a specific movie list.
  * @access  Private (Requires valid Access Token)
  */
-const unlikeMovieList = async (req: TypedRequest<UnlikeMovieListDto>, res: Response, next: NextFunction) => {
-    try {
-        const { listId } = req.params;
-        const userId = req.user!.id;
+const unlikeMovieList = async (
+  req: TypedRequest<UnlikeMovieListDto>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { listId } = req.params;
+    const userId = req.user!.id;
 
-        const unlikeResult = await unlikeList({ userId, listId });
-        return sendResponse(res, 200, unlikeResult, "Movie list unliked successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const unlikeResult = await unlikeList({ userId, listId });
+    return sendResponse(
+      res,
+      200,
+      unlikeResult,
+      "Movie list unliked successfully.",
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
  * Likes a specific movie for the authenticated user.
  * If the movie is already liked, it will unlike it (toggle behavior).
- * 
+ *
  * @route   POST /api/movies/:movieId/like
  * @desc    Likes or unlikes a specific movie.
  * @access  Private (Requires valid Access Token)
  */
-const likeMovie = async (req: TypedRequest<Omit<LikeMovieDto, "userId">>, res: Response, next: NextFunction) => {
-    try {
-        const { movieId } = req.params;
-        const userId = req.user!.id;
+const likeMovie = async (
+  req: TypedRequest<Omit<LikeMovieDto, "userId">>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { movieId } = req.params;
+    const userId = req.user!.id;
 
-        const likeResult = await likeMovieService({ userId, movieId });
-        return sendResponse(res, 200, likeResult, "Movie liked successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const likeResult = await likeMovieService({ userId, movieId });
+    return sendResponse(res, 200, likeResult, "Movie liked successfully.");
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -600,16 +740,20 @@ const likeMovie = async (req: TypedRequest<Omit<LikeMovieDto, "userId">>, res: R
  * @desc    Unlikes a specific movie.
  * @access  Private (Requires valid Access Token)
  */
-const unlikeMovie = async (req: TypedRequest<Omit<UnlikeMovieDto, "userId">>, res: Response, next: NextFunction) => {
-    try {
-        const { movieId } = req.params;
-        const userId = req.user!.id;
+const unlikeMovie = async (
+  req: TypedRequest<Omit<UnlikeMovieDto, "userId">>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { movieId } = req.params;
+    const userId = req.user!.id;
 
-        const unlikeResult = await unlikeMovieService({ userId, movieId });
-        return sendResponse(res, 200, unlikeResult, "Movie unliked successfully.");
-    } catch (error) {
-        next(error);
-    }
+    const unlikeResult = await unlikeMovieService({ userId, movieId });
+    return sendResponse(res, 200, unlikeResult, "Movie unliked successfully.");
+  } catch (error) {
+    next(error);
+  }
 };
 
 /* ==========================================================================
@@ -617,28 +761,28 @@ const unlikeMovie = async (req: TypedRequest<Omit<UnlikeMovieDto, "userId">>, re
    ========================================================================== */
 
 export {
-    getFavoriteMovies,
-    getWatchlistMovies,
-    getWatchedMovies,
-    getLikedMoviesList,
-    getMovieLists,
-    getLikedMovieLists,
-    createMovieList,
-    markMovieAsWatched,
-    unmarkMovieAsWatched,
-    getMovieById,
-    addMovieToWatchlist,
-    removeMovieFromWatchlist,
-    addMovieToFavorites,
-    removeMovieFromFavorites,
-    updateMovieList,
-    deleteMovieList,
-    getMovieListById,
-    getMovieListItems,
-    addMovieToList,
-    removeMovieFromList,
-    likeMovieList,
-    unlikeMovieList,
-    likeMovie,
-    unlikeMovie,
+  getFavoriteMovies,
+  getWatchlistMovies,
+  getWatchedMovies,
+  getLikedMoviesList,
+  getMovieLists,
+  getLikedMovieLists,
+  createMovieList,
+  markMovieAsWatched,
+  unmarkMovieAsWatched,
+  getMovieById,
+  addMovieToWatchlist,
+  removeMovieFromWatchlist,
+  addMovieToFavorites,
+  removeMovieFromFavorites,
+  updateMovieList,
+  deleteMovieList,
+  getMovieListById,
+  getMovieListItems,
+  addMovieToList,
+  removeMovieFromList,
+  likeMovieList,
+  unlikeMovieList,
+  likeMovie,
+  unlikeMovie,
 };

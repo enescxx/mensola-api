@@ -25,7 +25,7 @@ import {
     likeMovieList,
     unlikeMovieList,
     likeMovie,
-    unlikeMovie
+    unlikeMovie,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -45,180 +45,60 @@ import {
 const router = Router();
 
 /* ==========================================================================
-   Movie Library Routes
+   1. User Library & Collection Routes (Static prefixes)
    ========================================================================== */
 
-/**
- * @route   GET /api/movies/favorites
- * @desc    Get paginated favorite movies for a target user (or authenticated user)
- * @access  Public / Optional Auth (Attaches viewer context if token provided)
- */
 router.get("/favorites", extractUser, validate(moviePaginationQuerySchema), getFavoriteMovies);
-
-/**
- * @route   GET /api/movies/watchlists
- * @desc    Get paginated watchlist movies for a target user (or authenticated user)
- * @access  Public / Optional Auth (Attaches viewer context if token provided)
- */
 router.get("/watchlist", extractUser, validate(moviePaginationQuerySchema), getWatchlistMovies);
-
-/**
- * @route   GET /api/movies/watched
- * @desc    Get paginated watched movies history for a target user (or authenticated user)
- * @access  Public / Optional Auth (Attaches viewer context if token provided)
- */
 router.get("/watched", extractUser, validate(moviePaginationQuerySchema), getWatchedMovies);
-
-/**
- * @route   GET /api/movies/liked
- * @desc    Get paginated liked movies for a target user (or authenticated user)
- * @access  Public / Optional Auth (Attaches viewer context if token provided)
- */
 router.get("/liked", extractUser, validate(moviePaginationQuerySchema), getLikedMoviesList);
 
 /* ==========================================================================
-   Custom Movie Lists Routes
+   2. Custom Movie Lists Routes (Static & Dynamic Sub-routes)
    ========================================================================== */
 
-/**
- * @route   GET /api/movies/lists/liked
- * @desc    Get custom movie lists liked by a target user (or authenticated user)
- * @access  Public / Optional Auth (Attaches viewer context if token provided)
- * @note    Must be defined BEFORE GET /lists to prevent static route collision
- */
 router.get("/lists/liked", extractUser, validate(moviePaginationQuerySchema), getLikedMovieLists);
-
-/**
- * @route   GET /api/movies/lists
- * @desc    Get custom movie lists created by a target user (or authenticated user)
- * @access  Public / Optional Auth (Attaches viewer context if token provided)
- */
 router.get("/lists", extractUser, validate(moviePaginationQuerySchema), getMovieLists);
-
-/**
- * @route   POST /api/movies/lists
- * @desc    Create a new custom movie list for the authenticated user
- * @access  Private (Requires valid Access Token)
- */
 router.post("/lists", verifyToken, validate(createMovieListSchema), createMovieList);
 
-/**
- * @route   GET /api/movies/lists/:listId
- * @desc    Fetch a specific movie list by its ID, including owners, preview movies, and latest comments
- * @access  Public / Optional Auth (Attaches viewer context if token provided)
- */
+// Single List Operations
 router.get("/lists/:listId", extractUser, validate(listIdParamSchema), getMovieListById);
-
-/**
- * @route   PATCH /api/movies/lists/:listId
- * @desc    Updates the details of an existing movie list
- * @access  Private (Requires valid Access Token)
- */
 router.patch("/lists/:listId", verifyToken, validate(updateMovieListSchema), updateMovieList);
-
-/**
- * @route   DELETE /api/movies/lists/:listId
- * @desc    Deletes a specific movie list for the authenticated user
- * @access  Private (Requires valid Access Token)
- */
 router.delete("/lists/:listId", verifyToken, validate(listIdParamSchema), deleteMovieList);
 
-/**
- * @route   POST /api/movies/lists/:listId/like
- * @desc    Likes or unlikes a specific movie list
- * @access  Private (Requires valid Access Token)
- */
+// List Like/Unlike Operations
 router.post("/lists/:listId/like", verifyToken, validate(listIdParamSchema), likeMovieList);
-
-/**
- * @route   DELETE /api/movies/lists/:listId/like
- * @desc    Unlikes a specific movie list
- * @access  Private (Requires valid Access Token)
- */
 router.delete("/lists/:listId/like", verifyToken, validate(listIdParamSchema), unlikeMovieList);
 
-/**
- * @route   GET /api/movies/lists/:listId/items
- * @desc    Fetches all movies contained in a specific movie list
- * @access  Public / Optional Auth (Attaches viewer context if token provided)
- */
+// List Items Operations
 router.get("/lists/:listId/items", extractUser, validate(listIdParamSchema), getMovieListItems);
-
-/**
- * @route   POST /api/movies/lists/:listId/items/:movieId
- * @desc    Adds a specific movie to a custom movie list for the authenticated user
- * @access  Private (Requires valid Access Token)
- */
 router.post("/lists/:listId/items/:movieId", verifyToken, validate(listAndMovieParamsSchema), addMovieToList);
-
-/**
- * @route   DELETE /api/movies/lists/:listId/items/:movieId
- * @desc    Removes a specific movie from a custom movie list for the authenticated user
- * @access  Private (Requires valid Access Token)
- */
 router.delete("/lists/:listId/items/:movieId", verifyToken, validate(listAndMovieParamsSchema), removeMovieFromList);
 
-/**
- * @route   POST /api/movies/:movieId/watched
- * @desc    Mark a movie as watched for the authenticated user
- * @access  Private (Requires valid Access Token)
- */
-router.post("/:movieId/watched", verifyToken, validate(movieIdParamSchema), markMovieAsWatched);
+/* ==========================================================================
+   3. Single Movie Interactions & Specific Actions
+   ========================================================================== */
 
-/**
- * @route   DELETE /api/movies/:movieId/watched
- * @desc    Completely remove a movie from watched history
- * @access  Private (Requires valid Access Token)
- */
+// Watched Status
+router.post("/:movieId/watched", verifyToken, validate(movieIdParamSchema), markMovieAsWatched);
 router.delete("/:movieId/watched", verifyToken, validate(movieIdParamSchema), unmarkMovieAsWatched);
 
-/**
- * @route   POST /api/movies/:movieId/watchlist
- * @desc    Add a movie to the authenticated user's watchlist
- * @access  Private (Requires valid Access Token)
- */
+// Watchlist Status
 router.post("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), addMovieToWatchlist);
-
-/**
- * @route   DELETE /api/movies/:movieId/watchlist
- * @desc    Completely remove a movie from the authenticated user's watchlist
- * @access  Private (Requires valid Access Token)
- */
 router.delete("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), removeMovieFromWatchlist);
 
-/**
- * @route   POST /api/movies/:movieId/favorites
- * @desc    Add a movie to the authenticated user's favorites list
- * @access  Private (Requires valid Access Token)
- */
+// Favorites Status
 router.post("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), addMovieToFavorites);
-
-/**
- * @route   DELETE /api/movies/:movieId/favorites
- * @desc    Completely remove a movie from the authenticated user's favorites list
- * @access  Private (Requires valid Access Token)
- */
 router.delete("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), removeMovieFromFavorites);
 
-/**
- * @route   POST /api/movies/:movieId/like
- * @desc    Likes or unlikes a specific movie for the authenticated user.
- * @access  Private (Requires valid Access Token)
- */
+// Movie Like Status
 router.post("/:movieId/like", verifyToken, validate(movieIdParamSchema), likeMovie);
-
-/**
- * @route   DELETE /api/movies/:movieId/like
- * @desc    Unlikes a specific movie for the authenticated user.
- * @access  Private (Requires valid Access Token)
- */
 router.delete("/:movieId/like", verifyToken, validate(movieIdParamSchema), unlikeMovie);
 
-/**
- * @route   GET /api/movies/:movieId
- * @desc    Fetch movie details along with top user reviews
- * @access  Public
- */
+/* ==========================================================================
+   4. Catch-all Single Movie Route (MUST BE AT THE VERY BOTTOM)
+   ========================================================================== */
+
 router.get("/:movieId", validate(movieIdParamSchema), getMovieById);
 
 export default router;
