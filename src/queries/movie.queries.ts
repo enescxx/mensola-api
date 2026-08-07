@@ -473,8 +473,8 @@ export const movieQueries = {
        * Returns the newly created row.
        */
       add: `
-                INSERT INTO "MovieListItem" (id, "movieListId", "movieId", "addedAt")
-                VALUES (gen_random_uuid(), (SELECT id FROM "MovieList" WHERE "listType" = 'favorites' AND "creatorId" = $1), $2, NOW())
+                INSERT INTO "MovieListItem" ("movieListId", "movieId", "addedBy", "addedAt")
+                VALUES ((SELECT id FROM "MovieList" WHERE "listType" = 'favorites' AND "creatorId" = $1), $2, $1, NOW())
                 RETURNING *;`,
 
       /**

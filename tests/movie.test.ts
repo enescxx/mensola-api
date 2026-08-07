@@ -276,4 +276,137 @@ describe("Movie API", () => {
       });
     });
   });
+
+  describe("Favorite Movies Endpoints", () => {
+    let testUser: Pick<IUser, "id" | "email" | "username"> & {
+      password: string;
+    };
+    let testUserToken: string;
+
+    let testMovie: Pick<IMovie, "id" | "tmdbId" | "title" | "poster">;
+
+    let favoritesData: Pick<
+      IMovieList,
+      "id" | "title" | "isPrivate" | "listType" | "creatorId"
+    >;
+
+    beforeEach(async () => {
+      ({ user: testUser, token: testUserToken } = await createTestUser());
+
+      testMovie = await createTestMovie();
+      favoritesData = await createTestMovieList(testUser.id, "favorites");
+    });
+
+    /* ==========================================================================
+       GET /api/movies/favorites
+       ========================================================================== */
+    describe("GET /api/movies/favorites", () => {
+      it("should return 200 and list favorite movies for authenticated user", async () => {
+        await addTestMovieToList(testUser.id, testMovie.id, favoritesData.id);
+
+        const response = await request(app)
+          .get("/api/movies/favorites")
+          .set("Authorization", `Bearer ${testUserToken}`);
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(responseData.length).toBe(1);
+        expect(responseData[0].id).toBe(testMovie.id);
+      });
+
+      it("should return 200 and favorite movies when userId query parameter is provided", async () => {
+        await addTestMovieToList(testUser.id, testMovie.id, favoritesData.id);
+
+        const response = await request(app).get(
+          "/api/movies/favorites?userId=" + testUser.id,
+        );
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(responseData.length).toBe(1);
+        expect(responseData[0].id).toBe(testMovie.id);
+      });
+
+      it("should return 400 when neither token nor valid userId query parameter is provided", async () => {
+        const response = await request(app).get("/api/movies/favorites");
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(/userId is invalid/i);
+      });
+    });
+
+    /* ==========================================================================
+       POST /api/movies/:movieId/favorites
+       ========================================================================== */
+    describe("POST /api/movies/:movieId/favorites", () => {
+      it("should add movie to favorites successfully and return 201", async () => {
+        const response = await request(app)
+          .post(`/api/movies/${testMovie.id}/favorites`)
+          .set("Authorization", `Bearer ${testUserToken}`);
+
+        const responseData = response.body.data;
+
+        expect(response.status).toBe(201);
+        expect(response.body.success).toBe(true);
+        expect(responseData.movieId).toBe(testMovie.id);
+        expect(responseData.movieListId).toBe(favoritesData.id);
+      });
+
+      it("should return 401 when authorization token is missing", async () => {
+        const response = await request(app).post(
+          `/api/movies/${testMovie.id}/favorites`,
+        );
+
+        expect(response.status).toBe(401);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Access denied. No token provided/i,
+        );
+      });
+
+      it("should return 400 when movieId param is not a valid UUID", async () => {
+        const response = await request(app)
+          .post("/api/movies/invalid-movie-id/favorites")
+          .set("Authorization", `Bearer ${testUserToken}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toBe("Invalid movie ID format.");
+      });
+    });
+
+    /* ==========================================================================
+       DELETE /api/movies/:movieId/favorites
+       ========================================================================== */
+    describe("DELETE /api/movies/:movieId/favorites", () => {
+      it("should remove movie from favorites successfully and return 200", async () => {
+        await addTestMovieToList(testUser.id, testMovie.id, favoritesData.id);
+
+        const response = await request(app)
+          .delete(`/api/movies/${testMovie.id}/favorites`)
+          .set("Authorization", `Bearer ${testUserToken}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.message).toMatch(
+          /Movie has been removed from favorites successfully/i,
+        );
+      });
+
+      it("should return 401 when authorization token is missing during deletion", async () => {
+        const response = await request(app).delete(
+          `/api/movies/${testMovie.id}/favorites`,
+        );
+
+        expect(response.status).toBe(401);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Access denied. No token provided/i,
+        );
+      });
+    });
+  });
 });

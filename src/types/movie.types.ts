@@ -20,7 +20,7 @@ interface IMovie {
   createdAt?: Date | string;
 }
 
-type MovieListType = "custom" | "favorite" | "watchlist";
+type MovieListType = "custom" | "favorites" | "watchlist";
 
 /**
  * Represents a custom or system-generated Movie List entity.
