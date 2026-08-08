@@ -193,11 +193,13 @@ const getMovieLists = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = (req.query.userId as string) || req.user?.id;
+    const currentUserId = req.user?.id;
+    const userId = (req.query.userId as string) || currentUserId;
+
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 5;
 
-    const lists = await getUserLists({ userId, limit, page });
+    const lists = await getUserLists({ userId, currentUserId, limit, page });
 
     return sendResponse(res, 200, {
       items: lists,

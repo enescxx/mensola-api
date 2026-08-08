@@ -166,7 +166,7 @@ export const getUserLists = async (
 
   const result = await pool.query<GetUserListsResponseItem>(
     movieQueries.lists.getUserLists,
-    [dto.userId, dto.limit, offset],
+    [dto.userId, dto.currentUserId || null, dto.limit, offset],
   );
 
   return result.rows;
@@ -208,9 +208,9 @@ export const createList = async (
 ): Promise<IMovieList> => {
   const values = [
     dto.title,
-    dto.description,
-    dto.image,
-    dto.isPrivate,
+    dto.description ?? null,
+    dto.image ?? null,
+    dto.isPrivate ?? null,
     dto.creatorId,
   ];
   const result = await pool.query<IMovieList>(

@@ -756,4 +756,196 @@ describe("Movie API", () => {
       });
     });
   });
+
+  describe("List Operation Endpoints", () => {
+    let testUserA: Pick<IUser, "id" | "email" | "username"> & {
+      password: string;
+    };
+    let testUserAToken: string;
+
+    let testUserB: Pick<IUser, "id" | "email" | "username"> & {
+      password: string;
+    };
+    let testUserBToken: string;
+
+    beforeEach(async () => {
+      ({ user: testUserA, token: testUserAToken } = await createTestUser());
+      ({ user: testUserB, token: testUserBToken } = await createTestUser());
+    });
+
+    /* ==========================================================================
+     GET /api/movies/lists
+     ========================================================================== */
+    describe("GET /api/movies/lists", () => {
+      it("should return both public and private lists when requested by list owner", async () => {
+        const publicList = await createTestMovieList(testUserA.id, "custom");
+        const privateList = await createTestMovieList(testUserA.id, "custom", {
+          isPrivate: true,
+        });
+
+        const response = await request(app)
+          .get("/api/movies/lists?userId=" + testUserA.id)
+          .set("Authorization", `Bearer ${testUserAToken}`);
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.length).toBe(2);
+        expect(responseData[0].listId).toBe(privateList.id);
+        expect(responseData[1].listId).toBe(publicList.id);
+      });
+
+      it("should return only public lists when requested by another user", async () => {
+        const publicList = await createTestMovieList(testUserA.id, "custom");
+        const privateList = await createTestMovieList(testUserA.id, "custom", {
+          isPrivate: true,
+        });
+
+        const response = await request(app)
+          .get("/api/movies/lists?userId=" + testUserA.id)
+          .set("Authorization", `Bearer ${testUserBToken}`);
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.length).toBe(1);
+        expect(responseData[0].listId).toBe(publicList.id);
+      });
+
+      it("should return only public lists when requested without authentication token", async () => {
+        const publicList = await createTestMovieList(testUserA.id, "custom");
+        const privateList = await createTestMovieList(testUserA.id, "custom", {
+          isPrivate: true,
+        });
+
+        const response = await request(app).get(
+          "/api/movies/lists?userId=" + testUserA.id,
+        );
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.length).toBe(1);
+        expect(responseData[0].listId).toBe(publicList.id);
+      });
+
+      it("should return current authenticated user's lists when userId param is omitted", async () => {
+        const list = await createTestMovieList(testUserA.id, "custom");
+
+        const response = await request(app)
+          .get("/api/movies/lists")
+          .set("Authorization", `Bearer ${testUserAToken}`);
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.length).toBe(1);
+        expect(responseData[0].listId).toBe(list.id);
+      });
+
+      it("should return 400 when userId query parameter is not a valid UUID", async () => {
+        const list = await createTestMovieList(testUserA.id, "custom");
+
+        const response = await request(app).get(
+          "/api/movies/lists?userId=invalid-user-id",
+        );
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Invalid user ID format. Must be a valid UUID/,
+        );
+      });
+
+      it("should return 403 when authorization token is invalid or corrupted", async () => {
+        const list = await createTestMovieList(testUserA.id, "custom");
+
+        const response = await request(app)
+          .get("/api/movies/lists?userId=" + testUserA.id)
+          .set("Authorization", "Bearer invalid-user-id");
+
+        expect(response.status).toBe(403);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Invalid or expired token/i,
+        );
+      });
+    });
+
+    /* ==========================================================================
+       POST /api/movies/lists
+       ========================================================================== */
+    describe("POST /api/movies/lists", () => {
+      it("should create custom movie list successfully with full payload and return 201", async () => {
+        const list = {
+          title: "List Title",
+          description: "Description",
+          image: "https://example.com/image.jpg",
+          isPrivate: false,
+        };
+
+        const response = await request(app)
+          .post("/api/movies/lists")
+          .send(list)
+          .set("Authorization", `Bearer ${testUserAToken}`);
+
+        const responseData = response.body.data;
+
+        expect(response.status).toBe(201);
+        expect(response.body.success).toBe(true);
+        expect(responseData.title).toBe(list.title);
+        expect(responseData.isPrivate).toBe(false);
+      });
+
+      it("should create list with default values when optional fields are omitted", async () => {
+        const list = { title: "List Title" };
+
+        const response = await request(app)
+          .post("/api/movies/lists")
+          .send(list)
+          .set("Authorization", `Bearer ${testUserAToken}`);
+
+        const responseData = response.body.data;
+
+        expect(response.status).toBe(201);
+        expect(response.body.success).toBe(true);
+        expect(responseData.description).toBe(null);
+        expect(responseData.image).toBe(null);
+        expect(responseData.isPrivate).toBe(false);
+      });
+
+      it("should return 401 when authorization token is missing during list creation", async () => {
+        const list = { title: "List Title" };
+
+        const response = await request(app)
+          .post("/api/movies/lists")
+          .send(list);
+
+        expect(response.status).toBe(401);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Access denied. No token provided/i,
+        );
+      });
+
+      it("should return 400 when required fields (title) are missing in request body", async () => {
+        const list = { description: "Missing title" };
+
+        const response = await request(app)
+          .post("/api/movies/lists")
+          .send(list)
+          .set("Authorization", `Bearer ${testUserAToken}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Title is required and must be a string/i,
+        );
+      });
+    });
+  });
 });

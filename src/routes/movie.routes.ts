@@ -2,30 +2,30 @@ import { Router } from "express";
 
 // Controllers
 import {
-    getFavoriteMovies,
-    getWatchlistMovies,
-    getWatchedMovies,
-    getLikedMoviesList,
-    getMovieLists,
-    getLikedMovieLists,
-    createMovieList,
-    markMovieAsWatched,
-    unmarkMovieAsWatched,
-    getMovieById,
-    addMovieToWatchlist,
-    removeMovieFromWatchlist,
-    addMovieToFavorites,
-    removeMovieFromFavorites,
-    updateMovieList,
-    deleteMovieList,
-    getMovieListById,
-    getMovieListItems,
-    addMovieToList,
-    removeMovieFromList,
-    likeMovieList,
-    unlikeMovieList,
-    likeMovie,
-    unlikeMovie,
+  getFavoriteMovies,
+  getWatchlistMovies,
+  getWatchedMovies,
+  getLikedMoviesList,
+  getMovieLists,
+  getLikedMovieLists,
+  createMovieList,
+  markMovieAsWatched,
+  unmarkMovieAsWatched,
+  getMovieById,
+  addMovieToWatchlist,
+  removeMovieFromWatchlist,
+  addMovieToFavorites,
+  removeMovieFromFavorites,
+  updateMovieList,
+  deleteMovieList,
+  getMovieListById,
+  getMovieListItems,
+  addMovieToList,
+  removeMovieFromList,
+  likeMovieList,
+  unlikeMovieList,
+  likeMovie,
+  unlikeMovie,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -34,12 +34,12 @@ import { validate } from "@/middlewares/validate";
 
 // Validation
 import {
-    moviePaginationQuerySchema,
-    createMovieListSchema,
-    movieIdParamSchema,
-    updateMovieListSchema,
-    listIdParamSchema,
-    listAndMovieParamsSchema,
+  moviePaginationQuerySchema,
+  createMovieListSchema,
+  movieIdParamSchema,
+  updateMovieListSchema,
+  listIdParamSchema,
+  listAndMovieParamsSchema,
 } from "@/validations/movie";
 
 const router = Router();
@@ -48,52 +48,167 @@ const router = Router();
    1. User Library & Collection Routes (Static prefixes)
    ========================================================================== */
 
-router.get("/favorites", extractUser, validate(moviePaginationQuerySchema), getFavoriteMovies);
-router.get("/watchlist", extractUser, validate(moviePaginationQuerySchema), getWatchlistMovies);
-router.get("/watched", extractUser, validate(moviePaginationQuerySchema), getWatchedMovies);
-router.get("/liked", extractUser, validate(moviePaginationQuerySchema), getLikedMoviesList);
+router.get(
+  "/favorites",
+  extractUser,
+  validate(moviePaginationQuerySchema),
+  getFavoriteMovies,
+);
+router.get(
+  "/watchlist",
+  extractUser,
+  validate(moviePaginationQuerySchema),
+  getWatchlistMovies,
+);
+router.get(
+  "/watched",
+  extractUser,
+  validate(moviePaginationQuerySchema),
+  getWatchedMovies,
+);
+router.get(
+  "/liked",
+  extractUser,
+  validate(moviePaginationQuerySchema),
+  getLikedMoviesList,
+);
 
 /* ==========================================================================
    2. Custom Movie Lists Routes (Static & Dynamic Sub-routes)
    ========================================================================== */
 
-router.get("/lists/liked", extractUser, validate(moviePaginationQuerySchema), getLikedMovieLists);
-router.get("/lists", extractUser, validate(moviePaginationQuerySchema), getMovieLists);
-router.post("/lists", verifyToken, validate(createMovieListSchema), createMovieList);
+router.get(
+  "/lists",
+  extractUser,
+  validate(moviePaginationQuerySchema),
+  getMovieLists,
+);
+router.post(
+  "/lists",
+  verifyToken,
+  validate(createMovieListSchema),
+  createMovieList,
+);
 
 // Single List Operations
-router.get("/lists/:listId", extractUser, validate(listIdParamSchema), getMovieListById);
-router.patch("/lists/:listId", verifyToken, validate(updateMovieListSchema), updateMovieList);
-router.delete("/lists/:listId", verifyToken, validate(listIdParamSchema), deleteMovieList);
+router.get(
+  "/lists/:listId",
+  extractUser,
+  validate(listIdParamSchema),
+  getMovieListById,
+);
+router.patch(
+  "/lists/:listId",
+  verifyToken,
+  validate(updateMovieListSchema),
+  updateMovieList,
+);
+router.delete(
+  "/lists/:listId",
+  verifyToken,
+  validate(listIdParamSchema),
+  deleteMovieList,
+);
 
 // List Like/Unlike Operations
-router.post("/lists/:listId/like", verifyToken, validate(listIdParamSchema), likeMovieList);
-router.delete("/lists/:listId/like", verifyToken, validate(listIdParamSchema), unlikeMovieList);
+router.get(
+  "/lists/liked",
+  extractUser,
+  validate(moviePaginationQuerySchema),
+  getLikedMovieLists,
+);
+router.post(
+  "/lists/:listId/like",
+  verifyToken,
+  validate(listIdParamSchema),
+  likeMovieList,
+);
+router.delete(
+  "/lists/:listId/like",
+  verifyToken,
+  validate(listIdParamSchema),
+  unlikeMovieList,
+);
 
 // List Items Operations
-router.get("/lists/:listId/items", extractUser, validate(listIdParamSchema), getMovieListItems);
-router.post("/lists/:listId/items/:movieId", verifyToken, validate(listAndMovieParamsSchema), addMovieToList);
-router.delete("/lists/:listId/items/:movieId", verifyToken, validate(listAndMovieParamsSchema), removeMovieFromList);
+router.get(
+  "/lists/:listId/items",
+  extractUser,
+  validate(listIdParamSchema),
+  getMovieListItems,
+);
+router.post(
+  "/lists/:listId/items/:movieId",
+  verifyToken,
+  validate(listAndMovieParamsSchema),
+  addMovieToList,
+);
+router.delete(
+  "/lists/:listId/items/:movieId",
+  verifyToken,
+  validate(listAndMovieParamsSchema),
+  removeMovieFromList,
+);
 
 /* ==========================================================================
    3. Single Movie Interactions & Specific Actions
    ========================================================================== */
 
 // Watched Status
-router.post("/:movieId/watched", verifyToken, validate(movieIdParamSchema), markMovieAsWatched);
-router.delete("/:movieId/watched", verifyToken, validate(movieIdParamSchema), unmarkMovieAsWatched);
+router.post(
+  "/:movieId/watched",
+  verifyToken,
+  validate(movieIdParamSchema),
+  markMovieAsWatched,
+);
+router.delete(
+  "/:movieId/watched",
+  verifyToken,
+  validate(movieIdParamSchema),
+  unmarkMovieAsWatched,
+);
 
 // Watchlist Status
-router.post("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), addMovieToWatchlist);
-router.delete("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), removeMovieFromWatchlist);
+router.post(
+  "/:movieId/watchlist",
+  verifyToken,
+  validate(movieIdParamSchema),
+  addMovieToWatchlist,
+);
+router.delete(
+  "/:movieId/watchlist",
+  verifyToken,
+  validate(movieIdParamSchema),
+  removeMovieFromWatchlist,
+);
 
 // Favorites Status
-router.post("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), addMovieToFavorites);
-router.delete("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), removeMovieFromFavorites);
+router.post(
+  "/:movieId/favorites",
+  verifyToken,
+  validate(movieIdParamSchema),
+  addMovieToFavorites,
+);
+router.delete(
+  "/:movieId/favorites",
+  verifyToken,
+  validate(movieIdParamSchema),
+  removeMovieFromFavorites,
+);
 
 // Movie Like Status
-router.post("/:movieId/like", verifyToken, validate(movieIdParamSchema), likeMovie);
-router.delete("/:movieId/like", verifyToken, validate(movieIdParamSchema), unlikeMovie);
+router.post(
+  "/:movieId/like",
+  verifyToken,
+  validate(movieIdParamSchema),
+  likeMovie,
+);
+router.delete(
+  "/:movieId/like",
+  verifyToken,
+  validate(movieIdParamSchema),
+  unlikeMovie,
+);
 
 /* ==========================================================================
    4. Catch-all Single Movie Route (MUST BE AT THE VERY BOTTOM)

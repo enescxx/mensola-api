@@ -85,7 +85,7 @@ type GetFavoritesDto = BaseUserQueryDto;
 type GetWatchlistDto = BaseUserQueryDto;
 type GetWatchedMoviesDto = BaseUserQueryDto;
 type GetLikedMoviesDto = BaseUserQueryDto;
-type GetUserListsDto = BaseUserQueryDto;
+type GetUserListsDto = BaseUserQueryDto & { currentUserId?: UserId };
 type GetLikedListsDto = BaseUserQueryDto;
 
 /**

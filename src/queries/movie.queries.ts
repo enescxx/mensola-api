@@ -38,9 +38,12 @@ export const movieQueries = {
             ) preview_movies ON true
             LEFT JOIN "Movie" m ON m.id = preview_movies."movieId"
             LEFT JOIN "Interaction" m_int ON m_int."targetId" = m.id AND m_int."userId" = ml."creatorId"
-            WHERE ml."creatorId" = $1 AND ml."listType" = 'custom'
+            WHERE ml."creatorId" = $1 
+                AND ml."listType" = 'custom' 
+                AND (ml."isPrivate" = false OR $1 = $2)
             GROUP BY ml.id
-            LIMIT $2 OFFSET $3;`,
+            ORDER BY ml."createdAt" DESC
+            LIMIT $3 OFFSET $4;`,
 
     /**
      * Fetches a specific custom movie list by its ID, including list metadata,
@@ -141,7 +144,7 @@ export const movieQueries = {
      */
     create: `
             INSERT INTO "MovieList" (id, title, description, image, "isPrivate","creatorId") 
-            VALUES (gen_random_uuid(), $1, $2, $3, $4, $5) 
+            VALUES (gen_random_uuid(), $1, $2, $3, COALESCE($4, false), $5) 
             RETURNING id, title, description, image, "isPrivate","creatorId";`,
 
     /**
