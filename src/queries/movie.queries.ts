@@ -284,9 +284,12 @@ export const movieQueries = {
                 ) preview_movies ON true
                 LEFT JOIN "Movie" m ON m.id = preview_movies."movieId"
                 LEFT JOIN "Interaction" m_int ON m_int."userId" = ml_int."userId" AND m_int."targetId" = m.id AND m_int."targetType" = 'movie'
-                WHERE ml_int."targetType" = 'movieList' AND ml_int."userId" = $1 AND ml_int."isLiked" = true
+                WHERE ml_int."targetType" = 'movieList' 
+                    AND ml_int."userId" = $1 
+                    AND ml_int."isLiked" = true
+                    AND (ml."isPrivate" = false OR ml."creatorId" = $2)
                 GROUP BY ml.id
-                LIMIT $2 OFFSET $3;`,
+                LIMIT $3 OFFSET $4;`,
 
       /**
        * Inserts a new record into the Interaction table to mark a custom movie list as liked by the user.
@@ -294,8 +297,12 @@ export const movieQueries = {
        */
       add: `
                 INSERT INTO "Interaction" ("userId", "targetId", "targetType", "isLiked")
-                VALUES ($1, $2, 'movieList', true)
-                ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE SET "isLiked" = true
+                SELECT $1, ml.id, 'movieList', true
+                FROM "MovieList" ml
+                WHERE ml.id = $2
+                    AND (ml."isPrivate" = false OR ml."creatorId" = $1)
+                    ON CONFLICT ("userId", "targetId", "targetType") 
+                DO UPDATE SET "isLiked" = true
                 RETURNING "targetId" AS "listId", "isLiked";`,
 
       /**

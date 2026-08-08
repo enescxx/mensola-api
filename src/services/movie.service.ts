@@ -190,7 +190,7 @@ export const getLikedLists = async (
 
   const result = await pool.query<GetLikedListsResponseItem>(
     movieQueries.lists.likes.get,
-    [dto.userId, dto.limit, offset],
+    [dto.userId, dto.currentUserId || null, dto.limit, offset],
   );
 
   return result.rows;

@@ -90,29 +90,9 @@ router.post(
   createMovieList,
 );
 
-// Single List Operations
-router.get(
-  "/lists/:listId",
-  extractUser,
-  validate(listIdParamSchema),
-  getMovieListById,
-);
-router.patch(
-  "/lists/:listId",
-  verifyToken,
-  validate(updateMovieListSchema),
-  updateMovieList,
-);
-router.delete(
-  "/lists/:listId",
-  verifyToken,
-  validate(listIdParamSchema),
-  deleteMovieList,
-);
-
 // List Like/Unlike Operations
 router.get(
-  "/lists/liked",
+  "/lists/likes",
   extractUser,
   validate(moviePaginationQuerySchema),
   getLikedMovieLists,
@@ -148,6 +128,26 @@ router.delete(
   verifyToken,
   validate(listAndMovieParamsSchema),
   removeMovieFromList,
+);
+
+// Single List Operations
+router.get(
+  "/lists/:listId",
+  extractUser,
+  validate(listIdParamSchema),
+  getMovieListById,
+);
+router.patch(
+  "/lists/:listId",
+  verifyToken,
+  validate(updateMovieListSchema),
+  updateMovieList,
+);
+router.delete(
+  "/lists/:listId",
+  verifyToken,
+  validate(listIdParamSchema),
+  deleteMovieList,
 );
 
 /* ==========================================================================

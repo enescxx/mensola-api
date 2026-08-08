@@ -108,3 +108,16 @@ export const addTestMovieToLikes = async (userId: string, movieId: string) => {
   const result = await pool.query(query, values);
   return result.rows[0];
 };
+
+export const addTestListToLikes = async (userId: string, listId: string) => {
+  const id = crypto.randomUUID();
+
+  const query = `
+        INSERT INTO "Interaction" ("userId", "targetId", "targetType", "isLiked")
+        VALUES ($1, $2, 'movieList', true) RETURNING *;`;
+
+  const values = [userId, listId];
+
+  const result = await pool.query(query, values);
+  return result.rows[0];
+};

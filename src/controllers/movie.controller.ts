@@ -224,11 +224,17 @@ const getLikedMovieLists = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = (req.query.userId as string) || req.user?.id;
+    const currentUserId = req.user?.id;
+    const userId = (req.query.userId as string) || currentUserId;
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 5;
 
-    const likedLists = await getLikedLists({ userId, limit, page });
+    const likedLists = await getLikedLists({
+      userId,
+      currentUserId,
+      limit,
+      page,
+    });
 
     return sendResponse(res, 200, {
       items: likedLists,
@@ -680,7 +686,7 @@ const likeMovieList = async (
     const userId = req.user!.id;
 
     const likeResult = await likeList({ userId, listId });
-    return sendResponse(res, 200, likeResult, "Movie list liked successfully.");
+    return sendResponse(res, 201, likeResult, "Movie list liked successfully.");
   } catch (error) {
     next(error);
   }

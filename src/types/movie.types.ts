@@ -86,7 +86,7 @@ type GetWatchlistDto = BaseUserQueryDto;
 type GetWatchedMoviesDto = BaseUserQueryDto;
 type GetLikedMoviesDto = BaseUserQueryDto;
 type GetUserListsDto = BaseUserQueryDto & { currentUserId?: UserId };
-type GetLikedListsDto = BaseUserQueryDto;
+type GetLikedListsDto = BaseUserQueryDto & { currentUserId?: UserId };
 
 /**
  * Body payload DTO for creating a new custom movie list.

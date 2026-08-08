@@ -6,6 +6,7 @@ import { IMovie, IMovieList } from "@/types/movie";
 
 import { createTestUser } from "./helpers/auth.helper";
 import {
+  addTestListToLikes,
   addTestMovieToLikes,
   addTestMovieToList,
   addTestMovieToWatched,
@@ -1202,6 +1203,224 @@ describe("Movie API", () => {
         expect(response.body.error.message).toMatch(
           /Access denied. No token provided/i,
         );
+      });
+    });
+  });
+
+  describe("List Likes Endpoints", () => {
+    let testUserA: Pick<IUser, "id" | "email" | "username"> & {
+      password: string;
+    };
+    let testUserAToken: string;
+
+    let testUserB: Pick<IUser, "id" | "email" | "username"> & {
+      password: string;
+    };
+    let testUserBToken: string;
+
+    let testList: Pick<
+      IMovieList,
+      "id" | "title" | "isPrivate" | "listType" | "creatorId"
+    >;
+
+    beforeEach(async () => {
+      ({ user: testUserA, token: testUserAToken } = await createTestUser());
+      ({ user: testUserB, token: testUserBToken } = await createTestUser());
+
+      testList = await createTestMovieList(testUserA.id, "custom");
+    });
+
+    /* ==========================================================================
+       GET /api/movies/lists/likes
+       ========================================================================== */
+    describe("GET /api/movies/lists/likes", () => {
+      it("should return 200 and liked lists when owner accesses their own liked lists", async () => {
+        const likedList = await addTestListToLikes(testUserA.id, testList.id);
+
+        const response = await request(app)
+          .get(`/api/movies/lists/likes?userId=${testUserA.id}`)
+          .set("Authorization", `Bearer ${testUserAToken}`);
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.length).toBe(1);
+        expect(responseData[0].listId).toBe(testList.id);
+      });
+
+      it("should return 200 and public liked lists when accessed by another user", async () => {
+        await addTestListToLikes(testUserA.id, testList.id);
+
+        const response = await request(app)
+          .get(`/api/movies/lists/likes?userId=${testUserA.id}`)
+          .set("Authorization", `Bearer ${testUserBToken}`);
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.length).toBe(1);
+        expect(responseData[0].listId).toBe(testList.id);
+      });
+
+      it("should return 200 and public liked lists when requested without authentication", async () => {
+        await addTestListToLikes(testUserA.id, testList.id);
+
+        const response = await request(app).get(
+          `/api/movies/lists/likes?userId=${testUserA.id}`,
+        );
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.length).toBe(1);
+        expect(responseData[0].listId).toBe(testList.id);
+      });
+
+      it("should filter out private lists from liked lists when accessed by another user", async () => {
+        const privateList = await createTestMovieList(testUserA.id, "custom", {
+          isPrivate: true,
+        });
+
+        await addTestListToLikes(testUserA.id, privateList.id);
+
+        const response = await request(app)
+          .get(`/api/movies/lists/likes?userId=${testUserA.id}`)
+          .set("Authorization", `Bearer ${testUserBToken}`);
+
+        const responseData = response.body.data.items;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.length).toBe(0);
+      });
+
+      it("should return 400 when userId query parameter is not a valid UUID", async () => {
+        await addTestListToLikes(testUserA.id, testList.id);
+
+        const response = await request(app)
+          .get("/api/movies/lists/likes?userId=invalid-user-id")
+          .set("Authorization", `Bearer ${testUserBToken}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(/Invalid user ID format/i);
+      });
+    });
+
+    /* ==========================================================================
+       POST /api/movies/lists/:listId/like
+       ========================================================================== */
+    describe("POST /api/movies/lists/:listId/like", () => {
+      it("should like movie list successfully and return 201", async () => {
+        const response = await request(app)
+          .post(`/api/movies/lists/${testList.id}/like`)
+          .set("Authorization", `Bearer ${testUserAToken}`);
+
+        const responseData = response.body.data;
+
+        expect(response.status).toBe(201);
+        expect(response.body.success).toBe(true);
+        expect(responseData.listId).toBe(testList.id);
+        expect(responseData.isLiked).toBe(true);
+      });
+
+      it("should return 401 when authorization token is missing", async () => {
+        const response = await request(app).post(
+          `/api/movies/lists/${testList.id}/like`,
+        );
+
+        expect(response.status).toBe(401);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Access denied. No token provided/i,
+        );
+      });
+
+      it("should return 400 when listId param is not a valid UUID", async () => {
+        const response = await request(app)
+          .post("/api/movies/lists/invalid-list-id/like")
+          .set("Authorization", `Bearer ${testUserAToken}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(/Invalid list ID format/i);
+      });
+
+      it("should return 404 when user tries to like another user's private list", async () => {
+        const privateList = await createTestMovieList(testUserA.id, "custom", {
+          isPrivate: true,
+        });
+
+        const response = await request(app)
+          .post(`/api/movies/lists/${privateList.id}/like`)
+          .set("Authorization", `Bearer ${testUserBToken}`);
+
+        expect(response.status).toBe(404);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Failed to like the movie list. It may not exist or you may not have permission/i,
+        );
+      });
+    });
+
+    /* ==========================================================================
+       DELETE /api/movies/lists/:listId/like
+       ========================================================================== */
+    describe("DELETE /api/movies/lists/:listId/like", () => {
+      it("should unlike movie list successfully and return 200", async () => {
+        const likedList = await addTestListToLikes(testUserA.id, testList.id);
+
+        const response = await request(app)
+          .delete(`/api/movies/lists/${testList.id}/like`)
+          .set("Authorization", `Bearer ${testUserAToken}`);
+
+        const responseData = response.body.data;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.listId).toBe(testList.id);
+        expect(responseData.isLiked).toBe(false);
+      });
+
+      it("should return 404 when user tries to unlike a list they have not liked", async () => {
+        await addTestListToLikes(testUserA.id, testList.id);
+
+        const response = await request(app)
+          .delete(`/api/movies/lists/${testList.id}/like`)
+          .set("Authorization", `Bearer ${testUserBToken}`);
+
+        expect(response.status).toBe(404);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Failed to unlike the movie list. It may not exist or you may not have permission/i,
+        );
+      });
+
+      it("should return 401 when authorization token is missing during deletion", async () => {
+        await addTestListToLikes(testUserA.id, testList.id);
+
+        const response = await request(app).delete(
+          `/api/movies/lists/${testList.id}/like`,
+        );
+
+        expect(response.status).toBe(401);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(
+          /Access denied. No token provided/i,
+        );
+      });
+
+      it("should return 400 when listId param is not a valid UUID", async () => {
+        const response = await request(app)
+          .delete("/api/movies/lists/invalid-list-id/like")
+          .set("Authorization", `Bearer ${testUserBToken}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(/Invalid list ID format/i);
       });
     });
   });
