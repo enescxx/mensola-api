@@ -354,9 +354,11 @@ const getMovieById = async (
   next: NextFunction,
 ) => {
   try {
+    const currentUserId = req.user?.id;
+
     const movieId = req.params.movieId;
 
-    const movie = await getMovie({ movieId });
+    const movie = await getMovie({ movieId, currentUserId });
     if (!movie) {
       throw new ApiError("The movie is not found.", 404);
     }

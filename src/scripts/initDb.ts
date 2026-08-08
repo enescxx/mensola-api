@@ -80,10 +80,26 @@ export const initDatabase = async (poolInstance?: Pool): Promise<void> => {
         "isLiked" BOOLEAN DEFAULT false,
         "rating" DECIMAL(3,1) NULL,
         "interactedAt" TIMESTAMP DEFAULT NOW(),
+        "updatedAt" TIMESTAMP DEFAULT NOW(),
 
         CONSTRAINT check_rating_limit CHECK ("rating" >= 0.0 AND "rating" <= 10.0),
         UNIQUE("userId", "targetId", "targetType")
-    );`;
+    );
+
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+    NEW."updatedAt" = NOW();
+    RETURN NEW;
+    END;
+    $$ language 'plpgsql';
+
+    DROP TRIGGER IF EXISTS update_interaction_updated_at ON "Interaction";
+
+    CREATE TRIGGER update_interaction_updated_at
+    BEFORE UPDATE ON "Interaction"
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();`;
 
   const createCommentTableQuery = `
     CREATE TABLE IF NOT EXISTS "Comment" (

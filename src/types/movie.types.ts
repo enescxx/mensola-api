@@ -107,6 +107,7 @@ type UserMovieActionDto = {
  */
 type GetMovieDto = {
   movieId: IMovie["id"];
+  currentUserId?: IUser["id"];
 };
 
 type UseMovieListKeyDto = {
@@ -260,6 +261,7 @@ type GetMovieInteractionsItem = Pick<
  */
 type GetMovieResponse = IMovie & {
   interactions: GetMovieInteractionsItem[];
+  currentUserInteraction: Omit<GetMovieInteractionsItem, "user">;
 };
 
 /**

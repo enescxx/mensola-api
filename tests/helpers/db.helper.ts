@@ -121,3 +121,66 @@ export const addTestListToLikes = async (userId: string, listId: string) => {
   const result = await pool.query(query, values);
   return result.rows[0];
 };
+
+export interface ICreateTestInteractionOptions {
+  isLiked?: boolean;
+  rating?: number | null;
+  comment?: string | null;
+  targetType?: "movie" | "movieList";
+}
+
+export const createTestInteraction = async (
+  userId: string,
+  targetId: string,
+  options: ICreateTestInteractionOptions = {},
+) => {
+  const {
+    isLiked = false,
+    rating = null,
+    comment = null,
+    targetType = "movie",
+  } = options;
+
+  const interactionQuery = `
+    INSERT INTO "Interaction" ("userId", "targetId", "targetType", "isLiked", "rating")
+    VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT ("userId", "targetId", "targetType") 
+    DO UPDATE SET 
+      "isLiked" = EXCLUDED."isLiked",
+      "rating" = EXCLUDED."rating",
+      "updatedAt" = NOW()
+    RETURNING id, "userId", "targetId", "targetType", "isLiked", "rating";
+  `;
+
+  const interactionResult = await pool.query(interactionQuery, [
+    userId,
+    targetId,
+    targetType,
+    isLiked,
+    rating,
+  ]);
+
+  const interaction = interactionResult.rows[0];
+  let createdComment = null;
+
+  if (comment) {
+    const commentQuery = `
+      INSERT INTO "Comment" ("interactionId", "userId", "content")
+      VALUES ($1, $2, $3)
+      RETURNING id, content, "createdAt";
+    `;
+
+    const commentResult = await pool.query(commentQuery, [
+      interaction.id,
+      userId,
+      comment,
+    ]);
+
+    createdComment = commentResult.rows[0];
+  }
+
+  return {
+    ...interaction,
+    comment: createdComment,
+  };
+};

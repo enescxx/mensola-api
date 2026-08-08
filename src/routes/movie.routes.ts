@@ -214,6 +214,11 @@ router.delete(
    4. Catch-all Single Movie Route (MUST BE AT THE VERY BOTTOM)
    ========================================================================== */
 
-router.get("/:movieId", validate(movieIdParamSchema), getMovieById);
+router.get(
+  "/:movieId",
+  extractUser,
+  validate(movieIdParamSchema),
+  getMovieById,
+);
 
 export default router;

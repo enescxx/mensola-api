@@ -328,7 +328,8 @@ export const movieQueries = {
     getById: `
             SELECT 
                 m.*,
-                COALESCE(interactions_data.interactions, '[]') AS interactions
+                COALESCE(interactions_data.interactions, '[]') AS interactions,
+                user_int.user_interaction AS "currentUserInteraction"
             FROM "Movie" m
             LEFT JOIN LATERAL (
                 SELECT json_agg(
@@ -369,6 +370,29 @@ export const movieQueries = {
                     LIMIT 3
                 ) int_data
             ) interactions_data ON true
+
+            LEFT JOIN LATERAL (
+                SELECT json_build_object(
+                    'id', cu_int.id,
+                    'rating', cu_int."rating",
+                    'isLiked', COALESCE(cu_int."isLiked", false),
+                    'review', (
+                        SELECT json_build_object(
+                            'id', c.id,
+                            'content', c.content,
+                            'createdAt', c."createdAt"
+                        )
+                        FROM "Comment" c
+                        WHERE c."interactionId" = cu_int.id AND c."parentId" IS NULL
+                        LIMIT 1
+                    )
+                ) AS user_interaction
+                FROM "Interaction" cu_int
+                WHERE cu_int."targetId" = m.id
+                    AND cu_int."targetType" = 'movie'
+                    AND cu_int."userId" = $2::uuid
+            ) user_int ON ($2::uuid IS NOT NULL)
+                           
             WHERE m.id = $1;`,
 
     /**

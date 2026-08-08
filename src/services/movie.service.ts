@@ -269,7 +269,7 @@ export const unmarkAsWatched = async (
 export const getMovie = async (dto: GetMovieDto): Promise<GetMovieResponse> => {
   const result = await pool.query<GetMovieResponse>(
     movieQueries.movies.getById,
-    [dto.movieId],
+    [dto.movieId, dto.currentUserId || null],
   );
   return result.rows[0];
 };

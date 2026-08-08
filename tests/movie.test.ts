@@ -10,39 +10,39 @@ import {
   addTestMovieToLikes,
   addTestMovieToList,
   addTestMovieToWatched,
+  createTestInteraction,
   createTestMovie,
   createTestMovieList,
 } from "./helpers/db.helper";
-import { create } from "node:domain";
 
 describe("Movie API", () => {
+  let testUserA: Pick<IUser, "id" | "email" | "username"> & {
+    password: string;
+  };
+  let testUserAToken: string;
+
+  let testMovie: Pick<IMovie, "id" | "tmdbId" | "title" | "poster">;
+
+  beforeEach(async () => {
+    ({ user: testUserA, token: testUserAToken } = await createTestUser());
+
+    testMovie = await createTestMovie();
+  });
+
   describe("Watched Movies Endpoints", () => {
-    let testUser: Pick<IUser, "id" | "email" | "username"> & {
-      password: string;
-    };
-    let testUserToken: string;
-
-    let testMovie: Pick<IMovie, "id" | "tmdbId" | "title" | "poster">;
-
-    beforeEach(async () => {
-      ({ user: testUser, token: testUserToken } = await createTestUser());
-
-      testMovie = await createTestMovie();
-    });
-
     /* ==========================================================================
        GET /api/movies/watched
        ========================================================================== */
     describe("GET /api/movies/watched", () => {
       it("should return 200 and watched movies list for authenticated user", async () => {
         const watchedMovie = await addTestMovieToWatched(
-          testUser.id,
+          testUserA.id,
           testMovie.id,
         );
 
         const response = await request(app)
           .get("/api/movies/watched")
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         const responseData = response.body.data.items;
 
@@ -53,12 +53,12 @@ describe("Movie API", () => {
 
       it("should return 200 and watched movies when userId query parameter is passed", async () => {
         const watchedMovie = await addTestMovieToWatched(
-          testUser.id,
+          testUserA.id,
           testMovie.id,
         );
 
         const response = await request(app).get(
-          "/api/movies/watched?userId=" + testUser.id,
+          "/api/movies/watched?userId=" + testUserA.id,
         );
 
         const responseData = response.body.data.items;
@@ -84,7 +84,7 @@ describe("Movie API", () => {
       it("should mark movie as watched successfully and return 201", async () => {
         const response = await request(app)
           .post(`/api/movies/${testMovie.id}/watched`)
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         const watchedMovie = response.body.data;
 
@@ -108,7 +108,7 @@ describe("Movie API", () => {
       it("should return 400 when movieId param is not a valid UUID", async () => {
         const response = await request(app)
           .post("/api/movies/invalid-movie-id/watched")
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         expect(response.status).toBe(400);
         expect(response.body.error.message).toBe("Invalid movie ID format.");
@@ -120,11 +120,11 @@ describe("Movie API", () => {
        ========================================================================== */
     describe("DELETE /api/movies/:movieId/watched", () => {
       it("should remove movie from watched history successfully and return 200", async () => {
-        await addTestMovieToWatched(testUser.id, testMovie.id);
+        await addTestMovieToWatched(testUserA.id, testMovie.id);
 
         const response = await request(app)
           .delete(`/api/movies/${testMovie.id}/watched`)
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
@@ -148,23 +148,13 @@ describe("Movie API", () => {
   });
 
   describe("Watchlist Endpoints", () => {
-    let testUser: Pick<IUser, "id" | "email" | "username"> & {
-      password: string;
-    };
-    let testUserToken: string;
-
-    let testMovie: Pick<IMovie, "id" | "tmdbId" | "title" | "poster">;
-
     let watchlistData: Pick<
       IMovieList,
       "id" | "title" | "isPrivate" | "listType" | "creatorId"
     >;
 
     beforeEach(async () => {
-      ({ user: testUser, token: testUserToken } = await createTestUser());
-
-      testMovie = await createTestMovie();
-      watchlistData = await createTestMovieList(testUser.id, "watchlist");
+      watchlistData = await createTestMovieList(testUserA.id, "watchlist");
     });
 
     /* ==========================================================================
@@ -172,11 +162,11 @@ describe("Movie API", () => {
        ========================================================================== */
     describe("GET /api/movies/watchlist", () => {
       it("should return 200 and list watchlist movies for authenticated user", async () => {
-        await addTestMovieToList(testUser.id, testMovie.id, watchlistData.id);
+        await addTestMovieToList(testUserA.id, testMovie.id, watchlistData.id);
 
         const response = await request(app)
           .get("/api/movies/watchlist")
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         const responseData = response.body.data.items;
 
@@ -186,10 +176,10 @@ describe("Movie API", () => {
       });
 
       it("should return 200 and watchlist movies when userId query parameter is provided", async () => {
-        await addTestMovieToList(testUser.id, testMovie.id, watchlistData.id);
+        await addTestMovieToList(testUserA.id, testMovie.id, watchlistData.id);
 
         const response = await request(app).get(
-          "/api/movies/watchlist?userId=" + testUser.id,
+          "/api/movies/watchlist?userId=" + testUserA.id,
         );
 
         const responseData = response.body.data.items;
@@ -215,7 +205,7 @@ describe("Movie API", () => {
       it("should add movie to watchlist successfully and return 201", async () => {
         const response = await request(app)
           .post(`/api/movies/${testMovie.id}/watchlist`)
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         const responseData = response.body.data;
 
@@ -240,7 +230,7 @@ describe("Movie API", () => {
       it("should return 400 when movieId param is not a valid UUID", async () => {
         const response = await request(app)
           .post("/api/movies/invalid-movie-id/watchlist")
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         expect(response.status).toBe(400);
         expect(response.body.success).toBe(false);
@@ -253,11 +243,11 @@ describe("Movie API", () => {
        ========================================================================== */
     describe("DELETE /api/movies/:movieId/watchlist", () => {
       it("should remove movie from watchlist successfully and return 200", async () => {
-        await addTestMovieToList(testUser.id, testMovie.id, watchlistData.id);
+        await addTestMovieToList(testUserA.id, testMovie.id, watchlistData.id);
 
         const response = await request(app)
           .delete(`/api/movies/${testMovie.id}/watchlist`)
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
@@ -281,23 +271,13 @@ describe("Movie API", () => {
   });
 
   describe("Favorite Movies Endpoints", () => {
-    let testUser: Pick<IUser, "id" | "email" | "username"> & {
-      password: string;
-    };
-    let testUserToken: string;
-
-    let testMovie: Pick<IMovie, "id" | "tmdbId" | "title" | "poster">;
-
     let favoritesData: Pick<
       IMovieList,
       "id" | "title" | "isPrivate" | "listType" | "creatorId"
     >;
 
     beforeEach(async () => {
-      ({ user: testUser, token: testUserToken } = await createTestUser());
-
-      testMovie = await createTestMovie();
-      favoritesData = await createTestMovieList(testUser.id, "favorites");
+      favoritesData = await createTestMovieList(testUserA.id, "favorites");
     });
 
     /* ==========================================================================
@@ -305,11 +285,11 @@ describe("Movie API", () => {
        ========================================================================== */
     describe("GET /api/movies/favorites", () => {
       it("should return 200 and list favorite movies for authenticated user", async () => {
-        await addTestMovieToList(testUser.id, testMovie.id, favoritesData.id);
+        await addTestMovieToList(testUserA.id, testMovie.id, favoritesData.id);
 
         const response = await request(app)
           .get("/api/movies/favorites")
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         const responseData = response.body.data.items;
 
@@ -319,10 +299,10 @@ describe("Movie API", () => {
       });
 
       it("should return 200 and favorite movies when userId query parameter is provided", async () => {
-        await addTestMovieToList(testUser.id, testMovie.id, favoritesData.id);
+        await addTestMovieToList(testUserA.id, testMovie.id, favoritesData.id);
 
         const response = await request(app).get(
-          "/api/movies/favorites?userId=" + testUser.id,
+          "/api/movies/favorites?userId=" + testUserA.id,
         );
 
         const responseData = response.body.data.items;
@@ -348,7 +328,7 @@ describe("Movie API", () => {
       it("should add movie to favorites successfully and return 201", async () => {
         const response = await request(app)
           .post(`/api/movies/${testMovie.id}/favorites`)
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         const responseData = response.body.data;
 
@@ -373,7 +353,7 @@ describe("Movie API", () => {
       it("should return 400 when movieId param is not a valid UUID", async () => {
         const response = await request(app)
           .post("/api/movies/invalid-movie-id/favorites")
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         expect(response.status).toBe(400);
         expect(response.body.success).toBe(false);
@@ -386,11 +366,11 @@ describe("Movie API", () => {
        ========================================================================== */
     describe("DELETE /api/movies/:movieId/favorites", () => {
       it("should remove movie from favorites successfully and return 200", async () => {
-        await addTestMovieToList(testUser.id, testMovie.id, favoritesData.id);
+        await addTestMovieToList(testUserA.id, testMovie.id, favoritesData.id);
 
         const response = await request(app)
           .delete(`/api/movies/${testMovie.id}/favorites`)
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
@@ -414,32 +394,19 @@ describe("Movie API", () => {
   });
 
   describe("Movie Likes Endpoints", () => {
-    let testUser: Pick<IUser, "id" | "email" | "username"> & {
-      password: string;
-    };
-    let testUserToken: string;
-
-    let testMovie: Pick<IMovie, "id" | "tmdbId" | "title" | "poster">;
-
-    beforeEach(async () => {
-      ({ user: testUser, token: testUserToken } = await createTestUser());
-
-      testMovie = await createTestMovie();
-    });
-
     /* ==========================================================================
        GET /api/movies/liked
        ========================================================================== */
     describe("GET /api/movies/liked", () => {
       it("should return 200 and list liked movies for authenticated user", async () => {
         const interaction = await addTestMovieToLikes(
-          testUser.id,
+          testUserA.id,
           testMovie.id,
         );
 
         const response = await request(app)
           .get("/api/movies/liked")
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         const responseData = response.body.data.items;
 
@@ -452,12 +419,12 @@ describe("Movie API", () => {
 
       it("should return 200 and liked movies when userId query parameter is provided", async () => {
         const interaction = await addTestMovieToLikes(
-          testUser.id,
+          testUserA.id,
           testMovie.id,
         );
 
         const response = await request(app).get(
-          "/api/movies/liked?userId=" + testUser.id,
+          "/api/movies/liked?userId=" + testUserA.id,
         );
 
         const responseData = response.body.data.items;
@@ -485,7 +452,7 @@ describe("Movie API", () => {
       it("should like movie successfully and return 201", async () => {
         const response = await request(app)
           .post(`/api/movies/${testMovie.id}/like`)
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         const responseData = response.body.data;
 
@@ -511,7 +478,7 @@ describe("Movie API", () => {
       it("should return 400 when movieId param is not a valid UUID", async () => {
         const response = await request(app)
           .post("/api/movies/invalid-movie-id/like")
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         expect(response.status).toBe(400);
         expect(response.body.success).toBe(false);
@@ -525,13 +492,13 @@ describe("Movie API", () => {
     describe("DELETE /api/movies/:movieId/like", () => {
       it("should unlike movie successfully and return 200", async () => {
         const interaction = await addTestMovieToLikes(
-          testUser.id,
+          testUserA.id,
           testMovie.id,
         );
 
         const response = await request(app)
           .delete(`/api/movies/${testMovie.id}/like`)
-          .set("Authorization", `Bearer ${testUserToken}`);
+          .set("Authorization", `Bearer ${testUserAToken}`);
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
@@ -553,17 +520,10 @@ describe("Movie API", () => {
   });
 
   describe("List Items Operation Endpoints", () => {
-    let testUserA: Pick<IUser, "id" | "email" | "username"> & {
-      password: string;
-    };
-    let testUserAToken: string;
-
     let testUserB: Pick<IUser, "id" | "email" | "username"> & {
       password: string;
     };
     let testUserBToken: string;
-
-    let testMovie: Pick<IMovie, "id" | "tmdbId" | "title" | "poster">;
 
     let listData: Pick<
       IMovieList,
@@ -571,13 +531,14 @@ describe("Movie API", () => {
     >;
 
     beforeEach(async () => {
-      ({ user: testUserA, token: testUserAToken } = await createTestUser());
       ({ user: testUserB, token: testUserBToken } = await createTestUser());
 
-      testMovie = await createTestMovie();
       listData = await createTestMovieList(testUserA.id, "custom");
     });
 
+    /* ==========================================================================
+       GET /api/movies/lists/:listId/items
+       ========================================================================== */
     describe("GET /api/movies/lists/:listId/items", () => {
       it("should return 200 and list items when accessed by list owner", async () => {
         await addTestMovieToList(testUserA.id, testMovie.id, listData.id);
@@ -637,6 +598,9 @@ describe("Movie API", () => {
       });
     });
 
+    /* ==========================================================================
+       POST /api/movies/lists/:listId/items/:movieId
+       ========================================================================== */
     describe("POST /api/movies/lists/:listId/items/:movieId", () => {
       it("should add movie to list successfully and return 201 when called by list owner", async () => {
         const response = await request(app)
@@ -696,6 +660,9 @@ describe("Movie API", () => {
       });
     });
 
+    /* ==========================================================================
+       DELETE /api/movies/lists/:listId/items/:movieId
+       ========================================================================== */
     describe("DELETE /api/movies/lists/:listId/items/:movieId", () => {
       it("should remove movie from list successfully and return 200 when called by list owner", async () => {
         await addTestMovieToList(testUserA.id, testMovie.id, listData.id);
@@ -760,18 +727,12 @@ describe("Movie API", () => {
   });
 
   describe("List Operation Endpoints", () => {
-    let testUserA: Pick<IUser, "id" | "email" | "username"> & {
-      password: string;
-    };
-    let testUserAToken: string;
-
     let testUserB: Pick<IUser, "id" | "email" | "username"> & {
       password: string;
     };
     let testUserBToken: string;
 
     beforeEach(async () => {
-      ({ user: testUserA, token: testUserAToken } = await createTestUser());
       ({ user: testUserB, token: testUserBToken } = await createTestUser());
     });
 
@@ -952,18 +913,12 @@ describe("Movie API", () => {
   });
 
   describe("Single List Operations", () => {
-    let testUserA: Pick<IUser, "id" | "email" | "username"> & {
-      password: string;
-    };
-    let testUserAToken: string;
-
     let testUserB: Pick<IUser, "id" | "email" | "username"> & {
       password: string;
     };
     let testUserBToken: string;
 
     beforeEach(async () => {
-      ({ user: testUserA, token: testUserAToken } = await createTestUser());
       ({ user: testUserB, token: testUserBToken } = await createTestUser());
     });
 
@@ -1208,11 +1163,6 @@ describe("Movie API", () => {
   });
 
   describe("List Likes Endpoints", () => {
-    let testUserA: Pick<IUser, "id" | "email" | "username"> & {
-      password: string;
-    };
-    let testUserAToken: string;
-
     let testUserB: Pick<IUser, "id" | "email" | "username"> & {
       password: string;
     };
@@ -1224,7 +1174,6 @@ describe("Movie API", () => {
     >;
 
     beforeEach(async () => {
-      ({ user: testUserA, token: testUserAToken } = await createTestUser());
       ({ user: testUserB, token: testUserBToken } = await createTestUser());
 
       testList = await createTestMovieList(testUserA.id, "custom");
@@ -1421,6 +1370,70 @@ describe("Movie API", () => {
         expect(response.status).toBe(400);
         expect(response.body.success).toBe(false);
         expect(response.body.error.message).toMatch(/Invalid list ID format/i);
+      });
+    });
+  });
+
+  describe("Movie Details Endpoints", () => {
+    /* ==========================================================================
+       GET /api/movies/:movieId
+       ========================================================================== */
+    describe("GET /api/movies/:movieId", () => {
+      it("should return movie details successfully for unauthenticated/guest user", async () => {
+        const response = await request(app).get(`/api/movies/${testMovie.id}`);
+
+        const responseData = response.body.data;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.id).toBe(testMovie.id);
+        expect(responseData.currentUserInteraction).toBe(null);
+      });
+
+      it("should return movie details along with current user interaction and review when authenticated", async () => {
+        const commentContent = "Incredible cinematic masterpiece!";
+        await createTestInteraction(testUserA.id, testMovie.id, {
+          isLiked: true,
+          rating: 9,
+          comment: commentContent,
+        });
+
+        const response = await request(app)
+          .get(`/api/movies/${testMovie.id}`)
+          .set("Authorization", `Bearer ${testUserAToken}`);
+
+        const responseData = response.body.data;
+        const userInteraction = responseData.currentUserInteraction;
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(responseData.id).toBe(testMovie.id);
+
+        expect(userInteraction).not.toBeNull();
+        expect(userInteraction.isLiked).toBe(true);
+        expect(userInteraction.rating).toBe(9);
+        expect(userInteraction.review).not.toBeNull();
+        expect(userInteraction.review.content).toBe(commentContent);
+      });
+
+      it("should return 404 when movie with valid UUID does not exist", async () => {
+        const nonExistentMovieId = "00000000-0000-0000-0000-000000000000";
+
+        const response = await request(app).get(
+          `/api/movies/${nonExistentMovieId}`,
+        );
+
+        expect(response.status).toBe(404);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(/The movie is not found/i);
+      });
+
+      it("should return 400 when movieId param is not a valid UUID", async () => {
+        const response = await request(app).get("/api/movies/invalid-movie-id");
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error.message).toMatch(/Invalid movie ID format/i);
       });
     });
   });
