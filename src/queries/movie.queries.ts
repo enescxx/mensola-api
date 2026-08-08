@@ -91,7 +91,7 @@ export const movieQueries = {
                     json_build_object(
                         'commentId', lc."commentId",
                         'content', lc.content,
-                        'date', lc."createdDate",
+                        'date', lc."createdAt",
                         'interactionId', lc."interactionId",
                         'rating', lc."rating",
                         'isLiked', lc."isLiked",
@@ -107,7 +107,7 @@ export const movieQueries = {
                     SELECT 
                         c.id AS "commentId",
                         c.content, 
-                        c."createdDate",
+                        c."createdAt",
                         m_int.id AS "interactionId", 
                         m_int."rating", 
                         COALESCE(m_int."isLiked", false) AS "isLiked",
@@ -121,7 +121,7 @@ export const movieQueries = {
                     WHERE m_int."targetId" = ml.id 
                     AND m_int."targetType" = 'movieList'
                     AND c."parentId" IS NULL
-                    ORDER BY c."createdDate" DESC
+                    ORDER BY c."createdAt" DESC
                     LIMIT 3
                 ) lc
             ) latest_comments ON true
@@ -338,7 +338,7 @@ export const movieQueries = {
                         'comment', json_build_object(
                             'id', int_data.cid,
                             'content', int_data.content,
-                            'date', int_data."createdDate"
+                            'date', int_data."createdAt"
                         )
                     )
                 ) AS interactions
@@ -349,7 +349,7 @@ export const movieQueries = {
                         m_int."isLiked",
                         c.id AS cid, 
                         c.content, 
-                        c."createdDate",
+                        c."createdAt",
                         u.id AS uid, 
                         u.username, 
                         u.fullname, 

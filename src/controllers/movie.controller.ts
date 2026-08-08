@@ -536,11 +536,11 @@ const deleteMovieList = async (
     const userId = req.user!.id;
     const listId = req.params.listId;
 
-    const deletedList = await deleteList({ listId, userId });
+    await deleteList({ listId, userId });
     return sendResponse(
       res,
       200,
-      deletedList,
+      null,
       "Movie list has been deleted successfully.",
     );
   } catch (error) {

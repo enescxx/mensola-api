@@ -375,10 +375,10 @@ export const updateList = async (
  * Deletes a movie list and all associated items.
  *
  * @param dto - Data transfer object containing the movie list ID and user ID.
- * @returns The deleted MovieList record.
+ * @returns void
  * @throws {ApiError} 404 Not Found if the movie list does not exist or the user is not the creator.
  */
-export const deleteList = async (dto: DeleteListDto): Promise<IMovieList> => {
+export const deleteList = async (dto: DeleteListDto): Promise<void> => {
   const { listId, userId } = dto;
 
   const result = await pool.query<IMovieList>(movieQueries.lists.delete, [
@@ -393,8 +393,6 @@ export const deleteList = async (dto: DeleteListDto): Promise<IMovieList> => {
       404,
     );
   }
-
-  return deletedList;
 };
 
 /**
