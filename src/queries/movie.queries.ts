@@ -202,7 +202,7 @@ export const movieQueries = {
                             )
                         ))
                     )
-                LIMIT $2 OFFSET $3;`,
+                LIMIT $3 OFFSET $4;`,
 
       /**
        * Inserts a new record into the MovieListItem table to add a movie to a specific custom movie list.

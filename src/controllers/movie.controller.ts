@@ -53,6 +53,7 @@ import {
   UnlikeMovieListDto,
   LikeMovieDto,
   UnlikeMovieDto,
+  PaginationQueries,
 } from "@/types/movie";
 
 /* ==========================================================================
@@ -442,7 +443,6 @@ const addMovieToFavorites = async (
       "Movie has been added to favorites successfully.",
     );
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
@@ -582,19 +582,21 @@ const getMovieListById = async (
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
 const getMovieListItems = async (
-  req: TypedRequest<{ listId: string }>,
+  req: TypedRequest<{ listId: string }, {}, Partial<PaginationQueries>>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
     const userId = req.user?.id;
     const listId = req.params.listId;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 18;
 
-    const movieItems = await getListItems({ listId, userId });
+    const movieItems = await getListItems({ listId, userId, limit, page });
     return sendResponse(
       res,
       200,
-      movieItems,
+      { items: movieItems, page, limit, hasMore: movieItems.length === limit },
       "Movie items retrieved successfully.",
     );
   } catch (error) {

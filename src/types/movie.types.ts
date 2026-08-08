@@ -67,14 +67,17 @@ interface IWatchedMovie {
    Data Transfer Objects (DTOs)
    ========================================================================== */
 
+type PaginationQueries = {
+  page: number;
+  limit: number;
+};
+
 /**
  * Base query DTO for user-related movie queries with pagination.
  * Note: userId is optional as it can be derived from the auth token or query params.
  */
-type BaseUserQueryDto = {
+type BaseUserQueryDto = PaginationQueries & {
   userId?: UserId;
-  page: number;
-  limit: number;
 };
 
 // Aliases for domain specificity & backward compatibility
@@ -143,7 +146,7 @@ type GetListByIdDto = {
 /**
  * Data Transfer Object for fetching movies within a specific movie list.
  */
-type GetListItemsDto = GetListByIdDto;
+type GetListItemsDto = GetListByIdDto & PaginationQueries;
 
 /**
  * Data Transfer Object for adding or removing a movie from a specific movie list.
@@ -343,6 +346,7 @@ export {
   IWatchedMovie,
 
   // DTOs
+  PaginationQueries,
   BaseUserQueryDto,
   CreateMovieListDto,
   GetFavoritesDto,
