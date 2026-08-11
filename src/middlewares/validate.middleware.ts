@@ -15,7 +15,7 @@ export const validate = (schema: ZodSchema) => {
         const result = schema.safeParse({
             body: req.body,
             query: req.query,
-            params: req.params
+            params: req.params,
         });
 
         if (!result.success) {
@@ -23,7 +23,7 @@ export const validate = (schema: ZodSchema) => {
             const errorDetails = result.error.issues.map((issue: ZodIssue) => ({
                 // Extracts the field name from path (e.g., ['body', 'email'] -> 'email')
                 field: issue.path.length > 1 ? String(issue.path[1]) : String(issue.path[0]) || "unknown",
-                message: issue.message
+                message: issue.message,
             }));
 
             // Use the first validation issue message as the primary error message
@@ -34,8 +34,8 @@ export const validate = (schema: ZodSchema) => {
                 error: {
                     code: 400,
                     message: firstErrorMessage,
-                    details: errorDetails
-                }
+                    details: errorDetails,
+                },
             });
             return;
         }
@@ -46,7 +46,7 @@ export const validate = (schema: ZodSchema) => {
         // Assign sanitized and parsed values back to the Express request object
         if (parsedData.body) req.body = parsedData.body;
         if (parsedData.query) {
-            Object.keys(req.query).forEach(key => delete req.query[key]);
+            Object.keys(req.query).forEach((key) => delete req.query[key]);
             Object.assign(req.query, parsedData.query);
         }
         if (parsedData.params) {

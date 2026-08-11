@@ -9,15 +9,15 @@ import { IInteraction, IComment } from "@/types/interaction";
  * Represents a core Movie entity in the database.
  */
 interface IMovie {
-  id: string;
-  tmdbId: string;
-  title: string;
-  poster: string;
-  releaseDate?: Date | string;
-  rating?: number;
-  genres?: string[];
-  duration?: number;
-  createdAt?: Date | string;
+    id: string;
+    tmdbId: string;
+    title: string;
+    poster: string;
+    releaseDate?: Date | string;
+    rating?: number;
+    genres?: string[];
+    duration?: number;
+    createdAt?: Date | string;
 }
 
 type MovieListType = "custom" | "favorites" | "watchlist";
@@ -26,41 +26,41 @@ type MovieListType = "custom" | "favorites" | "watchlist";
  * Represents a custom or system-generated Movie List entity.
  */
 interface IMovieList {
-  id: string;
-  title: string;
-  description?: string;
-  image?: string;
-  isPrivate: boolean;
-  listType?: MovieListType;
-  creatorId: string;
+    id: string;
+    title: string;
+    description?: string;
+    image?: string;
+    isPrivate: boolean;
+    listType?: MovieListType;
+    creatorId: string;
 }
 
 /**
  * Junction record representing a movie item inside a specific MovieList.
  */
 interface IMovieListItem {
-  movieListId: string;
-  movieId: string;
-  addedBy: string;
-  addedAt?: Date | string;
+    movieListId: string;
+    movieId: string;
+    addedBy: string;
+    addedAt?: Date | string;
 }
 
 /**
  * Junction record representing ownership/collaboration permissions for a MovieList.
  */
 interface IMovieListOwner {
-  movieListId: string;
-  userId: string;
+    movieListId: string;
+    userId: string;
 }
 
 /**
  * Represents a record of a user having watched a specific movie.
  */
 interface IWatchedMovie {
-  id: string;
-  userId: string;
-  movieId: string;
-  watchedAt: Date | string;
+    id: string;
+    userId: string;
+    movieId: string;
+    watchedAt: Date | string;
 }
 
 /* ==========================================================================
@@ -68,8 +68,8 @@ interface IWatchedMovie {
    ========================================================================== */
 
 type PaginationQueries = {
-  page: number;
-  limit: number;
+    page: number;
+    limit: number;
 };
 
 /**
@@ -77,7 +77,7 @@ type PaginationQueries = {
  * Note: userId is optional as it can be derived from the auth token or query params.
  */
 type BaseUserQueryDto = PaginationQueries & {
-  userId?: UserId;
+    userId?: UserId;
 };
 
 // Aliases for domain specificity & backward compatibility
@@ -98,28 +98,27 @@ type CreateMovieListDto = Omit<IMovieList, "id">;
  * Used for actions like marking as watched, adding to favorites, or liking a movie.
  */
 type UserMovieActionDto = {
-  userId: UserId;
-  movieId: IMovie["id"];
+    userId: UserId;
+    movieId: IMovie["id"];
 };
 
 /**
  * Data Transfer Object for fetching a specific movie.
  */
 type GetMovieDto = {
-  movieId: IMovie["id"];
-  currentUserId?: IUser["id"];
+    movieId: IMovie["id"];
+    currentUserId?: IUser["id"];
 };
 
 type UseMovieListKeyDto = {
-  userId: UserId;
-  listId: IMovieList["id"];
+    userId: UserId;
+    listId: IMovieList["id"];
 };
 
 /**
  * Data Transfer Object for updating an existing movie list.
  */
-type UpdateMovieListDto = Omit<IMovieList, "id" | "creatorId" | "listType"> &
-  UseMovieListKeyDto;
+type UpdateMovieListDto = Omit<IMovieList, "id" | "creatorId" | "listType"> & UseMovieListKeyDto;
 
 /**
  * Data Transfer Object for deleting a specific movie list.
@@ -140,8 +139,8 @@ type UnlikeMovieListDto = UseMovieListKeyDto;
  * Data Transfer Object for fetching a specific movie list by its ID.
  */
 type GetListByIdDto = {
-  listId: IMovieList["id"];
-  userId?: UserId;
+    listId: IMovieList["id"];
+    userId?: UserId;
 };
 
 /**
@@ -153,9 +152,9 @@ type GetListItemsDto = GetListByIdDto & PaginationQueries;
  * Data Transfer Object for adding or removing a movie from a specific movie list.
  */
 type MovieListItemDto = {
-  listId: IMovieList["id"];
-  movieId: IMovie["id"];
-  userId: UserId;
+    listId: IMovieList["id"];
+    movieId: IMovie["id"];
+    userId: UserId;
 };
 
 /**
@@ -181,10 +180,10 @@ type MovieSummary = Pick<IMovie, "id" | "title" | "poster">;
  * Base item structure for user movie library responses (Favorites, Likes, etc.).
  */
 type MovieResponseItem = MovieSummary & {
-  rating?: number;
-  isLiked?: boolean;
-  hasReview?: boolean;
-  addedAt?: Date | string;
+    rating?: number;
+    isLiked?: boolean;
+    hasReview?: boolean;
+    addedAt?: Date | string;
 };
 
 /**
@@ -208,10 +207,10 @@ type GetWatchlistResponse = MovieSummary[];
  * Individual item structure for GetWatchedMoviesResponse payload.
  */
 type GetWatchedMoviesResponseItem = MovieSummary & {
-  rating?: number;
-  isLiked?: boolean;
-  hasReview?: boolean;
-  watchedAt?: Date | string;
+    rating?: number;
+    isLiked?: boolean;
+    hasReview?: boolean;
+    watchedAt?: Date | string;
 };
 
 /**
@@ -223,17 +222,17 @@ type GetWatchedMoviesResponse = GetWatchedMoviesResponseItem[];
  * Preview item structure for movies embedded inside list previews.
  */
 type PreviewMoviesItem = MovieSummary & {
-  rating?: number;
-  isLiked?: boolean;
+    rating?: number;
+    isLiked?: boolean;
 };
 
 /**
  * Common item structure for Movie List response payloads (User Lists & Liked Lists).
  */
 type MovieListResponseItem = {
-  listId: IMovieList["id"];
-  listTitle: IMovieList["title"];
-  previewMovies: PreviewMoviesItem[];
+    listId: IMovieList["id"];
+    listTitle: IMovieList["title"];
+    previewMovies: PreviewMoviesItem[];
 };
 
 type GetUserListsResponseItem = MovieListResponseItem;
@@ -248,20 +247,18 @@ type GetLikedListsResponse = GetLikedListsResponseItem[];
 /**
  * Represents a user's interaction with a movie, specifically containing their review/comment.
  */
-type GetMovieInteractionsItem = Pick<
-  IInteraction,
-  "id" | "isLiked" | "rating"
-> & {
-  user: Pick<IUser, "id" | "username" | "fullname" | "avatar">;
-  comment: Pick<IComment, "id" | "content"> & { date: IComment["createdAt"] };
+type GetMovieInteractionsItem = Pick<IInteraction, "id" | "isLiked" | "rating"> & {
+    user: Pick<IUser, "id" | "username" | "fullname" | "avatar">;
+    comment: Pick<IComment, "id" | "content"> & { date: IComment["createdAt"] };
 };
 
 /**
  * The response structure for a movie detail request, containing movie data and its recent commented interactions.
  */
 type GetMovieResponse = IMovie & {
-  interactions: GetMovieInteractionsItem[];
-  currentUserInteraction: Omit<GetMovieInteractionsItem, "user">;
+    isWatched?: boolean;
+    interactions: GetMovieInteractionsItem[];
+    currentUserInteraction: Omit<GetMovieInteractionsItem, "user">;
 };
 
 /**
@@ -269,18 +266,18 @@ type GetMovieResponse = IMovie & {
  * used for recent comment previews on a movie list.
  */
 type MovieListLatestCommentItem = {
-  commentId: string;
-  content: string;
-  date: Date | string;
-  interactionId: string;
-  rating: number | null;
-  isLiked: boolean;
-  user: {
-    id: UserId;
-    username: string;
-    fullname: string;
-    avatar: string | null;
-  };
+    commentId: string;
+    content: string;
+    date: Date | string;
+    interactionId: string;
+    rating: number | null;
+    isLiked: boolean;
+    user: {
+        id: UserId;
+        username: string;
+        fullname: string;
+        avatar: string | null;
+    };
 };
 
 /**
@@ -288,9 +285,9 @@ type MovieListLatestCommentItem = {
  * Extends base IMovieList with populated JSON aggregated fields.
  */
 type GetListByIdResponse = IMovieList & {
-  owners: Pick<IUser, "id" | "username" | "fullname" | "avatar">[];
-  previewMovies: MovieSummary[];
-  latestComments: MovieListLatestCommentItem[];
+    owners: Pick<IUser, "id" | "username" | "fullname" | "avatar">[];
+    previewMovies: MovieSummary[];
+    latestComments: MovieListLatestCommentItem[];
 };
 
 /**
@@ -302,8 +299,8 @@ type GetListItemsResponse = MovieSummary[];
  * Result type for liking a movie list, indicating the list ID and the like status.
  */
 type LikeMovieListResult = {
-  listId: IMovieList["id"];
-  isLiked: boolean;
+    listId: IMovieList["id"];
+    isLiked: boolean;
 };
 
 /**
@@ -320,8 +317,8 @@ type UnlikeMovieListResponse = LikeMovieListResult;
  * Result type for liking a movie, indicating the movie ID and the like status.
  */
 type LikeMovieResult = {
-  movieId: IMovie["id"];
-  isLiked: boolean;
+    movieId: IMovie["id"];
+    isLiked: boolean;
 };
 
 /**
@@ -339,61 +336,61 @@ type UnlikeMovieResponse = LikeMovieResult;
    ========================================================================== */
 
 export {
-  // Entities
-  IMovie,
-  MovieListType,
-  IMovieList,
-  IMovieListItem,
-  IMovieListOwner,
-  IWatchedMovie,
+    // Entities
+    IMovie,
+    MovieListType,
+    IMovieList,
+    IMovieListItem,
+    IMovieListOwner,
+    IWatchedMovie,
 
-  // DTOs
-  PaginationQueries,
-  BaseUserQueryDto,
-  CreateMovieListDto,
-  GetFavoritesDto,
-  GetLikedListsDto,
-  GetLikedMoviesDto,
-  GetUserListsDto,
-  GetWatchedMoviesDto,
-  GetWatchlistDto,
-  UserMovieActionDto,
-  GetMovieDto,
-  UpdateMovieListDto,
-  DeleteListDto,
-  GetListByIdDto,
-  GetListItemsDto,
-  MovieListItemDto,
-  UseMovieListKeyDto,
-  LikeMovieListDto,
-  UnlikeMovieListDto,
-  LikeMovieDto,
-  UnlikeMovieDto,
+    // DTOs
+    PaginationQueries,
+    BaseUserQueryDto,
+    CreateMovieListDto,
+    GetFavoritesDto,
+    GetLikedListsDto,
+    GetLikedMoviesDto,
+    GetUserListsDto,
+    GetWatchedMoviesDto,
+    GetWatchlistDto,
+    UserMovieActionDto,
+    GetMovieDto,
+    UpdateMovieListDto,
+    DeleteListDto,
+    GetListByIdDto,
+    GetListItemsDto,
+    MovieListItemDto,
+    UseMovieListKeyDto,
+    LikeMovieListDto,
+    UnlikeMovieListDto,
+    LikeMovieDto,
+    UnlikeMovieDto,
 
-  // Response Contracts & Payload Items
-  MovieSummary,
-  MovieResponseItem,
-  GetFavoritesResponse,
-  GetFavoritesResponseItem,
-  GetLikedListsResponse,
-  GetLikedListsResponseItem,
-  GetLikedMoviesResponse,
-  GetLikedMoviesResponseItem,
-  GetUserListsResponse,
-  GetUserListsResponseItem,
-  GetWatchedMoviesResponse,
-  GetWatchedMoviesResponseItem,
-  GetWatchlistResponse,
-  PreviewMoviesItem,
-  GetMovieInteractionsItem,
-  GetMovieResponse,
-  MovieListLatestCommentItem,
-  GetListByIdResponse,
-  GetListItemsResponse,
-  LikeMovieListResult,
-  LikeMovieListResponse,
-  UnlikeMovieListResponse,
-  LikeMovieResult,
-  LikeMovieResponse,
-  UnlikeMovieResponse,
+    // Response Contracts & Payload Items
+    MovieSummary,
+    MovieResponseItem,
+    GetFavoritesResponse,
+    GetFavoritesResponseItem,
+    GetLikedListsResponse,
+    GetLikedListsResponseItem,
+    GetLikedMoviesResponse,
+    GetLikedMoviesResponseItem,
+    GetUserListsResponse,
+    GetUserListsResponseItem,
+    GetWatchedMoviesResponse,
+    GetWatchedMoviesResponseItem,
+    GetWatchlistResponse,
+    PreviewMoviesItem,
+    GetMovieInteractionsItem,
+    GetMovieResponse,
+    MovieListLatestCommentItem,
+    GetListByIdResponse,
+    GetListItemsResponse,
+    LikeMovieListResult,
+    LikeMovieListResponse,
+    UnlikeMovieListResponse,
+    LikeMovieResult,
+    LikeMovieResponse,
+    UnlikeMovieResponse,
 };

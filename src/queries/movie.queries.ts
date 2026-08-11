@@ -328,6 +328,7 @@ export const movieQueries = {
     getById: `
             SELECT 
                 m.*,
+                EXISTS (SELECT 1 FROM "WatchedMovie" wm WHERE wm."movieId" = m.id AND wm."userId" = $2::uuid) AS "isWatched",
                 COALESCE(interactions_data.interactions, '[]') AS interactions,
                 user_int.user_interaction AS "currentUserInteraction"
             FROM "Movie" m
