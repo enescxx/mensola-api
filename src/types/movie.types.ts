@@ -257,6 +257,8 @@ type GetMovieInteractionsItem = Pick<IInteraction, "id" | "isLiked" | "rating"> 
  */
 type GetMovieResponse = IMovie & {
     isWatched?: boolean;
+    likesCount?: number;
+    commentsCount?: number;
     interactions: GetMovieInteractionsItem[];
     currentUserInteraction: Omit<GetMovieInteractionsItem, "user">;
 };

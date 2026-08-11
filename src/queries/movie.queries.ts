@@ -329,6 +329,8 @@ export const movieQueries = {
             SELECT 
                 m.*,
                 EXISTS (SELECT 1 FROM "WatchedMovie" wm WHERE wm."movieId" = m.id AND wm."userId" = $2::uuid) AS "isWatched",
+                (SELECT COUNT(*)::int FROM "Interaction" i WHERE i."targetId" = m.id AND i."targetType" = 'movie' AND i."isLiked" = true) AS "likesCount",
+                (SELECT COUNT(*)::int FROM "Comment" c JOIN "Interaction" i ON c."interactionId" = i.id WHERE i."targetId" = m.id AND i."targetType" = 'movie') AS "commentsCount",
                 COALESCE(interactions_data.interactions, '[]') AS interactions,
                 user_int.user_interaction AS "currentUserInteraction"
             FROM "Movie" m
@@ -555,13 +557,36 @@ export const movieQueries = {
                 RETURNING "targetId" AS "movieId", "isLiked";`,
 
       /**
-       * Completely removes a movie from the user's liked movies by deleting all associated records
-       * for that specific movie in the Interaction table.
+       * Removes a movie from the user's liked movies.
+       * If the interaction has no rating or comments, the interaction row is deleted.
+       * If it has a rating or comments, isLiked is set to false to preserve the interaction.
        */
       remove: `
-                DELETE FROM "Interaction"
-                WHERE "userId" = $1 AND "targetId" = $2 AND "targetType" = 'movie'
-                RETURNING "targetId" AS "movieId", "isLiked";`,
+                WITH target_interaction AS (
+                    SELECT i.id, i.rating,
+                           EXISTS (SELECT 1 FROM "Comment" c WHERE c."interactionId" = i.id) AS has_comment
+                    FROM "Interaction" i
+                    WHERE i."userId" = $1 AND i."targetId" = $2 AND i."targetType" = 'movie'
+                ),
+                deleted AS (
+                    DELETE FROM "Interaction" i
+                    USING target_interaction ti
+                    WHERE i.id = ti.id
+                      AND ti.rating IS NULL
+                      AND NOT ti.has_comment
+                    RETURNING i."targetId" AS "movieId", false AS "isLiked"
+                ),
+                updated AS (
+                    UPDATE "Interaction" i
+                    SET "isLiked" = false
+                    FROM target_interaction ti
+                    WHERE i.id = ti.id
+                      AND (ti.rating IS NOT NULL OR ti.has_comment)
+                    RETURNING i."targetId" AS "movieId", i."isLiked"
+                )
+                SELECT * FROM deleted
+                UNION ALL
+                SELECT * FROM updated;`,
     },
   },
 };
