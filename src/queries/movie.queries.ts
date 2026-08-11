@@ -1,16 +1,20 @@
 export const movieQueries = {
-  /* ==========================================================================
+    /* ==========================================================================
        Custom Movie Lists & List Interactions
        ========================================================================== */
-  lists: {
-    /**
-     * Fetches custom movie lists created by a specific user with top 3 preview movies
-     * and user's movie interaction details (rating, like status, review existence).
-     */
-    getUserLists: `
+    lists: {
+        /**
+         * Fetches custom movie lists created by a specific user with top 3 preview movies
+         * and user's movie interaction details (rating, like status, review existence).
+         */
+        getUserLists: `
             SELECT
                 ml.id AS "listId",
                 ml.title AS "listTitle",
+                EXISTS (
+                    SELECT 1 FROM "MovieListItem" mli
+                    WHERE mli."movieListId" = ml.id AND ($5::uuid IS NOT NULL AND mli."movieId" = $5::uuid)
+                ) AS "containsMovie",
                 COALESCE(
                     json_agg(
                         json_build_object(
@@ -45,11 +49,11 @@ export const movieQueries = {
             ORDER BY ml."createdAt" DESC
             LIMIT $3 OFFSET $4;`,
 
-    /**
-     * Fetches a specific custom movie list by its ID, including list metadata,
-     * top 3 preview movies, list owners, and up to 3 recent top-level comments.
-     */
-    getById: `
+        /**
+         * Fetches a specific custom movie list by its ID, including list metadata,
+         * top 3 preview movies, list owners, and up to 3 recent top-level comments.
+         */
+        getById: `
             SELECT 
                 ml.*,
                 COALESCE(list_owners.owners, '[]'::json) AS "owners",
@@ -139,19 +143,19 @@ export const movieQueries = {
                     ))
                 );`,
 
-    /**
-     * Inserts a new custom movie list into the database and returns created record.
-     */
-    create: `
+        /**
+         * Inserts a new custom movie list into the database and returns created record.
+         */
+        create: `
             INSERT INTO "MovieList" (id, title, description, image, "isPrivate","creatorId") 
             VALUES (gen_random_uuid(), $1, $2, $3, COALESCE($4, false), $5) 
             RETURNING id, title, description, image, "isPrivate","creatorId";`,
 
-    /**
-     * Updates an existing custom movie list, allowing for modification of its title, description, image, and privacy status.
-     * Returns the updated record.
-     */
-    update: `
+        /**
+         * Updates an existing custom movie list, allowing for modification of its title, description, image, and privacy status.
+         * Returns the updated record.
+         */
+        update: `
             UPDATE "MovieList" ml
             SET 
                 title = COALESCE($1, ml.title),
@@ -169,23 +173,23 @@ export const movieQueries = {
               )
             RETURNING ml.*;`,
 
-    /**
-     * Completely removes a custom movie list by deleting the associated record
-     * in the MovieList table, ensuring that only the list creator or an owner can perform this action.
-     */
-    delete: `
+        /**
+         * Completely removes a custom movie list by deleting the associated record
+         * in the MovieList table, ensuring that only the list creator or an owner can perform this action.
+         */
+        delete: `
             DELETE FROM "MovieList" ml
             WHERE ml.id = $1 
               AND ml."listType" = 'custom'
               AND ml."creatorId" = $2
             RETURNING *;`,
 
-    items: {
-      /**
-       * Fetches all movies contained in a specific custom movie list, including
-       * user's interaction details (rating, like status, review existence).
-       */
-      getMovies: `
+        items: {
+            /**
+             * Fetches all movies contained in a specific custom movie list, including
+             * user's interaction details (rating, like status, review existence).
+             */
+            getMovies: `
                 SELECT
                     m.id,
                     m.title,
@@ -207,11 +211,11 @@ export const movieQueries = {
                     )
                 LIMIT $3 OFFSET $4;`,
 
-      /**
-       * Inserts a new record into the MovieListItem table to add a movie to a specific custom movie list.
-       * Returns the newly created row.
-       */
-      addMovie: `
+            /**
+             * Inserts a new record into the MovieListItem table to add a movie to a specific custom movie list.
+             * Returns the newly created row.
+             */
+            addMovie: `
                 INSERT INTO "MovieListItem" ("movieListId", "movieId", "addedBy")
                 SELECT $1, $2, $3
                 FROM "MovieList" ml
@@ -226,11 +230,11 @@ export const movieQueries = {
                 ON CONFLICT ("movieListId", "movieId") DO NOTHING
                 RETURNING "movieListId", "movieId", "addedBy", "addedAt";`,
 
-      /**
-       * Completely removes a movie from a specific custom movie list by deleting the associated record
-       * in the MovieListItem table, ensuring that only the list creator or an owner can perform this action.
-       */
-      removeMovie: `
+            /**
+             * Completely removes a movie from a specific custom movie list by deleting the associated record
+             * in the MovieListItem table, ensuring that only the list creator or an owner can perform this action.
+             */
+            removeMovie: `
                 DELETE FROM "MovieListItem"
                 WHERE "movieListId" = $1 
                   AND "movieId" = $2
@@ -245,14 +249,14 @@ export const movieQueries = {
                       )
                   )
                 RETURNING *;`,
-    },
+        },
 
-    likes: {
-      /**
-       * Fetches custom movie lists that a user has liked, including list metadata,
-       * top 3 preview movies, and user's movie interaction states.
-       */
-      get: `
+        likes: {
+            /**
+             * Fetches custom movie lists that a user has liked, including list metadata,
+             * top 3 preview movies, and user's movie interaction states.
+             */
+            get: `
                 SELECT
                     ml.id AS "listId",
                     ml.title AS "listTitle",
@@ -291,11 +295,11 @@ export const movieQueries = {
                 GROUP BY ml.id
                 LIMIT $3 OFFSET $4;`,
 
-      /**
-       * Inserts a new record into the Interaction table to mark a custom movie list as liked by the user.
-       * If the user has already liked the list, it updates the existing record to ensure isLiked is true.
-       */
-      add: `
+            /**
+             * Inserts a new record into the Interaction table to mark a custom movie list as liked by the user.
+             * If the user has already liked the list, it updates the existing record to ensure isLiked is true.
+             */
+            add: `
                 INSERT INTO "Interaction" ("userId", "targetId", "targetType", "isLiked")
                 SELECT $1, ml.id, 'movieList', true
                 FROM "MovieList" ml
@@ -305,30 +309,40 @@ export const movieQueries = {
                 DO UPDATE SET "isLiked" = true
                 RETURNING "targetId" AS "listId", "isLiked";`,
 
-      /**
-       * Updates the Interaction table to mark a custom movie list as unliked by the user.
-       * If the user has not liked the list before, it does nothing.
-       */
-      remove: `
+            /**
+             * Updates the Interaction table to mark a custom movie list as unliked by the user.
+             * If the user has not liked the list before, it does nothing.
+             */
+            remove: `
                 UPDATE "Interaction"
                 SET "isLiked" = false
                 WHERE "userId" = $1 AND "targetId" = $2 AND "targetType" = 'movieList'
                 RETURNING "targetId" AS "listId", "isLiked";`,
+        },
     },
-  },
 
-  /* ==========================================================================
+    /* ==========================================================================
        Movie Library & User Interactions
        ========================================================================== */
-  movies: {
-    /**
-     * Fetches all details of a specific movie by its ID, including up to 3 recent
-     * top-level user interactions that have a comment.
-     */
-    getById: `
+    movies: {
+        /**
+         * Fetches all details of a specific movie by its ID, including up to 3 recent
+         * top-level user interactions that have a comment.
+         */
+        getById: `
             SELECT 
                 m.*,
                 EXISTS (SELECT 1 FROM "WatchedMovie" wm WHERE wm."movieId" = m.id AND wm."userId" = $2::uuid) AS "isWatched",
+                EXISTS (
+                    SELECT 1 FROM "MovieListItem" mli
+                    JOIN "MovieList" ml ON ml.id = mli."movieListId"
+                    WHERE mli."movieId" = m.id AND ml."creatorId" = $2::uuid
+                ) AS "isInList",
+                EXISTS (
+                    SELECT 1 FROM "MovieListItem" mli
+                    JOIN "MovieList" ml ON ml.id = mli."movieListId"
+                    WHERE mli."movieId" = m.id AND ml."creatorId" = $2::uuid AND ml."listType" = 'watchlist'
+                ) AS "isWatchlisted",
                 (SELECT COUNT(*)::int FROM "Interaction" i WHERE i."targetId" = m.id AND i."targetType" = 'movie' AND i."isLiked" = true) AS "likesCount",
                 (SELECT COUNT(*)::int FROM "Comment" c JOIN "Interaction" i ON c."interactionId" = i.id WHERE i."targetId" = m.id AND i."targetType" = 'movie') AS "commentsCount",
                 COALESCE(interactions_data.interactions, '[]') AS interactions,
@@ -398,14 +412,14 @@ export const movieQueries = {
                            
             WHERE m.id = $1;`,
 
-    /**
-     * Watchlist management (System MovieList where listType = 'watchlist')
-     */
-    watchlist: {
-      /**
-       * Retrieves a paginated list of movies from the user's system Watchlist.
-       */
-      get: `
+        /**
+         * Watchlist management (System MovieList where listType = 'watchlist')
+         */
+        watchlist: {
+            /**
+             * Retrieves a paginated list of movies from the user's system Watchlist.
+             */
+            get: `
                 SELECT
                     m.id,
                     m.title,
@@ -416,35 +430,35 @@ export const movieQueries = {
                 WHERE ml."listType" = 'watchlist' AND ml."creatorId" = $1
                 LIMIT $2 OFFSET $3;`,
 
-      /**
-       * Inserts a new record into the MovieListItem table to add a movie to the user's watchlist.
-       * Returns the newly created row.
-       */
-      add: `
+            /**
+             * Inserts a new record into the MovieListItem table to add a movie to the user's watchlist.
+             * Returns the newly created row.
+             */
+            add: `
                 INSERT INTO "MovieListItem" ("movieListId", "movieId", "addedBy", "addedAt")
-                VALUES ((SELECT id FROM "MovieList" WHERE "listType" = 'watchlist' AND "creatorId" = $1), $2, $1, NOW())
+                VALUES ((SELECT id FROM "MovieList" WHERE "listType" = 'watchlist' AND "creatorId" = $1 ORDER BY "createdAt" ASC LIMIT 1), $2, $1, NOW())
                 ON CONFLICT ("movieListId", "movieId") DO NOTHING
                 RETURNING *;`,
 
-      /**
-       * Completely removes a movie from the user's watchlist by deleting all associated records
-       * for that specific movie in the MovieListItem table.
-       */
-      remove: `
+            /**
+             * Completely removes a movie from the user's watchlist by deleting all associated records
+             * for that specific movie in the MovieListItem table.
+             */
+            remove: `
                 DELETE FROM "MovieListItem"
-                WHERE "movieListId" = (SELECT id FROM "MovieList" WHERE "listType" = 'watchlist' AND "creatorId" = $1) AND "movieId" = $2
+                WHERE "movieListId" IN (SELECT id FROM "MovieList" WHERE "listType" = 'watchlist' AND "creatorId" = $1) AND "movieId" = $2
                 RETURNING *;`,
-    },
+        },
 
-    /**
-     * Watched movies history
-     */
-    watched: {
-      /**
-       * Retrieves a paginated list of movies the user has watched, along with
-       * watched date, rating, like status, and review existence.
-       */
-      get: `
+        /**
+         * Watched movies history
+         */
+        watched: {
+            /**
+             * Retrieves a paginated list of movies the user has watched, along with
+             * watched date, rating, like status, and review existence.
+             */
+            get: `
                 SELECT
                     m.id,
                     m.title,
@@ -461,33 +475,33 @@ export const movieQueries = {
                 WHERE wm."userId" = $1
                 LIMIT $2 OFFSET $3;`,
 
-      /**
-       * Inserts a new record into the WatchedMovie table to mark a movie as watched
-       * and returns the newly created row.
-       */
-      add: `
+            /**
+             * Inserts a new record into the WatchedMovie table to mark a movie as watched
+             * and returns the newly created row.
+             */
+            add: `
                 INSERT INTO "WatchedMovie" (id, "userId", "movieId", "watchedAt")
                 VALUES (gen_random_uuid(), $1, $2, NOW())
                 RETURNING *`,
 
-      /**
-       * Completely removes a movie from the user's watched history by deleting
-       * all associated watch records for that specific movie.
-       */
-      remove: `
+            /**
+             * Completely removes a movie from the user's watched history by deleting
+             * all associated watch records for that specific movie.
+             */
+            remove: `
                 DELETE FROM "WatchedMovie"
                 WHERE "userId" = $1 AND "movieId" = $2
                 RETURNING *;`,
-    },
+        },
 
-    /**
-     * Favorite movies (System MovieList where listType = 'favorites')
-     */
-    favorites: {
-      /**
-       * Retrieves a paginated list of user's favorite movies from their system Favorites list.
-       */
-      get: `
+        /**
+         * Favorite movies (System MovieList where listType = 'favorites')
+         */
+        favorites: {
+            /**
+             * Retrieves a paginated list of user's favorite movies from their system Favorites list.
+             */
+            get: `
                 SELECT
                     m.id,
                     m.title,
@@ -505,33 +519,33 @@ export const movieQueries = {
                 WHERE ml."listType" = 'favorites' AND ml."creatorId" = $1
                 LIMIT $2 OFFSET $3;`,
 
-      /**
-       * Inserts a new record into the MovieListItem table to add a movie to the user's favorites list.
-       * Returns the newly created row.
-       */
-      add: `
+            /**
+             * Inserts a new record into the MovieListItem table to add a movie to the user's favorites list.
+             * Returns the newly created row.
+             */
+            add: `
                 INSERT INTO "MovieListItem" ("movieListId", "movieId", "addedBy", "addedAt")
-                VALUES ((SELECT id FROM "MovieList" WHERE "listType" = 'favorites' AND "creatorId" = $1), $2, $1, NOW())
+                VALUES ((SELECT id FROM "MovieList" WHERE "listType" = 'favorites' AND "creatorId" = $1 ORDER BY "createdAt" ASC LIMIT 1), $2, $1, NOW())
                 RETURNING *;`,
 
-      /**
-       * Completely removes a movie from the user's favorites list by deleting all associated records
-       * for that specific movie in the MovieListItem table.
-       */
-      remove: `
+            /**
+             * Completely removes a movie from the user's favorites list by deleting all associated records
+             * for that specific movie in the MovieListItem table.
+             */
+            remove: `
                 DELETE FROM "MovieListItem"
-                WHERE "movieListId" = (SELECT id FROM "MovieList" WHERE "listType" = 'favorites' AND "creatorId" = $1) AND "movieId" = $2
+                WHERE "movieListId" IN (SELECT id FROM "MovieList" WHERE "listType" = 'favorites' AND "creatorId" = $1) AND "movieId" = $2
                 RETURNING *;`,
-    },
+        },
 
-    /**
-     * Liked movies (Interaction table where targetType = 'movie' and isLiked = true)
-     */
-    likes: {
-      /**
-       * Retrieves a paginated list of movies the user has liked via Interaction records.
-       */
-      get: `
+        /**
+         * Liked movies (Interaction table where targetType = 'movie' and isLiked = true)
+         */
+        likes: {
+            /**
+             * Retrieves a paginated list of movies the user has liked via Interaction records.
+             */
+            get: `
                 SELECT 
                     m.id,
                     m.title,
@@ -546,22 +560,22 @@ export const movieQueries = {
                 WHERE m_int."userId" = $1 AND m_int."targetType" = 'movie' AND m_int."isLiked" = true
                 LIMIT $2 OFFSET $3;`,
 
-      /**
-       * Inserts a new record into the Interaction table to mark a movie as liked by the user.
-       * If the user has already liked the movie, it updates the existing record to ensure isLiked is true.
-       */
-      add: `
+            /**
+             * Inserts a new record into the Interaction table to mark a movie as liked by the user.
+             * If the user has already liked the movie, it updates the existing record to ensure isLiked is true.
+             */
+            add: `
                 INSERT INTO "Interaction" ("userId", "targetId", "targetType", "isLiked")
                 VALUES ($1, $2, 'movie', true)
                 ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE SET "isLiked" = true
                 RETURNING "targetId" AS "movieId", "isLiked";`,
 
-      /**
-       * Removes a movie from the user's liked movies.
-       * If the interaction has no rating or comments, the interaction row is deleted.
-       * If it has a rating or comments, isLiked is set to false to preserve the interaction.
-       */
-      remove: `
+            /**
+             * Removes a movie from the user's liked movies.
+             * If the interaction has no rating or comments, the interaction row is deleted.
+             * If it has a rating or comments, isLiked is set to false to preserve the interaction.
+             */
+            remove: `
                 WITH target_interaction AS (
                     SELECT i.id, i.rating,
                            EXISTS (SELECT 1 FROM "Comment" c WHERE c."interactionId" = i.id) AS has_comment
@@ -587,6 +601,6 @@ export const movieQueries = {
                 SELECT * FROM deleted
                 UNION ALL
                 SELECT * FROM updated;`,
+        },
     },
-  },
 };

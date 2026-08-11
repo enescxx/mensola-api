@@ -85,7 +85,7 @@ type GetFavoritesDto = BaseUserQueryDto;
 type GetWatchlistDto = BaseUserQueryDto;
 type GetWatchedMoviesDto = BaseUserQueryDto;
 type GetLikedMoviesDto = BaseUserQueryDto;
-type GetUserListsDto = BaseUserQueryDto & { currentUserId?: UserId };
+type GetUserListsDto = BaseUserQueryDto & { currentUserId?: UserId; movieId?: string };
 type GetLikedListsDto = BaseUserQueryDto & { currentUserId?: UserId };
 
 /**
@@ -232,6 +232,7 @@ type PreviewMoviesItem = MovieSummary & {
 type MovieListResponseItem = {
     listId: IMovieList["id"];
     listTitle: IMovieList["title"];
+    containsMovie?: boolean;
     previewMovies: PreviewMoviesItem[];
 };
 
@@ -257,6 +258,8 @@ type GetMovieInteractionsItem = Pick<IInteraction, "id" | "isLiked" | "rating"> 
  */
 type GetMovieResponse = IMovie & {
     isWatched?: boolean;
+    isInList?: boolean;
+    isWatchlisted?: boolean;
     likesCount?: number;
     commentsCount?: number;
     interactions: GetMovieInteractionsItem[];

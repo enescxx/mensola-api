@@ -187,11 +187,12 @@ const getMovieLists = async (req: TypedRequestQuery<Partial<GetUserListsDto>>, r
     try {
         const currentUserId = req.user?.id;
         const userId = (req.query.userId as string) || currentUserId;
+        const movieId = req.query.movieId as string | undefined;
 
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 5;
 
-        const lists = await getUserLists({ userId, currentUserId, limit, page });
+        const lists = await getUserLists({ userId, currentUserId, limit, page, movieId });
 
         return sendResponse(res, 200, {
             items: lists,

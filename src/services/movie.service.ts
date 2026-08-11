@@ -4,51 +4,51 @@ import { ApiError } from "@/utils/error";
 
 // Types & Interfaces
 import {
-  // Entity Models
-  IMovieList,
-  IWatchedMovie,
-  IMovieListItem,
+    // Entity Models
+    IMovieList,
+    IWatchedMovie,
+    IMovieListItem,
 
-  // Data Transfer Objects (DTOs)
-  CreateMovieListDto,
-  GetFavoritesDto,
-  GetLikedListsDto,
-  GetLikedMoviesDto,
-  GetUserListsDto,
-  GetWatchedMoviesDto,
-  GetWatchlistDto,
-  UserMovieActionDto,
-  GetMovieDto,
+    // Data Transfer Objects (DTOs)
+    CreateMovieListDto,
+    GetFavoritesDto,
+    GetLikedListsDto,
+    GetLikedMoviesDto,
+    GetUserListsDto,
+    GetWatchedMoviesDto,
+    GetWatchlistDto,
+    UserMovieActionDto,
+    GetMovieDto,
 
-  // Response Contracts & Items
-  GetFavoritesResponse,
-  GetFavoritesResponseItem,
-  GetLikedListsResponse,
-  GetLikedListsResponseItem,
-  GetLikedMoviesResponse,
-  GetLikedMoviesResponseItem,
-  GetUserListsResponse,
-  GetUserListsResponseItem,
-  GetWatchedMoviesResponse,
-  GetWatchedMoviesResponseItem,
-  GetWatchlistResponse,
-  GetMovieResponse,
-  UpdateMovieListDto,
-  DeleteListDto,
-  GetListByIdDto,
-  GetListByIdResponse,
-  GetListItemsResponse,
-  GetListItemsDto,
-  MovieSummary,
-  MovieListItemDto,
-  LikeMovieListDto,
-  LikeMovieListResponse,
-  UnlikeMovieListDto,
-  UnlikeMovieListResponse,
-  LikeMovieDto,
-  LikeMovieResponse,
-  UnlikeMovieDto,
-  UnlikeMovieResponse,
+    // Response Contracts & Items
+    GetFavoritesResponse,
+    GetFavoritesResponseItem,
+    GetLikedListsResponse,
+    GetLikedListsResponseItem,
+    GetLikedMoviesResponse,
+    GetLikedMoviesResponseItem,
+    GetUserListsResponse,
+    GetUserListsResponseItem,
+    GetWatchedMoviesResponse,
+    GetWatchedMoviesResponseItem,
+    GetWatchlistResponse,
+    GetMovieResponse,
+    UpdateMovieListDto,
+    DeleteListDto,
+    GetListByIdDto,
+    GetListByIdResponse,
+    GetListItemsResponse,
+    GetListItemsDto,
+    MovieSummary,
+    MovieListItemDto,
+    LikeMovieListDto,
+    LikeMovieListResponse,
+    UnlikeMovieListDto,
+    UnlikeMovieListResponse,
+    LikeMovieDto,
+    LikeMovieResponse,
+    UnlikeMovieDto,
+    UnlikeMovieResponse,
 } from "@/types/movie";
 import { IInteraction } from "@/types/interaction";
 
@@ -59,21 +59,20 @@ import { IInteraction } from "@/types/interaction";
  * @returns Array of favorite movie items.
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
-export const getFavorites = async (
-  dto: GetFavoritesDto,
-): Promise<GetFavoritesResponse> => {
-  if (!dto.userId) {
-    throw new ApiError("userId is invalid", 400);
-  }
+export const getFavorites = async (dto: GetFavoritesDto): Promise<GetFavoritesResponse> => {
+    if (!dto.userId) {
+        throw new ApiError("userId is invalid", 400);
+    }
 
-  const offset = (dto.page - 1) * dto.limit;
+    const offset = (dto.page - 1) * dto.limit;
 
-  const result = await pool.query<GetFavoritesResponseItem>(
-    movieQueries.movies.favorites.get,
-    [dto.userId, dto.limit, offset],
-  );
+    const result = await pool.query<GetFavoritesResponseItem>(movieQueries.movies.favorites.get, [
+        dto.userId,
+        dto.limit,
+        offset,
+    ]);
 
-  return result.rows;
+    return result.rows;
 };
 
 /**
@@ -83,21 +82,16 @@ export const getFavorites = async (
  * @returns Array of watchlist movie items.
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
-export const getWatchlist = async (
-  dto: GetWatchlistDto,
-): Promise<GetWatchlistResponse> => {
-  if (!dto.userId) {
-    throw new ApiError("userId is invalid", 400);
-  }
+export const getWatchlist = async (dto: GetWatchlistDto): Promise<GetWatchlistResponse> => {
+    if (!dto.userId) {
+        throw new ApiError("userId is invalid", 400);
+    }
 
-  const offset = (dto.page - 1) * dto.limit;
+    const offset = (dto.page - 1) * dto.limit;
 
-  const result = await pool.query<MovieSummary>(
-    movieQueries.movies.watchlist.get,
-    [dto.userId, dto.limit, offset],
-  );
+    const result = await pool.query<MovieSummary>(movieQueries.movies.watchlist.get, [dto.userId, dto.limit, offset]);
 
-  return result.rows;
+    return result.rows;
 };
 
 /**
@@ -107,21 +101,20 @@ export const getWatchlist = async (
  * @returns Array of watched movie items with rating and review state.
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
-export const getWatched = async (
-  dto: GetWatchedMoviesDto,
-): Promise<GetWatchedMoviesResponse> => {
-  if (!dto.userId) {
-    throw new ApiError("userId is invalid", 400);
-  }
+export const getWatched = async (dto: GetWatchedMoviesDto): Promise<GetWatchedMoviesResponse> => {
+    if (!dto.userId) {
+        throw new ApiError("userId is invalid", 400);
+    }
 
-  const offset = (dto.page - 1) * dto.limit;
+    const offset = (dto.page - 1) * dto.limit;
 
-  const result = await pool.query<GetWatchedMoviesResponseItem>(
-    movieQueries.movies.watched.get,
-    [dto.userId, dto.limit, offset],
-  );
+    const result = await pool.query<GetWatchedMoviesResponseItem>(movieQueries.movies.watched.get, [
+        dto.userId,
+        dto.limit,
+        offset,
+    ]);
 
-  return result.rows;
+    return result.rows;
 };
 
 /**
@@ -131,21 +124,20 @@ export const getWatched = async (
  * @returns Array of liked movie items.
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
-export const getLikedMovies = async (
-  dto: GetLikedMoviesDto,
-): Promise<GetLikedMoviesResponse> => {
-  if (!dto.userId) {
-    throw new ApiError("userId is invalid", 400);
-  }
+export const getLikedMovies = async (dto: GetLikedMoviesDto): Promise<GetLikedMoviesResponse> => {
+    if (!dto.userId) {
+        throw new ApiError("userId is invalid", 400);
+    }
 
-  const offset = (dto.page - 1) * dto.limit;
+    const offset = (dto.page - 1) * dto.limit;
 
-  const result = await pool.query<GetLikedMoviesResponseItem>(
-    movieQueries.movies.likes.get,
-    [dto.userId, dto.limit, offset],
-  );
+    const result = await pool.query<GetLikedMoviesResponseItem>(movieQueries.movies.likes.get, [
+        dto.userId,
+        dto.limit,
+        offset,
+    ]);
 
-  return result.rows;
+    return result.rows;
 };
 
 /**
@@ -155,21 +147,22 @@ export const getLikedMovies = async (
  * @returns Array of custom movie lists with preview items.
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
-export const getUserLists = async (
-  dto: GetUserListsDto,
-): Promise<GetUserListsResponse> => {
-  if (!dto.userId) {
-    throw new ApiError("userId is invalid", 400);
-  }
+export const getUserLists = async (dto: GetUserListsDto): Promise<GetUserListsResponse> => {
+    if (!dto.userId) {
+        throw new ApiError("userId is invalid", 400);
+    }
 
-  const offset = (dto.page - 1) * dto.limit;
+    const offset = (dto.page - 1) * dto.limit;
 
-  const result = await pool.query<GetUserListsResponseItem>(
-    movieQueries.lists.getUserLists,
-    [dto.userId, dto.currentUserId || null, dto.limit, offset],
-  );
+    const result = await pool.query<GetUserListsResponseItem>(movieQueries.lists.getUserLists, [
+        dto.userId,
+        dto.currentUserId || null,
+        dto.limit,
+        offset,
+        dto.movieId || null,
+    ]);
 
-  return result.rows;
+    return result.rows;
 };
 
 /**
@@ -179,21 +172,21 @@ export const getUserLists = async (
  * @returns Array of liked movie lists with preview items.
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
-export const getLikedLists = async (
-  dto: GetLikedListsDto,
-): Promise<GetLikedListsResponse> => {
-  if (!dto.userId) {
-    throw new ApiError("userId is invalid", 400);
-  }
+export const getLikedLists = async (dto: GetLikedListsDto): Promise<GetLikedListsResponse> => {
+    if (!dto.userId) {
+        throw new ApiError("userId is invalid", 400);
+    }
 
-  const offset = (dto.page - 1) * dto.limit;
+    const offset = (dto.page - 1) * dto.limit;
 
-  const result = await pool.query<GetLikedListsResponseItem>(
-    movieQueries.lists.likes.get,
-    [dto.userId, dto.currentUserId || null, dto.limit, offset],
-  );
+    const result = await pool.query<GetLikedListsResponseItem>(movieQueries.lists.likes.get, [
+        dto.userId,
+        dto.currentUserId || null,
+        dto.limit,
+        offset,
+    ]);
 
-  return result.rows;
+    return result.rows;
 };
 
 /**
@@ -203,28 +196,17 @@ export const getLikedLists = async (
  * @returns The newly created MovieList record.
  * @throws {ApiError} 500 Internal Server Error if list creation fails.
  */
-export const createList = async (
-  dto: CreateMovieListDto,
-): Promise<IMovieList> => {
-  const values = [
-    dto.title,
-    dto.description ?? null,
-    dto.image ?? null,
-    dto.isPrivate ?? null,
-    dto.creatorId,
-  ];
-  const result = await pool.query<IMovieList>(
-    movieQueries.lists.create,
-    values,
-  );
+export const createList = async (dto: CreateMovieListDto): Promise<IMovieList> => {
+    const values = [dto.title, dto.description ?? null, dto.image ?? null, dto.isPrivate ?? null, dto.creatorId];
+    const result = await pool.query<IMovieList>(movieQueries.lists.create, values);
 
-  const movieList = result.rows[0];
+    const movieList = result.rows[0];
 
-  if (!movieList) {
-    throw new ApiError("Failed to create movie list.", 500);
-  }
+    if (!movieList) {
+        throw new ApiError("Failed to create movie list.", 500);
+    }
 
-  return movieList;
+    return movieList;
 };
 
 /**
@@ -233,14 +215,9 @@ export const createList = async (
  * @param dto - Data transfer object containing userId and movieId.
  * @returns The newly created WatchedMovie record.
  */
-export const markAsWatched = async (
-  dto: UserMovieActionDto,
-): Promise<IWatchedMovie> => {
-  const result = await pool.query<IWatchedMovie>(
-    movieQueries.movies.watched.add,
-    [dto.userId, dto.movieId],
-  );
-  return result.rows[0];
+export const markAsWatched = async (dto: UserMovieActionDto): Promise<IWatchedMovie> => {
+    const result = await pool.query<IWatchedMovie>(movieQueries.movies.watched.add, [dto.userId, dto.movieId]);
+    return result.rows[0];
 };
 
 /**
@@ -250,14 +227,9 @@ export const markAsWatched = async (
  * @param dto - Data transfer object containing userId and movieId.
  * @returns The deleted WatchedMovie record or null if not found.
  */
-export const unmarkAsWatched = async (
-  dto: UserMovieActionDto,
-): Promise<IWatchedMovie[]> => {
-  const result = await pool.query<IWatchedMovie>(
-    movieQueries.movies.watched.remove,
-    [dto.userId, dto.movieId],
-  );
-  return result.rows;
+export const unmarkAsWatched = async (dto: UserMovieActionDto): Promise<IWatchedMovie[]> => {
+    const result = await pool.query<IWatchedMovie>(movieQueries.movies.watched.remove, [dto.userId, dto.movieId]);
+    return result.rows;
 };
 
 /**
@@ -267,11 +239,11 @@ export const unmarkAsWatched = async (
  * @returns {<GetMovieResponse>} The movie details along with its recent interactions.
  */
 export const getMovie = async (dto: GetMovieDto): Promise<GetMovieResponse> => {
-  const result = await pool.query<GetMovieResponse>(
-    movieQueries.movies.getById,
-    [dto.movieId, dto.currentUserId || null],
-  );
-  return result.rows[0];
+    const result = await pool.query<GetMovieResponse>(movieQueries.movies.getById, [
+        dto.movieId,
+        dto.currentUserId || null,
+    ]);
+    return result.rows[0];
 };
 
 /**
@@ -280,14 +252,9 @@ export const getMovie = async (dto: GetMovieDto): Promise<GetMovieResponse> => {
  * @param dto - Data transfer object containing userId and movieId.
  * @returns The newly created MovieListItem record representing the watchlist entry.
  */
-export const addToWatchlist = async (
-  dto: UserMovieActionDto,
-): Promise<IMovieListItem> => {
-  const result = await pool.query<IMovieListItem>(
-    movieQueries.movies.watchlist.add,
-    [dto.userId, dto.movieId],
-  );
-  return result.rows[0];
+export const addToWatchlist = async (dto: UserMovieActionDto): Promise<IMovieListItem> => {
+    const result = await pool.query<IMovieListItem>(movieQueries.movies.watchlist.add, [dto.userId, dto.movieId]);
+    return result.rows[0];
 };
 
 /**
@@ -297,14 +264,9 @@ export const addToWatchlist = async (
  * @param dto - Data transfer object containing userId and movieId.
  * @returns The deleted MovieListItem record or null if the movie was not in the watchlist.
  */
-export const removeFromWatchlist = async (
-  dto: UserMovieActionDto,
-): Promise<IMovieListItem[]> => {
-  const result = await pool.query<IMovieListItem>(
-    movieQueries.movies.watchlist.remove,
-    [dto.userId, dto.movieId],
-  );
-  return result.rows;
+export const removeFromWatchlist = async (dto: UserMovieActionDto): Promise<IMovieListItem[]> => {
+    const result = await pool.query<IMovieListItem>(movieQueries.movies.watchlist.remove, [dto.userId, dto.movieId]);
+    return result.rows;
 };
 
 /**
@@ -313,14 +275,9 @@ export const removeFromWatchlist = async (
  * @param dto - Data transfer object containing userId and movieId.
  * @returns The newly created MovieListItem record representing the favorite entry.
  */
-export const addToFavorites = async (
-  dto: UserMovieActionDto,
-): Promise<IMovieListItem> => {
-  const result = await pool.query<IMovieListItem>(
-    movieQueries.movies.favorites.add,
-    [dto.userId, dto.movieId],
-  );
-  return result.rows[0];
+export const addToFavorites = async (dto: UserMovieActionDto): Promise<IMovieListItem> => {
+    const result = await pool.query<IMovieListItem>(movieQueries.movies.favorites.add, [dto.userId, dto.movieId]);
+    return result.rows[0];
 };
 
 /**
@@ -329,14 +286,9 @@ export const addToFavorites = async (
  * @param dto - Data transfer object containing userId and movieId.
  * @returns The deleted MovieListItem record or null if the movie was not in the favorites list.
  */
-export const removeFromFavorites = async (
-  dto: UserMovieActionDto,
-): Promise<IMovieListItem[]> => {
-  const result = await pool.query<IMovieListItem>(
-    movieQueries.movies.favorites.remove,
-    [dto.userId, dto.movieId],
-  );
-  return result.rows;
+export const removeFromFavorites = async (dto: UserMovieActionDto): Promise<IMovieListItem[]> => {
+    const result = await pool.query<IMovieListItem>(movieQueries.movies.favorites.remove, [dto.userId, dto.movieId]);
+    return result.rows;
 };
 
 /**
@@ -346,29 +298,24 @@ export const removeFromFavorites = async (
  * @returns The updated MovieList record.
  * @throws {ApiError} 404 Not Found if the movie list does not exist.
  */
-export const updateList = async (
-  dto: UpdateMovieListDto,
-): Promise<IMovieList> => {
-  const { listId, userId, title, description, image, isPrivate } = dto;
+export const updateList = async (dto: UpdateMovieListDto): Promise<IMovieList> => {
+    const { listId, userId, title, description, image, isPrivate } = dto;
 
-  const result = await pool.query<IMovieList>(movieQueries.lists.update, [
-    title ?? null,
-    description ?? null,
-    image ?? null,
-    isPrivate ?? null,
-    listId,
-    userId,
-  ]);
-  const updatedList = result.rows[0];
+    const result = await pool.query<IMovieList>(movieQueries.lists.update, [
+        title ?? null,
+        description ?? null,
+        image ?? null,
+        isPrivate ?? null,
+        listId,
+        userId,
+    ]);
+    const updatedList = result.rows[0];
 
-  if (!updatedList) {
-    throw new ApiError(
-      "Movie list not found or you don't have permission to update it.",
-      404,
-    );
-  }
+    if (!updatedList) {
+        throw new ApiError("Movie list not found or you don't have permission to update it.", 404);
+    }
 
-  return updatedList;
+    return updatedList;
 };
 
 /**
@@ -379,20 +326,14 @@ export const updateList = async (
  * @throws {ApiError} 404 Not Found if the movie list does not exist or the user is not the creator.
  */
 export const deleteList = async (dto: DeleteListDto): Promise<void> => {
-  const { listId, userId } = dto;
+    const { listId, userId } = dto;
 
-  const result = await pool.query<IMovieList>(movieQueries.lists.delete, [
-    listId,
-    userId,
-  ]);
-  const deletedList = result.rows[0];
+    const result = await pool.query<IMovieList>(movieQueries.lists.delete, [listId, userId]);
+    const deletedList = result.rows[0];
 
-  if (!deletedList) {
-    throw new ApiError(
-      "Movie list not found or you don't have permission to delete it.",
-      404,
-    );
-  }
+    if (!deletedList) {
+        throw new ApiError("Movie list not found or you don't have permission to delete it.", 404);
+    }
 };
 
 /**
@@ -402,25 +343,17 @@ export const deleteList = async (dto: DeleteListDto): Promise<void> => {
  * @returns The movie list details along with owners, preview movies, and latest comments.
  * @throws {ApiError} 404 Not Found if the movie list does not exist or the user does not have permission to access it.
  */
-export const getListById = async (
-  dto: GetListByIdDto,
-): Promise<GetListByIdResponse> => {
-  const { listId, userId } = dto;
+export const getListById = async (dto: GetListByIdDto): Promise<GetListByIdResponse> => {
+    const { listId, userId } = dto;
 
-  const result = await pool.query<GetListByIdResponse>(
-    movieQueries.lists.getById,
-    [listId, userId ?? null],
-  );
-  const movieList = result.rows[0];
+    const result = await pool.query<GetListByIdResponse>(movieQueries.lists.getById, [listId, userId ?? null]);
+    const movieList = result.rows[0];
 
-  if (!movieList) {
-    throw new ApiError(
-      "Movie list not found or you don't have permission to access it.",
-      404,
-    );
-  }
+    if (!movieList) {
+        throw new ApiError("Movie list not found or you don't have permission to access it.", 404);
+    }
 
-  return movieList;
+    return movieList;
 };
 
 /**
@@ -430,27 +363,24 @@ export const getListById = async (
  * @returns An array of movie summary items with interaction details.
  * @throws {ApiError} 404 Not Found if the movie list does not exist or the user does not have permission to access it.
  */
-export const getListItems = async (
-  dto: GetListItemsDto,
-): Promise<GetListItemsResponse> => {
-  const { listId, userId, page, limit } = dto;
+export const getListItems = async (dto: GetListItemsDto): Promise<GetListItemsResponse> => {
+    const { listId, userId, page, limit } = dto;
 
-  const offset = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
-  const result = await pool.query<MovieSummary>(
-    movieQueries.lists.items.getMovies,
-    [listId, userId ?? null, limit, offset],
-  );
-  const movieItems = result.rows;
+    const result = await pool.query<MovieSummary>(movieQueries.lists.items.getMovies, [
+        listId,
+        userId ?? null,
+        limit,
+        offset,
+    ]);
+    const movieItems = result.rows;
 
-  if (movieItems.length === 0) {
-    throw new ApiError(
-      "Movie list not found or you don't have permission to access it.",
-      404,
-    );
-  }
+    if (movieItems.length === 0) {
+        throw new ApiError("Movie list not found or you don't have permission to access it.", 404);
+    }
 
-  return movieItems;
+    return movieItems;
 };
 
 /**
@@ -460,25 +390,20 @@ export const getListItems = async (
  * @returns The newly created MovieListItem record representing the added movie.
  * @throws {ApiError} 404 Not Found if the movie list does not exist, the movie already exists in the list, or the user does not have permission to modify it.
  */
-export const addItemToList = async (
-  dto: MovieListItemDto,
-): Promise<IMovieListItem> => {
-  const { listId, movieId, userId } = dto;
+export const addItemToList = async (dto: MovieListItemDto): Promise<IMovieListItem> => {
+    const { listId, movieId, userId } = dto;
 
-  const result = await pool.query<IMovieListItem>(
-    movieQueries.lists.items.addMovie,
-    [listId, movieId, userId],
-  );
-  const addedItem = result.rows[0];
+    const result = await pool.query<IMovieListItem>(movieQueries.lists.items.addMovie, [listId, movieId, userId]);
+    const addedItem = result.rows[0];
 
-  if (!addedItem) {
-    throw new ApiError(
-      "Movie list not found, movie already exists in the list, or you don't have permission to modify it.",
-      404,
-    );
-  }
+    if (!addedItem) {
+        throw new ApiError(
+            "Movie list not found, movie already exists in the list, or you don't have permission to modify it.",
+            404,
+        );
+    }
 
-  return addedItem;
+    return addedItem;
 };
 
 /**
@@ -488,23 +413,15 @@ export const addItemToList = async (
  * @returns void
  * @throws {ApiError} 404 Not Found if the movie list does not exist, the movie is not in the list, or the user does not have permission to modify it.
  */
-export const removeItemFromList = async (
-  dto: MovieListItemDto,
-): Promise<void> => {
-  const { listId, movieId, userId } = dto;
+export const removeItemFromList = async (dto: MovieListItemDto): Promise<void> => {
+    const { listId, movieId, userId } = dto;
 
-  const result = await pool.query<IMovieListItem>(
-    movieQueries.lists.items.removeMovie,
-    [listId, movieId, userId],
-  );
-  const removedItems = result.rows;
+    const result = await pool.query<IMovieListItem>(movieQueries.lists.items.removeMovie, [listId, movieId, userId]);
+    const removedItems = result.rows;
 
-  if (removedItems.length === 0) {
-    throw new ApiError(
-      "Movie not found in the list or you don't have permission to modify it.",
-      404,
-    );
-  }
+    if (removedItems.length === 0) {
+        throw new ApiError("Movie not found in the list or you don't have permission to modify it.", 404);
+    }
 };
 
 /**
@@ -514,23 +431,15 @@ export const removeItemFromList = async (
  * @returns An object containing the listId and isLiked status.
  * @throws {ApiError} 404 Not Found if the movie list does not exist or the user does not have permission to like it.
  */
-export const likeList = async (
-  dto: LikeMovieListDto,
-): Promise<LikeMovieListResponse> => {
-  const { userId, listId } = dto;
-  const result = await pool.query<LikeMovieListResponse>(
-    movieQueries.lists.likes.add,
-    [userId, listId],
-  );
+export const likeList = async (dto: LikeMovieListDto): Promise<LikeMovieListResponse> => {
+    const { userId, listId } = dto;
+    const result = await pool.query<LikeMovieListResponse>(movieQueries.lists.likes.add, [userId, listId]);
 
-  if (result.rowCount === 0) {
-    throw new ApiError(
-      "Failed to like the movie list. It may not exist or you may not have permission.",
-      404,
-    );
-  }
+    if (result.rowCount === 0) {
+        throw new ApiError("Failed to like the movie list. It may not exist or you may not have permission.", 404);
+    }
 
-  return result.rows[0];
+    return result.rows[0];
 };
 
 /**
@@ -540,23 +449,15 @@ export const likeList = async (
  * @returns An object containing the listId and isLiked status.
  * @throws {ApiError} 404 Not Found if the movie list does not exist or the user does not have permission to unlike it.
  */
-export const unlikeList = async (
-  dto: UnlikeMovieListDto,
-): Promise<UnlikeMovieListResponse> => {
-  const { userId, listId } = dto;
-  const result = await pool.query<UnlikeMovieListResponse>(
-    movieQueries.lists.likes.remove,
-    [userId, listId],
-  );
+export const unlikeList = async (dto: UnlikeMovieListDto): Promise<UnlikeMovieListResponse> => {
+    const { userId, listId } = dto;
+    const result = await pool.query<UnlikeMovieListResponse>(movieQueries.lists.likes.remove, [userId, listId]);
 
-  if (result.rowCount === 0) {
-    throw new ApiError(
-      "Failed to unlike the movie list. It may not exist or you may not have permission.",
-      404,
-    );
-  }
+    if (result.rowCount === 0) {
+        throw new ApiError("Failed to unlike the movie list. It may not exist or you may not have permission.", 404);
+    }
 
-  return result.rows[0];
+    return result.rows[0];
 };
 
 /**
@@ -566,23 +467,15 @@ export const unlikeList = async (
  * @returns An object containing the movieId and isLiked status.
  * @throws {ApiError} 404 Not Found if the movie does not exist or the user does not have permission to like it.
  */
-export const likeMovie = async (
-  dto: LikeMovieDto,
-): Promise<LikeMovieResponse> => {
-  const { userId, movieId } = dto;
-  const result = await pool.query<LikeMovieResponse>(
-    movieQueries.movies.likes.add,
-    [userId, movieId],
-  );
+export const likeMovie = async (dto: LikeMovieDto): Promise<LikeMovieResponse> => {
+    const { userId, movieId } = dto;
+    const result = await pool.query<LikeMovieResponse>(movieQueries.movies.likes.add, [userId, movieId]);
 
-  if (result.rowCount === 0) {
-    throw new ApiError(
-      "Failed to like the movie. It may not exist or you may not have permission.",
-      404,
-    );
-  }
+    if (result.rowCount === 0) {
+        throw new ApiError("Failed to like the movie. It may not exist or you may not have permission.", 404);
+    }
 
-  return result.rows[0];
+    return result.rows[0];
 };
 
 /**
@@ -592,21 +485,13 @@ export const likeMovie = async (
  * @returns An object containing the movieId and isLiked status.
  * @throws {ApiError} 404 Not Found if the movie does not exist or the user does not have permission to unlike it.
  */
-export const unlikeMovie = async (
-  dto: UnlikeMovieDto,
-): Promise<UnlikeMovieResponse> => {
-  const { userId, movieId } = dto;
-  const result = await pool.query<UnlikeMovieResponse>(
-    movieQueries.movies.likes.remove,
-    [userId, movieId],
-  );
+export const unlikeMovie = async (dto: UnlikeMovieDto): Promise<UnlikeMovieResponse> => {
+    const { userId, movieId } = dto;
+    const result = await pool.query<UnlikeMovieResponse>(movieQueries.movies.likes.remove, [userId, movieId]);
 
-  if (result.rowCount === 0) {
-    throw new ApiError(
-      "Failed to unlike the movie. It may not exist or you may not have permission.",
-      404,
-    );
-  }
+    if (result.rowCount === 0) {
+        throw new ApiError("Failed to unlike the movie. It may not exist or you may not have permission.", 404);
+    }
 
-  return result.rows[0];
+    return result.rows[0];
 };
