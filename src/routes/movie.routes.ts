@@ -26,6 +26,7 @@ import {
     unlikeMovieList,
     likeMovie,
     unlikeMovie,
+    createMovieInteraction,
 } from "@/controllers/movie";
 
 // Middlewares
@@ -40,6 +41,7 @@ import {
     updateMovieListSchema,
     listIdParamSchema,
     listAndMovieParamsSchema,
+    createMovieInteractionSchema,
 } from "@/validations/movie";
 
 const router = Router();
@@ -94,6 +96,9 @@ router.delete("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), 
 // Movie Like Status
 router.post("/:movieId/like", verifyToken, validate(movieIdParamSchema), likeMovie);
 router.delete("/:movieId/like", verifyToken, validate(movieIdParamSchema), unlikeMovie);
+
+// Full Interaction Status (Rating, Comment, Like)
+router.post("/:movieId/interaction", verifyToken, validate(createMovieInteractionSchema), createMovieInteraction);
 
 /* ==========================================================================
    4. Catch-all Single Movie Route (MUST BE AT THE VERY BOTTOM)

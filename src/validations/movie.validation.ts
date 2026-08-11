@@ -121,3 +121,27 @@ export const updateMovieListSchema = z.object({
     { message: "Request body is required." },
   ),
 });
+
+/**
+ * Validation schema for creating or updating a movie interaction (rating, comment, isLiked).
+ */
+export const createMovieInteractionSchema = z.object({
+  params: z.object({
+    movieId: movieIdRule,
+  }),
+  body: z.object({
+    rating: z
+      .number({ message: "Rating must be a number." })
+      .min(0, "Rating must be at least 0.")
+      .max(10, "Rating cannot exceed 10.")
+      .optional()
+      .nullable(),
+    comment: z
+      .string({ message: "Comment must be a string." })
+      .trim()
+      .max(2000, "Comment cannot exceed 2000 characters.")
+      .optional()
+      .nullable(),
+    isLiked: z.boolean().optional(),
+  }),
+});

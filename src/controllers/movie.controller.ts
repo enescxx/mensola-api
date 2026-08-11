@@ -26,6 +26,7 @@ import {
     unlikeList,
     likeMovie as likeMovieService,
     unlikeMovie as unlikeMovieService,
+    upsertMovieInteraction,
 } from "@/services/movie";
 
 // Utilities
@@ -642,6 +643,36 @@ const unlikeMovie = async (req: TypedRequest<Omit<UnlikeMovieDto, "userId">>, re
     }
 };
 
+/**
+ * Creates or updates an interaction (rating, comment, isLiked) for a movie.
+ *
+ * @route   POST /api/movies/:movieId/interaction
+ * @access  Private
+ */
+const createMovieInteraction = async (
+    req: TypedRequest<{ movieId: string }, { rating?: number; comment?: string; isLiked?: boolean }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const movieId = req.params.movieId;
+        const { rating, comment, isLiked } = req.body;
+
+        const result = await upsertMovieInteraction({
+            userId,
+            movieId,
+            rating,
+            comment,
+            isLiked,
+        });
+
+        return sendResponse(res, 200, result, "Movie interaction saved successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -671,4 +702,5 @@ export {
     unlikeMovieList,
     likeMovie,
     unlikeMovie,
+    createMovieInteraction,
 };

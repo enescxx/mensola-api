@@ -393,11 +393,11 @@ export const movieQueries = {
                     'id', cu_int.id,
                     'rating', cu_int."rating",
                     'isLiked', COALESCE(cu_int."isLiked", false),
-                    'review', (
+                    'comment', (
                         SELECT json_build_object(
                             'id', c.id,
                             'content', c.content,
-                            'createdAt', c."createdAt"
+                            'date', c."createdAt"
                         )
                         FROM "Comment" c
                         WHERE c."interactionId" = cu_int.id AND c."parentId" IS NULL
@@ -601,6 +601,56 @@ export const movieQueries = {
                 SELECT * FROM deleted
                 UNION ALL
                 SELECT * FROM updated;`,
+        },
+
+        /**
+         * Full movie interaction (rating, comment, isLiked)
+         */
+        interaction: {
+            upsert: `
+                INSERT INTO "Interaction" ("userId", "targetId", "targetType", "rating", "isLiked", "updatedAt")
+                VALUES ($1, $2, 'movie', $3, COALESCE($4, false), NOW())
+                ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE
+                SET "rating" = EXCLUDED."rating",
+                    "isLiked" = COALESCE($4, "Interaction"."isLiked"),
+                    "updatedAt" = NOW()
+                RETURNING id, "userId", "targetId", "targetType", "rating", "isLiked", "interactedAt", "updatedAt";`,
+
+            /**
+             * Inserts or updates a top-level review/comment for an interaction.
+             */
+            upsertComment: `
+                WITH existing AS (
+                    SELECT id FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL
+                ),
+                updated AS (
+                    UPDATE "Comment"
+                    SET "content" = $2
+                    WHERE "interactionId" = $1 AND "parentId" IS NULL
+                    RETURNING id, "userId", "interactionId", "content", "createdAt"
+                )
+                INSERT INTO "Comment" (id, "userId", "interactionId", "content", "createdAt")
+                SELECT gen_random_uuid(), $3, $1, $2, NOW()
+                WHERE NOT EXISTS (SELECT 1 FROM existing)
+                UNION ALL
+                SELECT id, "userId", "interactionId", "content", "createdAt" FROM updated;`,
+
+            /**
+             * Deletes top-level review/comment for an interaction.
+             */
+            deleteComment: `
+                DELETE FROM "Comment"
+                WHERE "interactionId" = $1 AND "parentId" IS NULL;`,
+
+            /**
+             * Cleans up empty interaction records.
+             */
+            cleanupEmpty: `
+                DELETE FROM "Interaction"
+                WHERE id = $1
+                  AND "rating" IS NULL
+                  AND "isLiked" = false
+                  AND NOT EXISTS (SELECT 1 FROM "Comment" WHERE "interactionId" = $1);`,
         },
     },
 };

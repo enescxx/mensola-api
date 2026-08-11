@@ -495,3 +495,75 @@ export const unlikeMovie = async (dto: UnlikeMovieDto): Promise<UnlikeMovieRespo
 
     return result.rows[0];
 };
+
+export interface UpsertMovieInteractionDto {
+    userId: string;
+    movieId: string;
+    rating?: number | null;
+    comment?: string | null;
+    isLiked?: boolean;
+}
+
+export const upsertMovieInteraction = async (dto: UpsertMovieInteractionDto) => {
+    const { userId, movieId, rating, comment, isLiked } = dto;
+
+    const ratingVal = typeof rating === "number" && rating > 0 ? rating : null;
+
+    const interactionResult = await pool.query(
+        movieQueries.movies.interaction.upsert,
+        [userId, movieId, ratingVal, isLiked ?? null]
+    );
+
+    const interaction = interactionResult.rows[0];
+    let commentData: any = null;
+
+    if (comment !== undefined) {
+        const trimmedComment = comment ? comment.trim() : "";
+        if (trimmedComment !== "") {
+            const existingComment = await pool.query(
+                `SELECT id FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL`,
+                [interaction.id]
+            );
+
+            if (existingComment.rows.length > 0) {
+                const commentResult = await pool.query(
+                    `UPDATE "Comment" SET "content" = $1 WHERE id = $2 RETURNING id, "userId", "interactionId", "content", "createdAt"`,
+                    [trimmedComment, existingComment.rows[0].id]
+                );
+                commentData = commentResult.rows[0];
+            } else {
+                const commentResult = await pool.query(
+                    `INSERT INTO "Comment" (id, "userId", "interactionId", "content", "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW()) RETURNING id, "userId", "interactionId", "content", "createdAt"`,
+                    [userId, interaction.id, trimmedComment]
+                );
+                commentData = commentResult.rows[0];
+            }
+        } else {
+            await pool.query(
+                `DELETE FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL`,
+                [interaction.id]
+            );
+        }
+    } else {
+        const existingComment = await pool.query(
+            `SELECT id, content, "createdAt" FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL LIMIT 1`,
+            [interaction.id]
+        );
+        if (existingComment.rows.length > 0) {
+            commentData = existingComment.rows[0];
+        }
+    }
+
+    await pool.query(
+        movieQueries.movies.interaction.cleanupEmpty,
+        [interaction.id]
+    );
+
+    return {
+        id: interaction.id,
+        movieId,
+        rating: interaction.rating,
+        isLiked: interaction.isLiked,
+        comment: commentData ? { id: commentData.id, content: commentData.content, date: commentData.createdAt } : null,
+    };
+};
