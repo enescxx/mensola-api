@@ -384,6 +384,22 @@ export const getListItems = async (dto: GetListItemsDto): Promise<GetListItemsRe
 };
 
 /**
+ * Retrieves all interactions/comments for a specific movie list.
+ */
+export const getListInteractions = async (dto: GetListItemsDto) => {
+    const { listId, page, limit } = dto;
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(movieQueries.lists.items.getInteractions, [
+        listId,
+        limit,
+        offset,
+    ]);
+
+    return result.rows;
+};
+
+/**
  * Adds a specific movie to a custom movie list.
  *
  * @param dto - Data transfer object containing the movie list ID, movie ID, and user ID of the person adding the movie.
@@ -499,19 +515,20 @@ export const unlikeMovie = async (dto: UnlikeMovieDto): Promise<UnlikeMovieRespo
 export interface UpsertMovieInteractionDto {
     userId: string;
     movieId: string;
+    targetType?: string;
     rating?: number | null;
     comment?: string | null;
     isLiked?: boolean;
 }
 
 export const upsertMovieInteraction = async (dto: UpsertMovieInteractionDto) => {
-    const { userId, movieId, rating, comment, isLiked } = dto;
+    const { userId, movieId, targetType, rating, comment, isLiked } = dto;
 
     const ratingVal = typeof rating === "number" && rating > 0 ? rating : null;
 
     const interactionResult = await pool.query(
         movieQueries.movies.interaction.upsert,
-        [userId, movieId, ratingVal, isLiked ?? null]
+        [userId, movieId, ratingVal, isLiked ?? null, targetType || "movie"]
     );
 
     const interaction = interactionResult.rows[0];

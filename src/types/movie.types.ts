@@ -290,15 +290,18 @@ type MovieListLatestCommentItem = {
  * Extends base IMovieList with populated JSON aggregated fields.
  */
 type GetListByIdResponse = IMovieList & {
-    owners: Pick<IUser, "id" | "username" | "fullname" | "avatar">[];
+    owners: (Pick<IUser, "id" | "username" | "fullname" | "avatar"> & {
+        isFollowing?: boolean;
+        isFollower?: boolean;
+    })[];
     previewMovies: MovieSummary[];
-    latestComments: MovieListLatestCommentItem[];
 };
 
 /**
  * Paginated array response for fetching movies within a specific movie list.
  */
-type GetListItemsResponse = MovieSummary[];
+type GetListItemsResponse = MovieResponseItem[];
+
 
 /**
  * Result type for liking a movie list, indicating the list ID and the like status.

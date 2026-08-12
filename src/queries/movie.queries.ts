@@ -58,7 +58,7 @@ export const movieQueries = {
                 ml.*,
                 COALESCE(list_owners.owners, '[]'::json) AS "owners",
                 COALESCE(preview_movies.movies, '[]'::json) AS "previewMovies",
-                COALESCE(latest_comments.comments, '[]'::json) AS "latestComments"
+                user_int.user_interaction AS "currentUserInteraction"
             FROM "MovieList" ml
 
             LEFT JOIN LATERAL (
@@ -68,7 +68,15 @@ export const movieQueries = {
                         u.id AS "id",
                         u.username AS "username",
                         u.fullname AS "fullname",
-                        u.avatar AS "avatar"
+                        u.avatar AS "avatar",
+                        EXISTS (
+                            SELECT 1 FROM "Follow" f1 
+                            WHERE $2::uuid IS NOT NULL AND f1."followerId" = $2::uuid AND f1."followingId" = u.id
+                        ) AS "isFollowing",
+                        EXISTS (
+                            SELECT 1 FROM "Follow" f2 
+                            WHERE $2::uuid IS NOT NULL AND f2."followerId" = u.id AND f2."followingId" = $2::uuid
+                        ) AS "isFollower"
                     FROM "MovieListOwner" mlo
                     JOIN "User" u ON u.id = mlo."userId"
                     WHERE mlo."movieListId" = ml.id
@@ -81,54 +89,36 @@ export const movieQueries = {
                     SELECT
                         m.id AS "id",
                         m.title AS "title",
-                        m.poster AS "poster"
+                        m.poster AS "poster",
+                        m_int.rating AS "rating",
+                        COALESCE(m_int."isLiked", false) AS "isLiked",
+                        EXISTS (
+                            SELECT 1 FROM "Comment" c WHERE c."interactionId" = m_int.id
+                        ) AS "hasReview"
                     FROM "MovieListItem" mli
                     JOIN "Movie" m ON m.id = mli."movieId"
+                    LEFT JOIN "Interaction" m_int ON m_int."userId" = $2::uuid AND m_int."targetId" = m.id AND m_int."targetType" = 'movie'
                     WHERE mli."movieListId" = ml.id
                     ORDER BY mli."addedAt" DESC
                     LIMIT 3
                 ) pm
             ) preview_movies ON true
-            
+
             LEFT JOIN LATERAL (
-                SELECT json_agg(
-                    json_build_object(
-                        'commentId', lc."commentId",
-                        'content', lc.content,
-                        'date', lc."createdAt",
-                        'interactionId', lc."interactionId",
-                        'rating', lc."rating",
-                        'isLiked', lc."isLiked",
-                        'user', json_build_object(
-                            'id', lc."userId",
-                            'username', lc.username,
-                            'fullname', lc.fullname,
-                            'avatar', lc.avatar
-                        )
+                SELECT json_build_object(
+                    'id', cu_int.id,
+                    'rating', cu_int.rating,
+                    'isLiked', cu_int."isLiked",
+                    'comment', (
+                        SELECT json_build_object('id', c.id, 'content', c.content, 'date', c."createdAt")
+                        FROM "Comment" c
+                        WHERE c."interactionId" = cu_int.id AND c."parentId" IS NULL
+                        LIMIT 1
                     )
-                ) AS comments
-                FROM (
-                    SELECT 
-                        c.id AS "commentId",
-                        c.content, 
-                        c."createdAt",
-                        m_int.id AS "interactionId", 
-                        m_int."rating", 
-                        COALESCE(m_int."isLiked", false) AS "isLiked",
-                        int_u.id AS "userId", 
-                        int_u.username, 
-                        int_u.fullname, 
-                        int_u.avatar
-                    FROM "Comment" c
-                    JOIN "Interaction" m_int ON c."interactionId" = m_int.id
-                    JOIN "User" int_u ON int_u.id = m_int."userId" 
-                    WHERE m_int."targetId" = ml.id 
-                    AND m_int."targetType" = 'movieList'
-                    AND c."parentId" IS NULL
-                    ORDER BY c."createdAt" DESC
-                    LIMIT 3
-                ) lc
-            ) latest_comments ON true
+                ) AS user_interaction
+                FROM "Interaction" cu_int
+                WHERE cu_int."userId" = $2::uuid AND cu_int."targetId" = ml.id AND cu_int."targetType" = 'movieList'
+            ) user_int ON true
 
             WHERE ml.id = $1 
                 AND ml."listType" = 'custom'
@@ -193,10 +183,16 @@ export const movieQueries = {
                 SELECT
                     m.id,
                     m.title,
-                    m.poster
+                    m.poster,
+                    m_int.rating,
+                    COALESCE(m_int."isLiked", false) AS "isLiked",
+                    EXISTS (
+                        SELECT 1 FROM "Comment" c WHERE c."interactionId" = m_int.id
+                    ) AS "hasReview"
                 FROM "MovieList" ml
                 JOIN "MovieListItem" mli ON ml.id = mli."movieListId"
                 JOIN "Movie" m ON mli."movieId" = m.id
+                LEFT JOIN "Interaction" m_int ON m_int."userId" = $2::uuid AND m_int."targetId" = m.id AND m_int."targetType" = 'movie'
                 WHERE ml.id = $1
                     AND ml."listType" = 'custom'
                     AND (
@@ -210,6 +206,36 @@ export const movieQueries = {
                         ))
                     )
                 LIMIT $3 OFFSET $4;`,
+
+            /**
+             * Fetches all user interactions containing a comment for a specific movie list.
+             */
+            getInteractions: `
+                SELECT
+                    i.id,
+                    i."rating",
+                    COALESCE(i."isLiked", false) AS "isLiked",
+                    json_build_object(
+                        'id', u.id,
+                        'username', u.username,
+                        'fullname', u.fullname,
+                        'avatar', u.avatar
+                    ) AS "user",
+                    json_build_object(
+                        'id', c.id,
+                        'content', c.content,
+                        'date', c."createdAt"
+                    ) AS "comment",
+                    (SELECT COUNT(*)::int FROM "Interaction" sub_i WHERE sub_i."targetId" = i.id AND sub_i."targetType" = 'interaction' AND sub_i."isLiked" = true) AS "likeCount",
+                    (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."parentId" = c.id) AS "replyCount"
+                FROM "Comment" c
+                JOIN "Interaction" i ON c."interactionId" = i.id
+                JOIN "User" u ON u.id = i."userId"
+                WHERE i."targetId" = $1
+                  AND i."targetType" = 'movieList'
+                  AND c."parentId" IS NULL
+                ORDER BY c."createdAt" DESC
+                LIMIT $2 OFFSET $3;`,
 
             /**
              * Inserts a new record into the MovieListItem table to add a movie to a specific custom movie list.
@@ -609,7 +635,7 @@ export const movieQueries = {
         interaction: {
             upsert: `
                 INSERT INTO "Interaction" ("userId", "targetId", "targetType", "rating", "isLiked", "updatedAt")
-                VALUES ($1, $2, 'movie', $3, COALESCE($4, false), NOW())
+                VALUES ($1, $2, COALESCE($5, 'movie'), $3, COALESCE($4, false), NOW())
                 ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE
                 SET "rating" = EXCLUDED."rating",
                     "isLiked" = COALESCE($4, "Interaction"."isLiked"),
