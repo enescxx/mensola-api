@@ -184,3 +184,18 @@ export const createTestInteraction = async (
     comment: createdComment,
   };
 };
+
+export const createTestBookmark = async (
+  userId: string,
+  targetId: string,
+  targetType: "playlist" | "album" | "movieList" = "movieList",
+) => {
+  const query = `
+    INSERT INTO "Bookmark" ("userId", "targetId", "targetType")
+    VALUES ($1, $2, $3)
+    ON CONFLICT ("userId", "targetId", "targetType") DO NOTHING
+    RETURNING *;
+  `;
+  const result = await pool.query(query, [userId, targetId, targetType]);
+  return result.rows[0];
+};
