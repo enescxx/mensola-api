@@ -66,7 +66,15 @@ export const movieQueries = {
                 (
                     SELECT COUNT(*)::int FROM "Bookmark" b
                     WHERE b."targetId" = ml.id AND b."targetType" = 'movieList'
-                ) AS "savesCount"
+                ) AS "savesCount",
+                EXISTS (
+                    SELECT 1 FROM "Interaction" i
+                    WHERE $2::uuid IS NOT NULL AND i."userId" = $2::uuid AND i."targetId" = ml.id AND i."targetType" = 'movieList' AND i."isLiked" = true
+                ) AS "isLiked",
+                (
+                    SELECT COUNT(*)::int FROM "Interaction" i
+                    WHERE i."targetId" = ml.id AND i."targetType" = 'movieList' AND i."isLiked" = true
+                ) AS "likesCount"
             FROM "MovieList" ml
 
             LEFT JOIN LATERAL (
