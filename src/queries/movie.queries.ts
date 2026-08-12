@@ -58,7 +58,15 @@ export const movieQueries = {
                 ml.*,
                 COALESCE(list_owners.owners, '[]'::json) AS "owners",
                 COALESCE(preview_movies.movies, '[]'::json) AS "previewMovies",
-                user_int.user_interaction AS "currentUserInteraction"
+                user_int.user_interaction AS "currentUserInteraction",
+                EXISTS (
+                    SELECT 1 FROM "Bookmark" b
+                    WHERE $2::uuid IS NOT NULL AND b."userId" = $2::uuid AND b."targetId" = ml.id AND b."targetType" = 'movieList'
+                ) AS "isSaved",
+                (
+                    SELECT COUNT(*)::int FROM "Bookmark" b
+                    WHERE b."targetId" = ml.id AND b."targetType" = 'movieList'
+                ) AS "savesCount"
             FROM "MovieList" ml
 
             LEFT JOIN LATERAL (

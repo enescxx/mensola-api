@@ -295,6 +295,8 @@ type GetListByIdResponse = IMovieList & {
         isFollower?: boolean;
     })[];
     previewMovies: MovieSummary[];
+    isSaved?: boolean;
+    savesCount?: number;
 };
 
 /**
