@@ -1,3 +1,5 @@
+import { UserId } from "@/types/user";
+
 interface IArtist {
     id: string;
     spotifyId: string;
@@ -22,8 +24,9 @@ interface ITrack {
     title: string;
     duration: number;
     image?: string;
-    albumId?: string;
+    albumId?: IAlbum["id"];
     createdAt?: Date | string;
+    artists?: Pick<IArtist, "id" | "name">[];
 }
 
 interface IPlaylist {
@@ -33,29 +36,29 @@ interface IPlaylist {
     image?: string;
     isPrivate: boolean;
     listType?: "custom" | "favorites";
-    creatorId: string;
+    creatorId: UserId;
 }
 
 interface ITrackArtist {
-    trackId: string;
-    artistId: string;
+    trackId: ITrack["id"];
+    artistId: IArtist["id"];
 }
 
 interface IAlbumArtist {
-    albumId: string;
-    artistId: string;
+    albumId: IAlbum["id"];
+    artistId: IArtist["id"];
 }
 
 interface IPlaylistItem {
-    playlistId: string;
-    trackId: string;
-    addedBy: string;
+    playlistId: IPlaylist["id"];
+    trackId: ITrack["id"];
+    addedBy: UserId;
     addedAt: Date | string;
 }
 
 interface IPlaylistOwner {
-    playlistId: string;
-    userId: string;
+    playlistId: IPlaylist["id"];
+    userId: UserId;
 }
 
 export { IArtist, IAlbum, ITrack, IPlaylist, ITrackArtist, IAlbumArtist, IPlaylistItem, IPlaylistOwner };

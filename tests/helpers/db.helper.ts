@@ -126,7 +126,7 @@ export interface ICreateTestInteractionOptions {
   isLiked?: boolean;
   rating?: number | null;
   comment?: string | null;
-  targetType?: "movie" | "movieList";
+  targetType?: "movie" | "movieList" | "track";
 }
 
 export const createTestInteraction = async (
@@ -197,5 +197,53 @@ export const createTestBookmark = async (
     RETURNING *;
   `;
   const result = await pool.query(query, [userId, targetId, targetType]);
+  return result.rows[0];
+};
+
+export const createTestTrack = async (
+  options: { title?: string; duration?: number; spotifyId?: string } = {},
+) => {
+  const {
+    title = "Test Track",
+    duration = 200,
+    spotifyId = `test_spotify_id_${Date.now()}_${Math.random()}`,
+  } = options;
+
+  const query = `
+    INSERT INTO "Track" ("spotifyId", "title", "duration")
+    VALUES ($1, $2, $3)
+    RETURNING *;
+  `;
+  const result = await pool.query(query, [spotifyId, title, duration]);
+  return result.rows[0];
+};
+
+export const createTestArtist = async (
+  options: { name?: string; spotifyId?: string } = {},
+) => {
+  const {
+    name = "Test Artist",
+    spotifyId = `test_artist_spotify_id_${Date.now()}_${Math.random()}`,
+  } = options;
+
+  const query = `
+    INSERT INTO "Artist" ("spotifyId", "name")
+    VALUES ($1, $2)
+    RETURNING *;
+  `;
+  const result = await pool.query(query, [spotifyId, name]);
+  return result.rows[0];
+};
+
+export const createTestTrackArtist = async (
+  trackId: string,
+  artistId: string,
+) => {
+  const query = `
+    INSERT INTO "TrackArtist" ("trackId", "artistId")
+    VALUES ($1, $2)
+    RETURNING *;
+  `;
+  const result = await pool.query(query, [trackId, artistId]);
   return result.rows[0];
 };

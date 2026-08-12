@@ -3,7 +3,8 @@ import express, { Request, Response } from "express";
 import authRoutes from "@/routes/auth";
 import userRoutes from "@/routes/user";
 import movieRoutes from "@/routes/movie";
-import bookmarkRoutes from "@/routes/bookmark.routes";
+import bookmarkRoutes from "@/routes/bookmark";
+import trackRoutes from "@/routes/track";
 
 import { globalErrorHandler } from "@/middlewares/error";
 
@@ -14,6 +15,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/api/tracks", trackRoutes);
 
 app.use(globalErrorHandler);
 
