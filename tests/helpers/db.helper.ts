@@ -247,3 +247,18 @@ export const createTestTrackArtist = async (
   const result = await pool.query(query, [trackId, artistId]);
   return result.rows[0];
 };
+
+export const createTestPlaylist = async (
+  userId: string,
+  options: { title?: string; isPrivate?: boolean; listType?: "custom" | "favorites" } = {},
+) => {
+  const { title = "Test Playlist", isPrivate = false, listType = "custom" } = options;
+
+  const query = `
+    INSERT INTO "Playlist" ("title", "creatorId", "isPrivate", "listType")
+    VALUES ($1, $2, $3, $4)
+    RETURNING *;
+  `;
+  const result = await pool.query(query, [title, userId, isPrivate, listType]);
+  return result.rows[0];
+};
