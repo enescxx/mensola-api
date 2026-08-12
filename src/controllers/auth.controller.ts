@@ -8,7 +8,7 @@ import {
     userLogout,
     sendResetEmail,
     verifyCode,
-    updatePassword
+    updatePassword,
 } from "@/services/auth";
 
 import {
@@ -18,7 +18,7 @@ import {
     LogoutDto,
     SendResetEmailDto,
     VerifyCodeDto,
-    UpdatePasswordDto
+    UpdatePasswordDto,
 } from "@/types/auth";
 import { TypedRequestBody } from "@/types/express";
 
@@ -104,7 +104,7 @@ const resetPassword = async (req: TypedRequestBody<UpdatePasswordDto>, res: Resp
             res,
             200,
             null,
-            "Your password has been successfully updated. Please log in with your new password."
+            "Your password has been successfully updated. Please log in with your new password.",
         );
     } catch (error) {
         next(error);

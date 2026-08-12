@@ -20,6 +20,8 @@ import {
     deleteMovieList,
     getMovieListById,
     getMovieListItems,
+    getMovieListInteractions,
+    createMovieListInteraction,
     addMovieToList,
     removeMovieFromList,
     likeMovieList,
@@ -67,8 +69,10 @@ router.get("/lists/likes", extractUser, validate(moviePaginationQuerySchema), ge
 router.post("/lists/:listId/like", verifyToken, validate(listIdParamSchema), likeMovieList);
 router.delete("/lists/:listId/like", verifyToken, validate(listIdParamSchema), unlikeMovieList);
 
-// List Items Operations
+// List Items & Interaction Operations
 router.get("/lists/:listId/items", extractUser, validate(listIdParamSchema), getMovieListItems);
+router.get("/lists/:listId/interactions", extractUser, validate(listIdParamSchema), getMovieListInteractions);
+router.post("/lists/:listId/interaction", verifyToken, validate(listIdParamSchema), createMovieListInteraction);
 router.post("/lists/:listId/items/:movieId", verifyToken, validate(listAndMovieParamsSchema), addMovieToList);
 router.delete("/lists/:listId/items/:movieId", verifyToken, validate(listAndMovieParamsSchema), removeMovieFromList);
 

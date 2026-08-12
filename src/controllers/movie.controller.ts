@@ -20,6 +20,7 @@ import {
     deleteList,
     getListById,
     getListItems,
+    getListInteractions,
     addItemToList,
     removeItemFromList,
     likeList,
@@ -27,6 +28,7 @@ import {
     likeMovie as likeMovieService,
     unlikeMovie as unlikeMovieService,
     upsertMovieInteraction,
+    UpsertMovieInteractionDto,
 } from "@/services/movie";
 
 // Utilities
@@ -520,6 +522,65 @@ const getMovieListItems = async (
 };
 
 /**
+ * Retrieves all comments/interactions for a specific custom movie list.
+ *
+ * @route   GET /api/movies/lists/:listId/interactions
+ * @access  Public / Optional Auth
+ */
+const getMovieListInteractions = async (
+    req: TypedRequest<{ listId: string }, {}, Partial<PaginationQueries>>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const listId = req.params.listId;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 18;
+
+        const interactions = await getListInteractions({ listId, limit, page });
+        return sendResponse(
+            res,
+            200,
+            { items: interactions, page, limit, hasMore: interactions.length === limit },
+            "Movie list interactions retrieved successfully.",
+        );
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Creates or updates a user interaction (rating, comment, like) for a custom movie list.
+ *
+ * @route   POST /api/movies/lists/:listId/interaction
+ * @access  VerifyToken
+ */
+const createMovieListInteraction = async (
+    req: TypedRequest<{ listId: string }, UpsertMovieInteractionDto>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const listId = req.params.listId;
+        const { rating, comment, isLiked } = req.body;
+
+        const result = await upsertMovieInteraction({
+            userId,
+            movieId: listId,
+            targetType: "movieList",
+            rating,
+            comment,
+            isLiked,
+        });
+
+        return sendResponse(res, 200, result, "Movie list interaction saved successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * Adds a specific movie to a custom movie list for the authenticated user.
  *
  * @route   POST /api/movies/lists/:listId/items
@@ -696,6 +757,8 @@ export {
     deleteMovieList,
     getMovieListById,
     getMovieListItems,
+    getMovieListInteractions,
+    createMovieListInteraction,
     addMovieToList,
     removeMovieFromList,
     likeMovieList,
