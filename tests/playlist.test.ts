@@ -352,4 +352,102 @@ describe("Playlist API", () => {
             expect(response.body.success).toBe(false);
         });
     });
+
+    describe("GET /api/playlists/:playlistId/interactions", () => {
+        let publicPlaylist: IPlaylist;
+
+        beforeEach(async () => {
+            publicPlaylist = await createTestPlaylist(testUserA.id, {
+                title: "Playlist With Comments",
+                isPrivate: false,
+            });
+        });
+
+        it("should return interactions with comments for a playlist", async () => {
+            await createTestInteraction(testUserA.id, publicPlaylist.id, {
+                targetType: "playlist",
+                rating: 8,
+                comment: "Harika playlist!",
+                isLiked: true,
+            });
+
+            const response = await request(app)
+                .get(`/api/playlists/${publicPlaylist.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+
+            const items = response.body.data.items;
+            expect(Array.isArray(items)).toBe(true);
+            expect(items).toHaveLength(1);
+            expect(items[0].comment.content).toBe("Harika playlist!");
+            expect(items[0].rating).toBe("8.0");
+            expect(items[0].isLiked).toBe(true);
+            expect(items[0].user.id).toBe(testUserA.id);
+            expect(items[0].user.username).toBe(testUserA.username);
+            expect(items[0].likeCount).toBe(0);
+            expect(items[0].replyCount).toBe(0);
+        });
+
+        it("should return empty array when playlist has no comment interactions", async () => {
+            // Like without comment should not appear
+            await createTestInteraction(testUserA.id, publicPlaylist.id, {
+                targetType: "playlist",
+                isLiked: true,
+            });
+
+            const response = await request(app).get(`/api/playlists/${publicPlaylist.id}/interactions`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.items).toHaveLength(0);
+        });
+
+        it("should return multiple interactions ordered by comment date descending", async () => {
+            await createTestInteraction(testUserA.id, publicPlaylist.id, {
+                targetType: "playlist",
+                comment: "First comment",
+            });
+            await createTestInteraction(testUserB.id, publicPlaylist.id, {
+                targetType: "playlist",
+                comment: "Second comment",
+            });
+
+            const response = await request(app).get(`/api/playlists/${publicPlaylist.id}/interactions`);
+
+            expect(response.status).toBe(200);
+            const items = response.body.data.items;
+            expect(items).toHaveLength(2);
+            // Most recent comment should be first
+            expect(items[0].comment.content).toBe("Second comment");
+            expect(items[1].comment.content).toBe("First comment");
+        });
+
+        it("should paginate interactions correctly", async () => {
+            await createTestInteraction(testUserA.id, publicPlaylist.id, {
+                targetType: "playlist",
+                comment: "Comment A",
+            });
+            await createTestInteraction(testUserB.id, publicPlaylist.id, {
+                targetType: "playlist",
+                comment: "Comment B",
+            });
+
+            const response = await request(app).get(
+                `/api/playlists/${publicPlaylist.id}/interactions?limit=1&page=1`,
+            );
+
+            expect(response.status).toBe(200);
+            expect(response.body.data.items).toHaveLength(1);
+            expect(response.body.data.hasMore).toBe(true);
+        });
+
+        it("should return 400 for invalid playlist ID format", async () => {
+            const response = await request(app).get("/api/playlists/invalid-uuid/interactions");
+
+            expect(response.status).toBe(400);
+            expect(response.body.success).toBe(false);
+        });
+    });
 });

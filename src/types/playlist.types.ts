@@ -76,6 +76,10 @@ type GetPlaylistDetailsResponse = IPlaylist & {
     likesCount: number;
 };
 
+type GetPlaylistInteractionsDto = PaginationQueries & {
+    playlistId: IPlaylist["id"];
+};
+
 export {
     GetUserPlaylistsDto,
     GetUserPlaylistsResponseItem,
@@ -88,6 +92,7 @@ export {
     GetPlaylistItemsResponse,
     GetPlaylistDetailsDto,
     GetPlaylistDetailsResponse,
+    GetPlaylistInteractionsDto,
 };
 
 

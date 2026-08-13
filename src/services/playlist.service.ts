@@ -12,6 +12,7 @@ import {
     PlaylistItemResponseItem,
     GetPlaylistDetailsDto,
     GetPlaylistDetailsResponse,
+    GetPlaylistInteractionsDto,
 } from "@/types/playlist";
 import { ApiError } from "@/utils/error";
 
@@ -115,4 +116,17 @@ export const getPlaylistDetails = async (dto: GetPlaylistDetailsDto): Promise<Ge
     return playlist;
 };
 
+/**
+ * Retrieves all interactions/comments for a specific playlist.
+ *
+ * @param dto - Data transfer object containing playlistId, page, and limit.
+ * @returns A promise that resolves to a list of interactions with comments.
+ */
+export const getPlaylistInteractions = async (dto: GetPlaylistInteractionsDto) => {
+    const { playlistId, page, limit } = dto;
+    const offset = (page - 1) * limit;
 
+    const result = await pool.query(playlistQueries.items.getInteractions, [playlistId, limit, offset]);
+
+    return result.rows;
+};

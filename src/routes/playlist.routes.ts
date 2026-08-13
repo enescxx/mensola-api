@@ -5,6 +5,7 @@ import {
     getLikedPlaylistsList,
     getPlaylistItemsList,
     getPlaylistById,
+    getPlaylistInteractionsList,
 } from "@/controllers/playlist";
 
 import { extractUser } from "@/middlewares/auth";
@@ -16,6 +17,7 @@ const router = Router();
 
 router.get("/likes", extractUser, validate(playlistPaginationQuerySchema), getLikedPlaylistsList);
 router.get("/:playlistId/items", extractUser, validate(playlistIdParamSchema), getPlaylistItemsList);
+router.get("/:playlistId/interactions", extractUser, validate(playlistIdParamSchema), getPlaylistInteractionsList);
 router.get("/:playlistId", extractUser, validate(playlistIdParamSchema), getPlaylistById);
 router.get("/", extractUser, validate(playlistPaginationQuerySchema), getUserPlaylistsList);
 

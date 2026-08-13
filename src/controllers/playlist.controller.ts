@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 
-import { getUserPlaylists, getLikedPlaylists, getPlaylistItems, getPlaylistDetails } from "@/services/playlist";
+import { getUserPlaylists, getLikedPlaylists, getPlaylistItems, getPlaylistDetails, getPlaylistInteractions } from "@/services/playlist";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetUserPlaylistsDto, GetLikedPlaylistsDto } from "@/types/playlist.types";
@@ -125,6 +125,35 @@ export const getPlaylistById = async (req: TypedRequest<{ playlistId: string }>,
         const playlist = await getPlaylistDetails({ playlistId, currentUserId });
 
         return sendResponse(res, 200, playlist, "Playlist details retrieved successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Retrieves interactions/comments for a specific playlist.
+ *
+ * @route   GET /api/playlists/:playlistId/interactions
+ * @access  Public / Optional Auth
+ */
+export const getPlaylistInteractionsList = async (
+    req: TypedRequest<{ playlistId: string }, {}, Partial<PaginationQueries>>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const playlistId = req.params.playlistId;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 18;
+
+        const interactions = await getPlaylistInteractions({ playlistId, limit, page });
+
+        return sendResponse(
+            res,
+            200,
+            { items: interactions, page, limit, hasMore: interactions.length === limit },
+            "Playlist interactions retrieved successfully.",
+        );
     } catch (error) {
         next(error);
     }
