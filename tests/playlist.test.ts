@@ -3,7 +3,7 @@ import app from "@/app";
 
 import { IUser } from "@/types/user";
 import { createTestUser } from "./helpers/auth.helper";
-import { createTestPlaylist } from "./helpers/db.helper";
+import { createTestPlaylist, createTestInteraction } from "./helpers/db.helper";
 import { IPlaylist } from "@/types/music.types";
 
 describe("Playlist API", () => {
@@ -87,6 +87,49 @@ describe("Playlist API", () => {
             expect(response.body.data.limit).toBe(1);
             // Wait, testUserAToken has 2 playlists. limit=1 should return 1 item.
             expect(response.body.data.totalItems).toBe(1); // the query counts the fetched items (playlists.length)
+        });
+    });
+
+    describe("GET /api/playlists/likes", () => {
+        let testUserAPlaylist1: IPlaylist;
+        let testUserBPublicPlaylist: IPlaylist;
+
+        let testUserBPrivatePlaylist: IPlaylist;
+
+        beforeEach(async () => {
+            testUserAPlaylist1 = await createTestPlaylist(testUserA.id, { title: "User A Playlist 1" });
+            testUserBPublicPlaylist = await createTestPlaylist(testUserB.id, { title: "User B Public Playlist", isPrivate: false });
+            testUserBPrivatePlaylist = await createTestPlaylist(testUserB.id, { title: "User B Private Playlist", isPrivate: true });
+
+            // User A likes B's public playlist
+            await createTestInteraction(testUserA.id, testUserBPublicPlaylist.id, { targetType: "playlist", isLiked: true });
+            
+            // User A likes B's private playlist (but shouldn't see it unless they are creator, which they aren't)
+            await createTestInteraction(testUserA.id, testUserBPrivatePlaylist.id, { targetType: "playlist", isLiked: true });
+        });
+
+        it("should return the public playlists liked by the current user", async () => {
+            const response = await request(app)
+                .get("/api/playlists/likes")
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            
+            // User A liked both, but only one is public
+            expect(response.body.data.items).toHaveLength(1);
+            expect(response.body.data.items[0].title).toBe("User B Public Playlist");
+            expect(response.body.data.items[0].creator.username).toBe(testUserB.username);
+        });
+
+        it("should return public liked playlists of another user", async () => {
+            const response = await request(app)
+                .get(`/api/playlists/likes?userId=${testUserA.id}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.items).toHaveLength(1);
+            expect(response.body.data.items[0].title).toBe("User B Public Playlist");
         });
     });
 });

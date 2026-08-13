@@ -16,3 +16,19 @@ export type GetUserPlaylistsResponseItem = IPlaylist & {
 };
 
 export type GetUserPlaylistsResponse = GetUserPlaylistsResponseItem[];
+
+export type GetLikedPlaylistsDto = PaginationQueries & {
+    userId: UserId;
+    currentUserId?: UserId;
+};
+
+export type GetLikedPlaylistsResponseItem = IPlaylist & {
+    songCount?: number;
+    creator?: {
+        id: UserId;
+        username: string;
+        avatar?: string;
+    };
+};
+
+export type GetLikedPlaylistsResponse = GetLikedPlaylistsResponseItem[];
