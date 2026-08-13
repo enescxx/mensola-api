@@ -104,7 +104,7 @@ export interface ICreateTestInteractionOptions {
     isLiked?: boolean;
     rating?: number | null;
     comment?: string | null;
-    targetType?: "movie" | "movieList" | "track" | "playlist";
+    targetType?: "movie" | "movieList" | "track" | "playlist" | "album";
 }
 
 export const createTestInteraction = async (
@@ -213,5 +213,24 @@ export const createTestPlaylist = async (
     RETURNING *;
   `;
     const result = await pool.query(query, [title, userId, isPrivate, listType]);
+    return result.rows[0];
+};
+
+export const createTestAlbum = async (
+    options: { title?: string; spotifyId?: string; releaseDate?: string; songCount?: number } = {},
+) => {
+    const { 
+        title = "Test Album", 
+        spotifyId = `test_album_spotify_id_${Date.now()}_${Math.random()}`,
+        releaseDate = "2024-01-01",
+        songCount = 10 
+    } = options;
+
+    const query = `
+        INSERT INTO "Album" ("spotifyId", "title", "releaseDate", "songCount")
+        VALUES ($1, $2, $3, $4)
+        RETURNING *;
+    `;
+    const result = await pool.query(query, [spotifyId, title, releaseDate, songCount]);
     return result.rows[0];
 };
