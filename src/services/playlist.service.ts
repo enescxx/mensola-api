@@ -1,13 +1,16 @@
 import pool from "@/config/db";
 import { playlistQueries } from "@/queries/playlist";
-import { 
-    GetUserPlaylistsDto, 
-    GetUserPlaylistsResponse, 
+import {
+    GetUserPlaylistsDto,
+    GetUserPlaylistsResponse,
     GetUserPlaylistsResponseItem,
     GetLikedPlaylistsDto,
     GetLikedPlaylistsResponse,
-    GetLikedPlaylistsResponseItem
-} from "@/types/playlist.types";
+    GetLikedPlaylistsResponseItem,
+    GetPlaylistItemsDto,
+    GetPlaylistItemsResponse,
+    PlaylistItemResponseItem,
+} from "@/types/playlist";
 import { ApiError } from "@/utils/error";
 
 /**
@@ -53,3 +56,37 @@ export const getLikedPlaylists = async (dto: GetLikedPlaylistsDto): Promise<GetL
 
     return result.rows;
 };
+
+/**
+ * Retrieves tracks/items within a specific playlist.
+ *
+ * @param dto - Data transfer object containing playlistId, currentUserId, page, and limit.
+ * @returns A promise that resolves to a list of playlist track items.
+ */
+export const getPlaylistItems = async (dto: GetPlaylistItemsDto): Promise<GetPlaylistItemsResponse> => {
+    const { playlistId, currentUserId = null, page, limit } = dto;
+    const offset = (page - 1) * limit;
+
+    const accessResult = await pool.query<{ id: string; hasAccess: boolean }>(
+        playlistQueries.items.checkAccess,
+        [playlistId, currentUserId],
+    );
+
+    if (accessResult.rows.length === 0) {
+        throw new ApiError("Playlist not found.", 404);
+    }
+
+    if (!accessResult.rows[0].hasAccess) {
+        throw new ApiError("Playlist not found or access denied.", 404);
+    }
+
+    const itemsResult = await pool.query<PlaylistItemResponseItem>(playlistQueries.items.getTracks, [
+        playlistId,
+        currentUserId,
+        limit,
+        offset,
+    ]);
+
+    return itemsResult.rows;
+};
+

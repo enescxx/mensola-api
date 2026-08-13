@@ -1,5 +1,6 @@
-import { IAlbum } from "./music.types";
-import { PaginationQueries, UserId } from "./common";
+import { IAlbum } from "@/types/music";
+import { PaginationQueries } from "@/types/common";
+import { UserId } from "@/types/user";
 
 export type GetLikedAlbumsDto = PaginationQueries & {
     userId: UserId;

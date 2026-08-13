@@ -1,9 +1,10 @@
 import { Response, NextFunction } from "express";
 
-import { getUserPlaylists, getLikedPlaylists } from "@/services/playlist.service";
+import { getUserPlaylists, getLikedPlaylists, getPlaylistItems } from "@/services/playlist.service";
 import { sendResponse } from "@/utils/response";
-import { TypedRequestQuery } from "@/types/express";
+import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetUserPlaylistsDto, GetLikedPlaylistsDto } from "@/types/playlist.types";
+import { PaginationQueries } from "@/types/track";
 import { ApiError } from "@/utils/error";
 
 /**
@@ -73,3 +74,40 @@ export const getLikedPlaylistsList = async (
         next(error);
     }
 };
+
+/**
+ * Retrieves items/tracks for a specific playlist.
+ *
+ * @route   GET /api/playlists/:playlistId/items
+ * @access  Public / Optional Auth
+ */
+export const getPlaylistItemsList = async (
+    req: TypedRequest<{ playlistId: string }, {}, Partial<PaginationQueries>>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const currentUserId = req.user?.id;
+        const playlistId = req.params.playlistId;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 18;
+
+        const items = await getPlaylistItems({ playlistId, currentUserId, limit, page });
+
+        return sendResponse(
+            res,
+            200,
+            {
+                items,
+                page,
+                limit,
+                totalItems: items.length,
+                hasMore: items.length === limit,
+            },
+            "Playlist items retrieved successfully.",
+        );
+    } catch (error) {
+        next(error);
+    }
+};
+

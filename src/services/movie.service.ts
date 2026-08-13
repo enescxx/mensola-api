@@ -50,7 +50,6 @@ import {
     UnlikeMovieDto,
     UnlikeMovieResponse,
 } from "@/types/movie";
-import { IInteraction } from "@/types/interaction";
 
 /**
  * Retrieves a paginated list of favorite movies for a given user.
@@ -390,11 +389,7 @@ export const getListInteractions = async (dto: GetListItemsDto) => {
     const { listId, page, limit } = dto;
     const offset = (page - 1) * limit;
 
-    const result = await pool.query(movieQueries.lists.items.getInteractions, [
-        listId,
-        limit,
-        offset,
-    ]);
+    const result = await pool.query(movieQueries.lists.items.getInteractions, [listId, limit, offset]);
 
     return result.rows;
 };
@@ -526,10 +521,13 @@ export const upsertMovieInteraction = async (dto: UpsertMovieInteractionDto) => 
 
     const ratingVal = typeof rating === "number" && rating > 0 ? rating : null;
 
-    const interactionResult = await pool.query(
-        movieQueries.movies.interaction.upsert,
-        [userId, movieId, ratingVal, isLiked ?? null, targetType || "movie"]
-    );
+    const interactionResult = await pool.query(movieQueries.movies.interaction.upsert, [
+        userId,
+        movieId,
+        ratingVal,
+        isLiked ?? null,
+        targetType || "movie",
+    ]);
 
     const interaction = interactionResult.rows[0];
     let commentData: any = null;
@@ -539,42 +537,38 @@ export const upsertMovieInteraction = async (dto: UpsertMovieInteractionDto) => 
         if (trimmedComment !== "") {
             const existingComment = await pool.query(
                 `SELECT id FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL`,
-                [interaction.id]
+                [interaction.id],
             );
 
             if (existingComment.rows.length > 0) {
                 const commentResult = await pool.query(
                     `UPDATE "Comment" SET "content" = $1 WHERE id = $2 RETURNING id, "userId", "interactionId", "content", "createdAt"`,
-                    [trimmedComment, existingComment.rows[0].id]
+                    [trimmedComment, existingComment.rows[0].id],
                 );
                 commentData = commentResult.rows[0];
             } else {
                 const commentResult = await pool.query(
                     `INSERT INTO "Comment" (id, "userId", "interactionId", "content", "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW()) RETURNING id, "userId", "interactionId", "content", "createdAt"`,
-                    [userId, interaction.id, trimmedComment]
+                    [userId, interaction.id, trimmedComment],
                 );
                 commentData = commentResult.rows[0];
             }
         } else {
-            await pool.query(
-                `DELETE FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL`,
-                [interaction.id]
-            );
+            await pool.query(`DELETE FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL`, [
+                interaction.id,
+            ]);
         }
     } else {
         const existingComment = await pool.query(
             `SELECT id, content, "createdAt" FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL LIMIT 1`,
-            [interaction.id]
+            [interaction.id],
         );
         if (existingComment.rows.length > 0) {
             commentData = existingComment.rows[0];
         }
     }
 
-    await pool.query(
-        movieQueries.movies.interaction.cleanupEmpty,
-        [interaction.id]
-    );
+    await pool.query(movieQueries.movies.interaction.cleanupEmpty, [interaction.id]);
 
     return {
         id: interaction.id,

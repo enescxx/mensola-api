@@ -2,27 +2,24 @@ import { PaginationQueries } from "@/types/track";
 import { UserId } from "@/types/user";
 import { IPlaylist } from "@/types/music";
 
-export type GetUserPlaylistsDto = PaginationQueries & {
+type GetUserPlaylistsDto = PaginationQueries & {
     userId: UserId;
     currentUserId?: UserId;
 };
 
-export type GetUserPlaylistsResponseItem = IPlaylist & {
-    // any additional fields like songCount? The schema has it?
-    // Wait, the initDb says `songCount` is not in the schema, it's just tracks.
-    // wait! initDb for Playlist doesn't have songCount.
+type GetUserPlaylistsResponseItem = IPlaylist & {
     songCount?: number;
     containsTrack?: boolean;
 };
 
-export type GetUserPlaylistsResponse = GetUserPlaylistsResponseItem[];
+type GetUserPlaylistsResponse = GetUserPlaylistsResponseItem[];
 
-export type GetLikedPlaylistsDto = PaginationQueries & {
+type GetLikedPlaylistsDto = PaginationQueries & {
     userId: UserId;
     currentUserId?: UserId;
 };
 
-export type GetLikedPlaylistsResponseItem = IPlaylist & {
+type GetLikedPlaylistsResponseItem = IPlaylist & {
     songCount?: number;
     creator?: {
         id: UserId;
@@ -31,4 +28,38 @@ export type GetLikedPlaylistsResponseItem = IPlaylist & {
     };
 };
 
-export type GetLikedPlaylistsResponse = GetLikedPlaylistsResponseItem[];
+type GetLikedPlaylistsResponse = GetLikedPlaylistsResponseItem[];
+
+type GetPlaylistItemsDto = PaginationQueries & {
+    playlistId: IPlaylist["id"];
+    currentUserId?: UserId;
+};
+
+type PlaylistItemResponseItem = {
+    id: string;
+    spotifyId: string;
+    title: string;
+    duration: number;
+    image?: string;
+    albumId?: string;
+    createdAt?: Date | string;
+    addedAt?: Date | string;
+    addedBy?: UserId;
+    isLiked?: boolean;
+    artists?: { id: string; name: string }[];
+};
+
+type GetPlaylistItemsResponse = PlaylistItemResponseItem[];
+
+export {
+    GetUserPlaylistsDto,
+    GetUserPlaylistsResponseItem,
+    GetUserPlaylistsResponse,
+    GetLikedPlaylistsDto,
+    GetLikedPlaylistsResponseItem,
+    GetLikedPlaylistsResponse,
+    GetPlaylistItemsDto,
+    PlaylistItemResponseItem,
+    GetPlaylistItemsResponse,
+};
+

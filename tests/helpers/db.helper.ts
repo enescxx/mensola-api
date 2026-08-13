@@ -234,3 +234,14 @@ export const createTestAlbum = async (
     const result = await pool.query(query, [spotifyId, title, releaseDate, songCount]);
     return result.rows[0];
 };
+
+export const addTestTrackToPlaylist = async (playlistId: string, trackId: string, addedBy: string) => {
+    const query = `
+        INSERT INTO "PlaylistItem" ("playlistId", "trackId", "addedBy")
+        VALUES ($1, $2, $3)
+        RETURNING *;
+    `;
+    const result = await pool.query(query, [playlistId, trackId, addedBy]);
+    return result.rows[0];
+};
+

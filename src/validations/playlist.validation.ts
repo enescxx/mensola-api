@@ -21,3 +21,29 @@ export const playlistPaginationQuerySchema = z.object({
             .optional(),
     }),
 });
+
+export const playlistIdParamSchema = z.object({
+    params: z.object({
+        playlistId: z
+            .string({ message: "Playlist ID is required and must be a string." })
+            .uuid("Invalid playlist ID format.")
+            .trim(),
+    }),
+    query: z
+        .object({
+            page: z.coerce
+                .number({ message: "Page must be a number." })
+                .int("Page must be an integer.")
+                .min(1, "Page number must be at least 1.")
+                .optional(),
+
+            limit: z.coerce
+                .number({ message: "Limit must be a number." })
+                .int("Limit must be an integer.")
+                .min(1, "Limit must be at least 1.")
+                .max(100, "Limit cannot exceed 100.")
+                .optional(),
+        })
+        .optional(),
+});
+
