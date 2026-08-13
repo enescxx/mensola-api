@@ -10,6 +10,8 @@ import {
     GetPlaylistItemsDto,
     GetPlaylistItemsResponse,
     PlaylistItemResponseItem,
+    GetPlaylistDetailsDto,
+    GetPlaylistDetailsResponse,
 } from "@/types/playlist";
 import { ApiError } from "@/utils/error";
 
@@ -89,4 +91,28 @@ export const getPlaylistItems = async (dto: GetPlaylistItemsDto): Promise<GetPla
 
     return itemsResult.rows;
 };
+
+/**
+ * Retrieves details for a specific playlist.
+ *
+ * @param dto - Data transfer object containing playlistId and optional currentUserId.
+ * @returns A promise that resolves to playlist details.
+ */
+export const getPlaylistDetails = async (dto: GetPlaylistDetailsDto): Promise<GetPlaylistDetailsResponse> => {
+    const { playlistId, currentUserId = null } = dto;
+
+    const result = await pool.query<GetPlaylistDetailsResponse>(playlistQueries.getById, [
+        playlistId,
+        currentUserId,
+    ]);
+
+    const playlist = result.rows[0];
+
+    if (!playlist) {
+        throw new ApiError("Playlist not found or access denied.", 404);
+    }
+
+    return playlist;
+};
+
 

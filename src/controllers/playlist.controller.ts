@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 
-import { getUserPlaylists, getLikedPlaylists, getPlaylistItems } from "@/services/playlist.service";
+import { getUserPlaylists, getLikedPlaylists, getPlaylistItems, getPlaylistDetails } from "@/services/playlist";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetUserPlaylistsDto, GetLikedPlaylistsDto } from "@/types/playlist.types";
@@ -68,7 +68,7 @@ export const getLikedPlaylistsList = async (
             items: playlists,
             page,
             limit,
-            totalItems: playlists.length, 
+            totalItems: playlists.length,
         });
     } catch (error) {
         next(error);
@@ -111,3 +111,21 @@ export const getPlaylistItemsList = async (
     }
 };
 
+/**
+ * Retrieves detailed information for a specific playlist.
+ *
+ * @route   GET /api/playlists/:playlistId
+ * @access  Public / Optional Auth
+ */
+export const getPlaylistById = async (req: TypedRequest<{ playlistId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const currentUserId = req.user?.id;
+        const playlistId = req.params.playlistId;
+
+        const playlist = await getPlaylistDetails({ playlistId, currentUserId });
+
+        return sendResponse(res, 200, playlist, "Playlist details retrieved successfully.");
+    } catch (error) {
+        next(error);
+    }
+};

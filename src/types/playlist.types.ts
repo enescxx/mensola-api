@@ -51,6 +51,31 @@ type PlaylistItemResponseItem = {
 
 type GetPlaylistItemsResponse = PlaylistItemResponseItem[];
 
+type GetPlaylistDetailsDto = {
+    playlistId: IPlaylist["id"];
+    currentUserId?: UserId;
+};
+
+type GetPlaylistDetailsResponse = IPlaylist & {
+    songCount: number;
+    creator: {
+        id: UserId;
+        username: string;
+        fullname?: string;
+        avatar?: string;
+    };
+    owners: {
+        id: UserId;
+        username: string;
+        fullname?: string;
+        avatar?: string;
+    }[];
+    isSaved: boolean;
+    savesCount: number;
+    isLiked: boolean;
+    likesCount: number;
+};
+
 export {
     GetUserPlaylistsDto,
     GetUserPlaylistsResponseItem,
@@ -61,5 +86,8 @@ export {
     GetPlaylistItemsDto,
     PlaylistItemResponseItem,
     GetPlaylistItemsResponse,
+    GetPlaylistDetailsDto,
+    GetPlaylistDetailsResponse,
 };
+
 

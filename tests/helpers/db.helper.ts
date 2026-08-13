@@ -1,6 +1,6 @@
 import pool from "@/config/db";
 import crypto from "crypto";
-import { IMovieList, MovieListType } from "@/types/movie.types";
+import { IMovieList, MovieListType } from "@/types/movie";
 
 /**
  * Creates a mock movie directly in the database for testing.
@@ -219,11 +219,11 @@ export const createTestPlaylist = async (
 export const createTestAlbum = async (
     options: { title?: string; spotifyId?: string; releaseDate?: string; songCount?: number } = {},
 ) => {
-    const { 
-        title = "Test Album", 
+    const {
+        title = "Test Album",
         spotifyId = `test_album_spotify_id_${Date.now()}_${Math.random()}`,
         releaseDate = "2024-01-01",
-        songCount = 10 
+        songCount = 10,
     } = options;
 
     const query = `
@@ -244,4 +244,3 @@ export const addTestTrackToPlaylist = async (playlistId: string, trackId: string
     const result = await pool.query(query, [playlistId, trackId, addedBy]);
     return result.rows[0];
 };
-

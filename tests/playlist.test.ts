@@ -3,7 +3,7 @@ import app from "@/app";
 import crypto from "crypto";
 
 import { IUser } from "@/types/user";
-import { createTestUser } from "@/helpers/auth";
+import { createTestUser } from "./helpers/auth.helper";
 import {
     createTestPlaylist,
     createTestInteraction,
@@ -11,6 +11,7 @@ import {
     createTestArtist,
     createTestTrackArtist,
     addTestTrackToPlaylist,
+    createTestBookmark,
 } from "./helpers/db.helper";
 import { IPlaylist } from "@/types/music";
 
@@ -270,6 +271,82 @@ describe("Playlist API", () => {
 
         it("should return 400 for invalid playlist ID format", async () => {
             const response = await request(app).get("/api/playlists/invalid-uuid/items");
+
+            expect(response.status).toBe(400);
+            expect(response.body.success).toBe(false);
+        });
+    });
+
+    describe("GET /api/playlists/:playlistId", () => {
+        let publicPlaylist: IPlaylist;
+        let privatePlaylist: IPlaylist;
+        let track1: any;
+
+        beforeEach(async () => {
+            publicPlaylist = await createTestPlaylist(testUserA.id, {
+                title: "User A Public Playlist",
+                isPrivate: false,
+            });
+            privatePlaylist = await createTestPlaylist(testUserA.id, {
+                title: "User A Private Playlist",
+                isPrivate: true,
+            });
+
+            track1 = await createTestTrack({ title: "Track 1" });
+            await addTestTrackToPlaylist(publicPlaylist.id, track1.id, testUserA.id);
+
+            // User B likes public playlist and saves/bookmarks it
+            await createTestInteraction(testUserB.id, publicPlaylist.id, { targetType: "playlist", isLiked: true });
+            await createTestBookmark(testUserB.id, publicPlaylist.id, "playlist");
+        });
+
+        it("should return details of a public playlist with user interaction context", async () => {
+            const response = await request(app)
+                .get(`/api/playlists/${publicPlaylist.id}`)
+                .set("Authorization", `Bearer ${testUserBToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.id).toBe(publicPlaylist.id);
+            expect(response.body.data.title).toBe("User A Public Playlist");
+            expect(response.body.data.songCount).toBe(1);
+            expect(response.body.data.creator.id).toBe(testUserA.id);
+            expect(response.body.data.creator.username).toBe(testUserA.username);
+            expect(response.body.data.isLiked).toBe(true);
+            expect(response.body.data.likesCount).toBe(1);
+            expect(response.body.data.isSaved).toBe(true);
+            expect(response.body.data.savesCount).toBe(1);
+        });
+
+        it("should allow creator to view details of their private playlist", async () => {
+            const response = await request(app)
+                .get(`/api/playlists/${privatePlaylist.id}`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.id).toBe(privatePlaylist.id);
+        });
+
+        it("should return 404 when non-owner tries to view details of a private playlist", async () => {
+            const response = await request(app)
+                .get(`/api/playlists/${privatePlaylist.id}`)
+                .set("Authorization", `Bearer ${testUserBToken}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 404 for non-existent playlist ID", async () => {
+            const fakeId = crypto.randomUUID();
+            const response = await request(app).get(`/api/playlists/${fakeId}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 400 for invalid playlist ID format", async () => {
+            const response = await request(app).get("/api/playlists/invalid-uuid");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
