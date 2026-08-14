@@ -74,6 +74,16 @@ type GetPlaylistDetailsResponse = IPlaylist & {
     savesCount: number;
     isLiked: boolean;
     likesCount: number;
+    currentUserInteraction?: {
+        id: string;
+        rating?: number | null;
+        isLiked?: boolean;
+        comment?: {
+            id: string;
+            content: string;
+            date: string;
+        } | null;
+    } | null;
 };
 
 type GetPlaylistInteractionsDto = PaginationQueries & {

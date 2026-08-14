@@ -119,8 +119,24 @@ export const playlistQueries = {
             (
                 SELECT COUNT(*)::int FROM "Interaction" i
                 WHERE i."targetId" = p.id AND i."targetType" = 'playlist' AND i."isLiked" = true
-            ) AS "likesCount"
+            ) AS "likesCount",
+            user_int.user_interaction AS "currentUserInteraction"
         FROM "Playlist" p
+        LEFT JOIN LATERAL (
+            SELECT json_build_object(
+                'id', cu_int.id,
+                'rating', cu_int.rating,
+                'isLiked', cu_int."isLiked",
+                'comment', (
+                    SELECT json_build_object('id', c.id, 'content', c.content, 'date', c."createdAt")
+                    FROM "Comment" c
+                    WHERE c."interactionId" = cu_int.id AND c."parentId" IS NULL
+                    LIMIT 1
+                )
+            ) AS user_interaction
+            FROM "Interaction" cu_int
+            WHERE $2::uuid IS NOT NULL AND cu_int."userId" = $2::uuid AND cu_int."targetId" = p.id AND cu_int."targetType" = 'playlist'
+        ) user_int ON true
         WHERE p.id = $1::uuid
           AND (
               p."isPrivate" = false 
