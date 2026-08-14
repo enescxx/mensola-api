@@ -24,3 +24,18 @@ export const getLikedTracks = async (dto: GetLikedTracksDto): Promise<GetLikedTr
 
     return result.rows;
 };
+
+/**
+ * Retrieves track details by its ID, optionally including the current user's interactions.
+ *
+ * @param trackId - The ID of the track to retrieve.
+ * @param userId - Optional ID of the user requesting the track to include their interactions.
+ * @returns A promise that resolves to the track details.
+ */
+export const getTrackById = async (trackId: string, userId?: string) => {
+    const result = await pool.query(trackQueries.getById, [trackId, userId || null]);
+    if (result.rows.length === 0) {
+        throw new ApiError("Track not found", 404);
+    }
+    return result.rows[0];
+};

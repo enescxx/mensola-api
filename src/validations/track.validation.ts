@@ -21,3 +21,12 @@ export const trackPaginationQuerySchema = z.object({
             .optional(),
     }),
 });
+
+/**
+ * Schema for validating track ID in URL parameters.
+ */
+export const trackParamSchema = z.object({
+    params: z.object({
+        trackId: z.string().uuid("Invalid track ID format. Must be a valid UUID."),
+    }),
+});

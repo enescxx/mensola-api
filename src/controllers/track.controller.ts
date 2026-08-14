@@ -1,8 +1,8 @@
-import { Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 
-import { getLikedTracks } from "@/services/track";
+import { getLikedTracks, getTrackById } from "@/services/track";
 import { sendResponse } from "@/utils/response";
-import { TypedRequestQuery } from "@/types/express";
+import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetLikedTracksDto } from "@/types/track";
 
 /**
@@ -29,6 +29,25 @@ export const getLikedTracksList = async (
             limit,
             totalItems: likedTracks.length,
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Retrieves detailed information about a specific track.
+ *
+ * @route   GET /api/tracks/:trackId
+ * @access  Public / Optional Auth
+ */
+export const getTrackDetails = async (req: TypedRequest<{ trackId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const trackId = req.params.trackId;
+        const userId = req.user?.id;
+
+        const trackDetails = await getTrackById(trackId, userId);
+
+        return sendResponse(res, 200, trackDetails);
     } catch (error) {
         next(error);
     }
