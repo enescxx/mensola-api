@@ -450,4 +450,84 @@ describe("Playlist API", () => {
             expect(response.body.success).toBe(false);
         });
     });
+
+    describe("POST /api/playlists/:playlistId/interactions", () => {
+        let publicPlaylist: IPlaylist;
+
+        beforeEach(async () => {
+            publicPlaylist = await createTestPlaylist(testUserA.id, {
+                title: "Playlist To Interact",
+                isPrivate: false,
+            });
+        });
+
+        it("should create a new interaction (rating, comment, isLiked) for a playlist", async () => {
+            const response = await request(app)
+                .post(`/api/playlists/${publicPlaylist.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: 9,
+                    comment: "Mükemmel liste!",
+                    isLiked: true,
+                });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.playlistId).toBe(publicPlaylist.id);
+            expect(response.body.data.rating).toBe("9.0");
+            expect(response.body.data.isLiked).toBe(true);
+            expect(response.body.data.comment.content).toBe("Mükemmel liste!");
+        });
+
+        it("should update an existing interaction on consecutive request", async () => {
+            await request(app)
+                .post(`/api/playlists/${publicPlaylist.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: 7,
+                    comment: "Eski yorum",
+                    isLiked: false,
+                });
+
+            const updateResponse = await request(app)
+                .post(`/api/playlists/${publicPlaylist.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: 10,
+                    comment: "Güncellenmiş yorum",
+                    isLiked: true,
+                });
+
+            expect(updateResponse.status).toBe(200);
+            expect(updateResponse.body.success).toBe(true);
+            expect(updateResponse.body.data.rating).toBe("10.0");
+            expect(updateResponse.body.data.isLiked).toBe(true);
+            expect(updateResponse.body.data.comment.content).toBe("Güncellenmiş yorum");
+        });
+
+        it("should return 401 when unauthorized", async () => {
+            const response = await request(app)
+                .post(`/api/playlists/${publicPlaylist.id}/interactions`)
+                .send({
+                    comment: "Unauthorized comment",
+                });
+
+            expect(response.status).toBe(401);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 404 for non-existent playlist ID", async () => {
+            const nonExistentId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app)
+                .post(`/api/playlists/${nonExistentId}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    comment: "No playlist test",
+                });
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+    });
 });
+

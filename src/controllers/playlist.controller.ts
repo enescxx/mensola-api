@@ -1,9 +1,9 @@
 import { Response, NextFunction } from "express";
 
-import { getUserPlaylists, getLikedPlaylists, getPlaylistItems, getPlaylistDetails, getPlaylistInteractions } from "@/services/playlist";
+import { getUserPlaylists, getLikedPlaylists, getPlaylistItems, getPlaylistDetails, getPlaylistInteractions, upsertPlaylistInteraction } from "@/services/playlist";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
-import { GetUserPlaylistsDto, GetLikedPlaylistsDto } from "@/types/playlist.types";
+import { GetUserPlaylistsDto, GetLikedPlaylistsDto, UpsertPlaylistInteractionDto } from "@/types/playlist.types";
 import { PaginationQueries } from "@/types/track";
 import { ApiError } from "@/utils/error";
 
@@ -158,3 +158,34 @@ export const getPlaylistInteractionsList = async (
         next(error);
     }
 };
+
+/**
+ * Creates or updates a user interaction (rating, comment, like) for a playlist.
+ *
+ * @route   POST /api/playlists/:playlistId/interactions
+ * @access  VerifyToken
+ */
+export const createPlaylistInteraction = async (
+    req: TypedRequest<{ playlistId: string }, UpsertPlaylistInteractionDto>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const playlistId = req.params.playlistId;
+        const { rating, comment, isLiked } = req.body;
+
+        const result = await upsertPlaylistInteraction({
+            userId,
+            playlistId,
+            rating,
+            comment,
+            isLiked,
+        });
+
+        return sendResponse(res, 200, result, "Playlist interaction saved successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+

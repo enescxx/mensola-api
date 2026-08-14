@@ -186,4 +186,23 @@ export const playlistQueries = {
             LIMIT $3 OFFSET $4;
         `,
     },
+    interaction: {
+        upsert: `
+            INSERT INTO "Interaction" ("userId", "targetId", "targetType", "rating", "isLiked", "updatedAt")
+            VALUES ($1, $2, 'playlist', $3, COALESCE($4, false), NOW())
+            ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE
+            SET "rating" = EXCLUDED."rating",
+                "isLiked" = COALESCE($4, "Interaction"."isLiked"),
+                "updatedAt" = NOW()
+            RETURNING id, "userId", "targetId", "targetType", "rating", "isLiked", "interactedAt", "updatedAt";
+        `,
+        cleanupEmpty: `
+            DELETE FROM "Interaction"
+            WHERE id = $1
+              AND "rating" IS NULL
+              AND ("isLiked" = false OR "isLiked" IS NULL)
+              AND NOT EXISTS (SELECT 1 FROM "Comment" WHERE "interactionId" = $1);
+        `,
+    },
 };
+

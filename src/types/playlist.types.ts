@@ -80,6 +80,14 @@ type GetPlaylistInteractionsDto = PaginationQueries & {
     playlistId: IPlaylist["id"];
 };
 
+type UpsertPlaylistInteractionDto = {
+    userId: UserId;
+    playlistId: IPlaylist["id"];
+    rating?: number | null;
+    comment?: string | null;
+    isLiked?: boolean;
+};
+
 export {
     GetUserPlaylistsDto,
     GetUserPlaylistsResponseItem,
@@ -93,6 +101,8 @@ export {
     GetPlaylistDetailsDto,
     GetPlaylistDetailsResponse,
     GetPlaylistInteractionsDto,
+    UpsertPlaylistInteractionDto,
 };
+
 
 
