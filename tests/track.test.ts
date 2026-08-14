@@ -99,4 +99,116 @@ describe("Track API", () => {
             expect(response.body.data.totalItems).toBe(1);
         });
     });
+
+    describe("GET /api/tracks/:trackId", () => {
+        let testTrack: ITrack;
+
+        beforeEach(async () => {
+            testTrack = await createTestTrack({ title: "Test Details Track" });
+            const artist = await createTestArtist({ name: "Detail Artist" });
+            await createTestTrackArtist(testTrack.id, artist.id);
+
+            // Add some interactions
+            await createTestInteraction(testUserA.id, testTrack.id, { isLiked: true, targetType: "track" });
+        });
+
+        it("should return track details including artist and counts", async () => {
+            const response = await request(app).get(`/api/tracks/${testTrack.id}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.id).toBe(testTrack.id);
+            expect(response.body.data.title).toBe("Test Details Track");
+            expect(response.body.data.artists).toHaveLength(1);
+            expect(response.body.data.artists[0].name).toBe("Detail Artist");
+            expect(response.body.data.likesCount).toBe(1);
+            expect(response.body.data.commentsCount).toBe(0);
+        });
+
+        it("should return current user interactions if token is provided", async () => {
+            const response = await request(app)
+                .get(`/api/tracks/${testTrack.id}`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.isLiked).toBe(true);
+            expect(response.body.data.currentUserInteraction).toBeDefined();
+            expect(response.body.data.currentUserInteraction.isLiked).toBe(true);
+        });
+
+        it("should return 404 if track does not exist", async () => {
+            const fakeId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app).get(`/api/tracks/${fakeId}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+    });
+
+    describe("POST /api/tracks/:trackId/like", () => {
+        let testTrack: ITrack;
+
+        beforeEach(async () => {
+            testTrack = await createTestTrack({ title: "Like Track" });
+        });
+
+        it("should allow a user to like a track", async () => {
+            const response = await request(app)
+                .post(`/api/tracks/${testTrack.id}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.isLiked).toBe(true);
+        });
+
+        it("should return 401 if unauthenticated", async () => {
+            const response = await request(app).post(`/api/tracks/${testTrack.id}/like`);
+            expect(response.status).toBe(401);
+        });
+
+        it("should return 404 if track does not exist", async () => {
+            const fakeId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app)
+                .post(`/api/tracks/${fakeId}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(404);
+        });
+    });
+
+    describe("DELETE /api/tracks/:trackId/like", () => {
+        let testTrack: ITrack;
+
+        beforeEach(async () => {
+            testTrack = await createTestTrack({ title: "Unlike Track" });
+            await createTestInteraction(testUserA.id, testTrack.id, { isLiked: true, targetType: "track" });
+        });
+
+        it("should allow a user to unlike a track", async () => {
+            const response = await request(app)
+                .delete(`/api/tracks/${testTrack.id}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.isLiked).toBe(false);
+        });
+
+        it("should return 401 if unauthenticated", async () => {
+            const response = await request(app).delete(`/api/tracks/${testTrack.id}/like`);
+            expect(response.status).toBe(401);
+        });
+
+        it("should handle unliking a track that isn't liked", async () => {
+            const response = await request(app)
+                .delete(`/api/tracks/${testTrack.id}/like`)
+                .set("Authorization", `Bearer ${testUserBToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.isLiked).toBe(false);
+        });
+    });
 });
