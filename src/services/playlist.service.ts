@@ -14,6 +14,10 @@ import {
     GetPlaylistDetailsResponse,
     GetPlaylistInteractionsDto,
     UpsertPlaylistInteractionDto,
+    LikePlaylistDto,
+    UnlikePlaylistDto,
+    LikePlaylistResponse,
+    UnlikePlaylistResponse,
 } from "@/types/playlist";
 import { ApiError } from "@/utils/error";
 
@@ -205,4 +209,49 @@ export const upsertPlaylistInteraction = async (dto: UpsertPlaylistInteractionDt
         comment: commentData ? { id: commentData.id, content: commentData.content, date: commentData.createdAt } : null,
     };
 };
+
+/**
+ * Likes a playlist for the authenticated user.
+ *
+ * @param dto - Data transfer object containing userId and playlistId.
+ * @returns An object containing playlistId and isLiked status.
+ */
+export const likePlaylist = async (dto: LikePlaylistDto): Promise<LikePlaylistResponse> => {
+    const { userId, playlistId } = dto;
+
+    const accessResult = await pool.query<{ id: string; hasAccess: boolean }>(
+        playlistQueries.items.checkAccess,
+        [playlistId, userId],
+    );
+
+    if (accessResult.rows.length === 0 || !accessResult.rows[0].hasAccess) {
+        throw new ApiError("Playlist not found or access denied.", 404);
+    }
+
+    const result = await pool.query<LikePlaylistResponse>(playlistQueries.likes.add, [userId, playlistId]);
+    return result.rows[0];
+};
+
+/**
+ * Unlikes a playlist for the authenticated user.
+ *
+ * @param dto - Data transfer object containing userId and playlistId.
+ * @returns An object containing playlistId and isLiked status.
+ */
+export const unlikePlaylist = async (dto: UnlikePlaylistDto): Promise<UnlikePlaylistResponse> => {
+    const { userId, playlistId } = dto;
+
+    const accessResult = await pool.query<{ id: string; hasAccess: boolean }>(
+        playlistQueries.items.checkAccess,
+        [playlistId, userId],
+    );
+
+    if (accessResult.rows.length === 0 || !accessResult.rows[0].hasAccess) {
+        throw new ApiError("Playlist not found or access denied.", 404);
+    }
+
+    const result = await pool.query<UnlikePlaylistResponse>(playlistQueries.likes.remove, [userId, playlistId]);
+    return result.rows[0] || { playlistId, isLiked: false };
+};
+
 

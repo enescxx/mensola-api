@@ -47,6 +47,40 @@ export const playlistQueries = {
             ORDER BY i."interactedAt" DESC
             LIMIT $3 OFFSET $4;
         `,
+        add: `
+            INSERT INTO "Interaction" ("userId", "targetId", "targetType", "isLiked", "updatedAt")
+            VALUES ($1, $2, 'playlist', true, NOW())
+            ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE
+            SET "isLiked" = true, "updatedAt" = NOW()
+            RETURNING "targetId" AS "playlistId", "isLiked";
+        `,
+        remove: `
+            WITH target_interaction AS (
+                SELECT i.id, i.rating,
+                       EXISTS (SELECT 1 FROM "Comment" c WHERE c."interactionId" = i.id) AS has_comment
+                FROM "Interaction" i
+                WHERE i."userId" = $1 AND i."targetId" = $2 AND i."targetType" = 'playlist'
+            ),
+            deleted AS (
+                DELETE FROM "Interaction" i
+                USING target_interaction ti
+                WHERE i.id = ti.id
+                  AND ti.rating IS NULL
+                  AND NOT ti.has_comment
+                RETURNING i."targetId" AS "playlistId", false AS "isLiked"
+            ),
+            updated AS (
+                UPDATE "Interaction" i
+                SET "isLiked" = false, "updatedAt" = NOW()
+                FROM target_interaction ti
+                WHERE i.id = ti.id
+                  AND (ti.rating IS NOT NULL OR ti.has_comment)
+                RETURNING i."targetId" AS "playlistId", false AS "isLiked"
+            )
+            SELECT * FROM deleted
+            UNION ALL
+            SELECT * FROM updated;
+        `,
     },
     getById: `
         SELECT 

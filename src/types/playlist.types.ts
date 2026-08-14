@@ -88,6 +88,20 @@ type UpsertPlaylistInteractionDto = {
     isLiked?: boolean;
 };
 
+type LikePlaylistDto = {
+    userId: UserId;
+    playlistId: IPlaylist["id"];
+};
+
+type UnlikePlaylistDto = LikePlaylistDto;
+
+type LikePlaylistResponse = {
+    playlistId: string;
+    isLiked: boolean;
+};
+
+type UnlikePlaylistResponse = LikePlaylistResponse;
+
 export {
     GetUserPlaylistsDto,
     GetUserPlaylistsResponseItem,
@@ -102,7 +116,12 @@ export {
     GetPlaylistDetailsResponse,
     GetPlaylistInteractionsDto,
     UpsertPlaylistInteractionDto,
+    LikePlaylistDto,
+    UnlikePlaylistDto,
+    LikePlaylistResponse,
+    UnlikePlaylistResponse,
 };
+
 
 
 

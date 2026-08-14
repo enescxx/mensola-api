@@ -1,9 +1,24 @@
 import { Response, NextFunction } from "express";
 
-import { getUserPlaylists, getLikedPlaylists, getPlaylistItems, getPlaylistDetails, getPlaylistInteractions, upsertPlaylistInteraction } from "@/services/playlist";
+import {
+    getUserPlaylists,
+    getLikedPlaylists,
+    getPlaylistItems,
+    getPlaylistDetails,
+    getPlaylistInteractions,
+    upsertPlaylistInteraction,
+    likePlaylist as likePlaylistService,
+    unlikePlaylist as unlikePlaylistService,
+} from "@/services/playlist";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
-import { GetUserPlaylistsDto, GetLikedPlaylistsDto, UpsertPlaylistInteractionDto } from "@/types/playlist.types";
+import {
+    GetUserPlaylistsDto,
+    GetLikedPlaylistsDto,
+    UpsertPlaylistInteractionDto,
+    LikePlaylistDto,
+    UnlikePlaylistDto,
+} from "@/types/playlist";
 import { PaginationQueries } from "@/types/track";
 import { ApiError } from "@/utils/error";
 
@@ -189,3 +204,40 @@ export const createPlaylistInteraction = async (
     }
 };
 
+/**
+ * Likes a specific playlist for the authenticated user.
+ *
+ * @route   POST /api/playlists/:playlistId/like
+ * @access  VerifyToken
+ */
+export const likePlaylist = async (req: TypedRequest<{ playlistId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user!.id;
+        const playlistId = req.params.playlistId;
+
+        const result = await likePlaylistService({ userId, playlistId });
+
+        return sendResponse(res, 200, result, "Playlist liked successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Unlikes a specific playlist for the authenticated user.
+ *
+ * @route   DELETE /api/playlists/:playlistId/like
+ * @access  VerifyToken
+ */
+export const unlikePlaylist = async (req: TypedRequest<{ playlistId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user!.id;
+        const playlistId = req.params.playlistId;
+
+        const result = await unlikePlaylistService({ userId, playlistId });
+
+        return sendResponse(res, 200, result, "Playlist unliked successfully.");
+    } catch (error) {
+        next(error);
+    }
+};

@@ -7,6 +7,8 @@ import {
     getPlaylistById,
     getPlaylistInteractionsList,
     createPlaylistInteraction,
+    likePlaylist,
+    unlikePlaylist,
 } from "@/controllers/playlist";
 
 import { extractUser, verifyToken } from "@/middlewares/auth";
@@ -29,6 +31,8 @@ router.post(
     validate(createPlaylistInteractionSchema),
     createPlaylistInteraction,
 );
+router.post("/:playlistId/like", verifyToken, validate(playlistIdParamSchema), likePlaylist);
+router.delete("/:playlistId/like", verifyToken, validate(playlistIdParamSchema), unlikePlaylist);
 router.get("/:playlistId", extractUser, validate(playlistIdParamSchema), getPlaylistById);
 router.get("/", extractUser, validate(playlistPaginationQuerySchema), getUserPlaylistsList);
 

@@ -529,5 +529,112 @@ describe("Playlist API", () => {
             expect(response.body.success).toBe(false);
         });
     });
+
+    describe("POST /api/playlists/:playlistId/like", () => {
+        let publicPlaylist: IPlaylist;
+
+        beforeEach(async () => {
+            publicPlaylist = await createTestPlaylist(testUserA.id, {
+                title: "Playlist To Like",
+                isPrivate: false,
+            });
+        });
+
+        it("should like a playlist successfully", async () => {
+            const response = await request(app)
+                .post(`/api/playlists/${publicPlaylist.id}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.playlistId).toBe(publicPlaylist.id);
+            expect(response.body.data.isLiked).toBe(true);
+        });
+
+        it("should be idempotent when liking an already liked playlist", async () => {
+            await request(app)
+                .post(`/api/playlists/${publicPlaylist.id}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            const secondResponse = await request(app)
+                .post(`/api/playlists/${publicPlaylist.id}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(secondResponse.status).toBe(200);
+            expect(secondResponse.body.success).toBe(true);
+            expect(secondResponse.body.data.isLiked).toBe(true);
+        });
+
+        it("should return 401 when unauthorized", async () => {
+            const response = await request(app).post(`/api/playlists/${publicPlaylist.id}/like`);
+
+            expect(response.status).toBe(401);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 404 for non-existent playlist ID", async () => {
+            const nonExistentId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app)
+                .post(`/api/playlists/${nonExistentId}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+    });
+
+    describe("DELETE /api/playlists/:playlistId/like", () => {
+        let publicPlaylist: IPlaylist;
+
+        beforeEach(async () => {
+            publicPlaylist = await createTestPlaylist(testUserA.id, {
+                title: "Playlist To Unlike",
+                isPrivate: false,
+            });
+        });
+
+        it("should unlike a liked playlist successfully", async () => {
+            await request(app)
+                .post(`/api/playlists/${publicPlaylist.id}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            const response = await request(app)
+                .delete(`/api/playlists/${publicPlaylist.id}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.playlistId).toBe(publicPlaylist.id);
+            expect(response.body.data.isLiked).toBe(false);
+        });
+
+        it("should succeed when unliking a playlist that was not previously liked", async () => {
+            const response = await request(app)
+                .delete(`/api/playlists/${publicPlaylist.id}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.isLiked).toBe(false);
+        });
+
+        it("should return 401 when unauthorized", async () => {
+            const response = await request(app).delete(`/api/playlists/${publicPlaylist.id}/like`);
+
+            expect(response.status).toBe(401);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 404 for non-existent playlist ID", async () => {
+            const nonExistentId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app)
+                .delete(`/api/playlists/${nonExistentId}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+    });
 });
+
 
