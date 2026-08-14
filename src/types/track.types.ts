@@ -40,3 +40,7 @@ export type GetTrackDetailsResponse = ITrack & {
         } | null;
     } | null;
 };
+
+export type GetTrackInteractionsDto = PaginationQueries & {
+    trackId: string;
+};

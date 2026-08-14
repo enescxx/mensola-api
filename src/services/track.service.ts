@@ -1,6 +1,6 @@
 import pool from "@/config/db";
 import { trackQueries } from "@/queries/track";
-import { GetLikedTracksDto, GetLikedTracksResponse, GetLikedTracksResponseItem } from "@/types/track.types";
+import { GetLikedTracksDto, GetLikedTracksResponse, GetLikedTracksResponseItem, GetTrackInteractionsDto } from "@/types/track.types";
 import { ApiError } from "@/utils/error";
 
 /**
@@ -74,4 +74,19 @@ export const unlikeTrack = async (trackId: string, userId: string) => {
 
     const result = await pool.query(trackQueries.likes.remove, [userId, trackId]);
     return result.rows[0] || { trackId, isLiked: false };
+};
+
+/**
+ * Retrieves all interactions/comments for a specific track.
+ *
+ * @param dto - Data transfer object containing trackId, page, and limit.
+ * @returns A promise that resolves to a list of interactions with comments.
+ */
+export const getTrackInteractions = async (dto: GetTrackInteractionsDto) => {
+    const { trackId, page, limit } = dto;
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(trackQueries.items.getInteractions, [trackId, limit, offset]);
+
+    return result.rows;
 };

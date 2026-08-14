@@ -1,5 +1,6 @@
 import request from "supertest";
 import app from "@/app";
+import pool from "@/config/db";
 
 import { IUser } from "@/types/user";
 import { createTestUser } from "./helpers/auth.helper";
@@ -209,6 +210,54 @@ describe("Track API", () => {
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
             expect(response.body.data.isLiked).toBe(false);
+        });
+    });
+
+    describe("GET /api/tracks/:trackId/interactions", () => {
+        let testTrack: ITrack;
+
+        beforeEach(async () => {
+            testTrack = await createTestTrack({ title: "Interactions Track" });
+
+            // User A adds a rating and a comment
+            const intA = await createTestInteraction(testUserA.id, testTrack.id, { rating: 4, targetType: "track" });
+            await pool.query(
+                `INSERT INTO "Comment" (id, "userId", "interactionId", "content", "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW())`,
+                [testUserA.id, intA.id, "Great track!"]
+            );
+
+            // User B adds a comment
+            const intB = await createTestInteraction(testUserB.id, testTrack.id, { isLiked: true, targetType: "track" });
+            await pool.query(
+                `INSERT INTO "Comment" (id, "userId", "interactionId", "content", "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW() - interval '1 hour')`,
+                [testUserB.id, intB.id, "Awesome!"]
+            );
+        });
+
+        it("should return a list of interactions with comments for a track", async () => {
+            const response = await request(app).get(`/api/tracks/${testTrack.id}/interactions`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.items).toHaveLength(2);
+            
+            // Should be ordered by createdAt DESC by default in the query
+            expect(response.body.data.items[0].user.id).toBe(testUserA.id);
+            expect(response.body.data.items[0].comment.content).toBe("Great track!");
+            expect(response.body.data.items[0].rating).toBe(4);
+
+            expect(response.body.data.items[1].user.id).toBe(testUserB.id);
+            expect(response.body.data.items[1].comment.content).toBe("Awesome!");
+            expect(response.body.data.items[1].isLiked).toBe(true);
+        });
+
+        it("should return empty items array for a track with no interactions", async () => {
+            const emptyTrack = await createTestTrack({ title: "Empty Interactions Track" });
+            const response = await request(app).get(`/api/tracks/${emptyTrack.id}/interactions`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.items).toEqual([]);
         });
     });
 });

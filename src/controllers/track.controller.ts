@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 
-import { getLikedTracks, getTrackById, likeTrack, unlikeTrack } from "@/services/track";
+import { getLikedTracks, getTrackById, likeTrack, unlikeTrack, getTrackInteractions } from "@/services/track";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetLikedTracksDto } from "@/types/track";
@@ -86,6 +86,35 @@ export const unlikeTrackHandler = async (req: TypedRequest<{ trackId: string }>,
         const result = await unlikeTrack(trackId, userId);
 
         return sendResponse(res, 200, result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Retrieves all interactions (comments and ratings) for a specific track.
+ *
+ * @route   GET /api/tracks/:trackId/interactions
+ * @access  Public
+ */
+export const getTrackInteractionsList = async (
+    req: TypedRequest<{ trackId: string }, {}, Partial<{ page: string | number; limit: string | number }>>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const trackId = req.params.trackId;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+
+        const interactions = await getTrackInteractions({ trackId, page, limit });
+
+        return sendResponse(res, 200, {
+            items: interactions,
+            page,
+            limit,
+            totalItems: interactions.length, // Or from a separate count query if we implement it later
+        });
     } catch (error) {
         next(error);
     }
