@@ -148,4 +148,22 @@ export const trackQueries = {
             LIMIT $2 OFFSET $3;
         `,
     },
+    interaction: {
+        upsert: `
+            INSERT INTO "Interaction" ("userId", "targetId", "targetType", "rating", "isLiked", "updatedAt")
+            VALUES ($1, $2, 'track', $3, COALESCE($4, false), NOW())
+            ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE
+            SET "rating" = EXCLUDED."rating",
+                "isLiked" = COALESCE($4, "Interaction"."isLiked"),
+                "updatedAt" = NOW()
+            RETURNING id, "userId", "targetId", "targetType", "rating"::float, "isLiked", "interactedAt", "updatedAt";
+        `,
+        cleanupEmpty: `
+            DELETE FROM "Interaction"
+            WHERE id = $1
+              AND "rating" IS NULL
+              AND ("isLiked" = false OR "isLiked" IS NULL)
+              AND NOT EXISTS (SELECT 1 FROM "Comment" WHERE "interactionId" = $1);
+        `,
+    },
 };

@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 
-import { getLikedTracks, getTrackById, likeTrack, unlikeTrack, getTrackInteractions } from "@/services/track";
+import { getLikedTracks, getTrackById, likeTrack, unlikeTrack, getTrackInteractions, upsertTrackInteraction } from "@/services/track";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
-import { GetLikedTracksDto } from "@/types/track";
+import { GetLikedTracksDto, UpsertTrackInteractionDto } from "@/types/track";
 
 /**
  * Retrieves a paginated list of liked tracks for a target user (or current user).
@@ -115,6 +115,36 @@ export const getTrackInteractionsList = async (
             limit,
             totalItems: interactions.length, // Or from a separate count query if we implement it later
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Creates or updates a user interaction (rating, comment, like) for a track.
+ *
+ * @route   POST /api/tracks/:trackId/interactions
+ * @access  VerifyToken
+ */
+export const createTrackInteraction = async (
+    req: TypedRequest<{ trackId: string }, UpsertTrackInteractionDto>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const trackId = req.params.trackId;
+        const { rating, comment, isLiked } = req.body;
+
+        const result = await upsertTrackInteraction({
+            userId,
+            trackId,
+            rating,
+            comment,
+            isLiked,
+        });
+
+        return sendResponse(res, 200, result, "Track interaction saved successfully.");
     } catch (error) {
         next(error);
     }

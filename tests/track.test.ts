@@ -260,4 +260,129 @@ describe("Track API", () => {
             expect(response.body.data.items).toEqual([]);
         });
     });
+
+    describe("POST /api/tracks/:trackId/interactions", () => {
+        let testTrack: ITrack;
+
+        beforeEach(async () => {
+            testTrack = await createTestTrack({ title: "Post Interaction Track" });
+        });
+
+        it("should create a new interaction with rating and comment", async () => {
+            const response = await request(app)
+                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: 5,
+                    comment: "Amazing track!",
+                    isLiked: true,
+                });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.rating).toBe(5);
+            expect(response.body.data.isLiked).toBe(true);
+            expect(response.body.data.comment.content).toBe("Amazing track!");
+        });
+
+        it("should update an existing interaction", async () => {
+            // First create an interaction
+            await request(app)
+                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: 4,
+                    comment: "Good track",
+                });
+
+            // Update the interaction
+            const updateResponse = await request(app)
+                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: 5,
+                    comment: "Changed my mind, amazing track!",
+                    isLiked: true,
+                });
+
+            expect(updateResponse.status).toBe(200);
+            expect(updateResponse.body.success).toBe(true);
+            expect(updateResponse.body.data.rating).toBe(5);
+            expect(updateResponse.body.data.isLiked).toBe(true);
+            expect(updateResponse.body.data.comment.content).toBe("Changed my mind, amazing track!");
+        });
+
+        it("should delete comment when passing empty string", async () => {
+            // First create an interaction with comment
+            await request(app)
+                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: 4,
+                    comment: "Good track",
+                });
+
+            // Update with empty comment
+            const updateResponse = await request(app)
+                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: 4,
+                    comment: "",
+                });
+
+            expect(updateResponse.status).toBe(200);
+            expect(updateResponse.body.success).toBe(true);
+            expect(updateResponse.body.data.rating).toBe(4);
+            expect(updateResponse.body.data.comment).toBeNull();
+        });
+
+        it("should clean up empty interaction when removing all values", async () => {
+            // First create an interaction
+            const createRes = await request(app)
+                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: 4,
+                    comment: "Good track",
+                });
+            
+            const interactionId = createRes.body.data.id;
+
+            // Remove rating and comment
+            const updateResponse = await request(app)
+                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: null,
+                    comment: "",
+                    isLiked: false,
+                });
+
+            expect(updateResponse.status).toBe(200);
+            expect(updateResponse.body.success).toBe(true);
+
+            // Verify it was deleted from db
+            const checkDb = await pool.query(`SELECT id FROM "Interaction" WHERE id = $1`, [interactionId]);
+            expect(checkDb.rows.length).toBe(0);
+        });
+
+        it("should return 401 if unauthenticated", async () => {
+            const response = await request(app)
+                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .send({ rating: 5 });
+            
+            expect(response.status).toBe(401);
+        });
+
+        it("should return 404 if track does not exist", async () => {
+            const fakeId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app)
+                .post(`/api/tracks/${fakeId}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({ rating: 5 });
+            
+            expect(response.status).toBe(404);
+        });
+    });
 });

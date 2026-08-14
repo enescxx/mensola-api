@@ -1,6 +1,6 @@
 import pool from "@/config/db";
 import { trackQueries } from "@/queries/track";
-import { GetLikedTracksDto, GetLikedTracksResponse, GetLikedTracksResponseItem, GetTrackInteractionsDto } from "@/types/track.types";
+import { GetLikedTracksDto, GetLikedTracksResponse, GetLikedTracksResponseItem, GetTrackInteractionsDto, UpsertTrackInteractionDto } from "@/types/track.types";
 import { ApiError } from "@/utils/error";
 
 /**
@@ -89,4 +89,77 @@ export const getTrackInteractions = async (dto: GetTrackInteractionsDto) => {
     const result = await pool.query(trackQueries.items.getInteractions, [trackId, limit, offset]);
 
     return result.rows;
+};
+
+/**
+ * Upserts a user interaction (rating, comment, isLiked) for a track.
+ *
+ * @param dto - Data transfer object containing userId, trackId, rating, comment, isLiked.
+ * @returns A promise that resolves to the saved interaction details.
+ */
+export const upsertTrackInteraction = async (dto: UpsertTrackInteractionDto) => {
+    const { userId, trackId, rating, comment, isLiked } = dto;
+
+    const trackCheck = await pool.query(`SELECT id FROM "Track" WHERE id = $1`, [trackId]);
+    if (trackCheck.rows.length === 0) {
+        throw new ApiError("Track not found.", 404);
+    }
+
+    const ratingVal = typeof rating === "number" && rating > 0 ? rating : null;
+
+    const interactionResult = await pool.query(trackQueries.interaction.upsert, [
+        userId,
+        trackId,
+        ratingVal,
+        isLiked ?? null,
+    ]);
+
+    const interaction = interactionResult.rows[0];
+    let commentData: any = null;
+
+    if (comment !== undefined) {
+        const trimmedComment = comment ? comment.trim() : "";
+        if (trimmedComment !== "") {
+            const existingComment = await pool.query(
+                `SELECT id FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL`,
+                [interaction.id],
+            );
+
+            if (existingComment.rows.length > 0) {
+                const commentResult = await pool.query(
+                    `UPDATE "Comment" SET "content" = $1 WHERE id = $2 RETURNING id, "userId", "interactionId", "content", "createdAt"`,
+                    [trimmedComment, existingComment.rows[0].id],
+                );
+                commentData = commentResult.rows[0];
+            } else {
+                const commentResult = await pool.query(
+                    `INSERT INTO "Comment" (id, "userId", "interactionId", "content", "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW()) RETURNING id, "userId", "interactionId", "content", "createdAt"`,
+                    [userId, interaction.id, trimmedComment],
+                );
+                commentData = commentResult.rows[0];
+            }
+        } else {
+            await pool.query(`DELETE FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL`, [
+                interaction.id,
+            ]);
+        }
+    } else {
+        const existingComment = await pool.query(
+            `SELECT id, content, "createdAt" FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL LIMIT 1`,
+            [interaction.id],
+        );
+        if (existingComment.rows.length > 0) {
+            commentData = existingComment.rows[0];
+        }
+    }
+
+    await pool.query(trackQueries.interaction.cleanupEmpty, [interaction.id]);
+
+    return {
+        id: interaction.id,
+        trackId,
+        rating: interaction.rating,
+        isLiked: interaction.isLiked,
+        comment: commentData ? { id: commentData.id, content: commentData.content, date: commentData.createdAt } : null,
+    };
 };

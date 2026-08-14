@@ -44,3 +44,11 @@ export type GetTrackDetailsResponse = ITrack & {
 export type GetTrackInteractionsDto = PaginationQueries & {
     trackId: string;
 };
+
+export type UpsertTrackInteractionDto = {
+    userId: string;
+    trackId: string;
+    rating?: number;
+    comment?: string;
+    isLiked?: boolean;
+};

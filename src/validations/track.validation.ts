@@ -30,3 +30,22 @@ export const trackParamSchema = z.object({
         trackId: z.string().uuid("Invalid track ID format. Must be a valid UUID."),
     }),
 });
+
+/**
+ * Schema for creating/updating a track interaction.
+ */
+export const createTrackInteractionSchema = z.object({
+    params: z.object({
+        trackId: z.string().uuid("Invalid track ID format. Must be a valid UUID."),
+    }),
+    body: z.object({
+        rating: z
+            .number()
+            .min(1, "Rating must be at least 1")
+            .max(5, "Rating cannot exceed 5")
+            .optional()
+            .nullable(),
+        comment: z.string().max(1000, "Comment cannot exceed 1000 characters").optional().nullable(),
+        isLiked: z.boolean().optional().nullable(),
+    }),
+});
