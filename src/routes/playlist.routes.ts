@@ -9,6 +9,7 @@ import {
     createPlaylistInteraction,
     likePlaylist,
     unlikePlaylist,
+    addTrackToPlaylist,
 } from "@/controllers/playlist";
 
 import { extractUser, verifyToken } from "@/middlewares/auth";
@@ -18,9 +19,12 @@ import {
     playlistPaginationQuerySchema,
     playlistIdParamSchema,
     createPlaylistInteractionSchema,
+    addTrackToPlaylistSchema,
 } from "@/validations/playlist";
 
 const router = Router();
+
+router.post("/:playlistId/items/:trackId", verifyToken, validate(addTrackToPlaylistSchema), addTrackToPlaylist);
 
 router.get("/likes", extractUser, validate(playlistPaginationQuerySchema), getLikedPlaylistsList);
 router.get("/:playlistId/items", extractUser, validate(playlistIdParamSchema), getPlaylistItemsList);

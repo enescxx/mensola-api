@@ -69,3 +69,16 @@ export const createPlaylistInteractionSchema = z.object({
         isLiked: z.boolean().optional(),
     }),
 });
+
+export const addTrackToPlaylistSchema = z.object({
+    params: z.object({
+        playlistId: z
+            .string({ message: "Playlist ID is required and must be a string." })
+            .uuid("Invalid playlist ID format.")
+            .trim(),
+        trackId: z
+            .string({ message: "Track ID is required and must be a string." })
+            .uuid("Invalid track ID format.")
+            .trim(),
+    }),
+});

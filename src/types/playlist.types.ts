@@ -112,6 +112,12 @@ type LikePlaylistResponse = {
 
 type UnlikePlaylistResponse = LikePlaylistResponse;
 
+type AddTrackToPlaylistDto = {
+    playlistId: string;
+    trackId: string;
+    userId: UserId;
+};
+
 export {
     GetUserPlaylistsDto,
     GetUserPlaylistsResponseItem,
@@ -130,8 +136,5 @@ export {
     UnlikePlaylistDto,
     LikePlaylistResponse,
     UnlikePlaylistResponse,
+    AddTrackToPlaylistDto,
 };
-
-
-
-

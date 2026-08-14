@@ -18,6 +18,7 @@ import {
     UnlikePlaylistDto,
     LikePlaylistResponse,
     UnlikePlaylistResponse,
+    AddTrackToPlaylistDto,
 } from "@/types/playlist";
 import { ApiError } from "@/utils/error";
 
@@ -96,6 +97,29 @@ export const getPlaylistItems = async (dto: GetPlaylistItemsDto): Promise<GetPla
     ]);
 
     return itemsResult.rows;
+};
+
+/**
+ * Adds a specific track to a custom playlist.
+ *
+ * @param dto - Data transfer object containing the playlist ID, track ID, and user ID.
+ * @returns The newly created PlaylistItem record representing the added track.
+ * @throws {ApiError} 404 Not Found if the playlist does not exist, the track already exists in the list, or the user does not have permission to modify it.
+ */
+export const addTrackToPlaylist = async (dto: AddTrackToPlaylistDto) => {
+    const { playlistId, trackId, userId } = dto;
+
+    const result = await pool.query(playlistQueries.items.addTrack, [playlistId, trackId, userId]);
+    const addedItem = result.rows[0];
+
+    if (!addedItem) {
+        throw new ApiError(
+            "Playlist not found, track already exists in the playlist, or you don't have permission to modify it.",
+            404,
+        );
+    }
+
+    return addedItem;
 };
 
 /**

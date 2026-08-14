@@ -235,6 +235,25 @@ export const playlistQueries = {
             ORDER BY pli."addedAt" DESC
             LIMIT $3 OFFSET $4;
         `,
+        /**
+         * Inserts a new record into the PlaylistItem table to add a track to a specific playlist.
+         * Returns the newly created row.
+         */
+        addTrack: `
+            INSERT INTO "PlaylistItem" ("playlistId", "trackId", "addedBy")
+            SELECT $1, $2, $3
+            FROM "Playlist" p
+            WHERE p.id = $1 
+            AND (
+                p."creatorId" = $3 
+                OR EXISTS (
+                    SELECT 1 FROM "PlaylistOwner" po 
+                    WHERE po."playlistId" = p.id AND po."userId" = $3
+                )
+            )
+            ON CONFLICT ("playlistId", "trackId") DO NOTHING
+            RETURNING "playlistId", "trackId", "addedBy", "addedAt";
+        `,
     },
     interaction: {
         upsert: `

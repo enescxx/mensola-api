@@ -4,6 +4,7 @@ import {
     getUserPlaylists,
     getLikedPlaylists,
     getPlaylistItems,
+    addTrackToPlaylist as addTrackToPlaylistService,
     getPlaylistDetails,
     getPlaylistInteractions,
     upsertPlaylistInteraction,
@@ -121,6 +122,29 @@ export const getPlaylistItemsList = async (
             },
             "Playlist items retrieved successfully.",
         );
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Adds a specific track to a custom playlist for the authenticated user.
+ *
+ * @route   POST /api/playlists/:playlistId/items/:trackId
+ * @desc    Adds a track to a specific playlist.
+ * @access  VerifyToken (Requires valid Access Token)
+ */
+export const addTrackToPlaylist = async (
+    req: TypedRequest<{ playlistId: string; trackId: string }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const { playlistId, trackId } = req.params;
+        const userId = req.user!.id;
+
+        const addedItem = await addTrackToPlaylistService({ playlistId, trackId, userId });
+        return sendResponse(res, 201, addedItem, "Track has been added to the playlist successfully.");
     } catch (error) {
         next(error);
     }
