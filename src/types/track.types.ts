@@ -39,6 +39,22 @@ export type GetTrackDetailsResponse = ITrack & {
             date: string;
         } | null;
     } | null;
+    interactions: {
+        id: string;
+        user: {
+            id: string;
+            username: string;
+            fullname: string;
+            avatar?: string;
+        };
+        rating: number | null;
+        isLiked: boolean;
+        comment: {
+            id: string;
+            content: string;
+            date: string;
+        };
+    }[];
 };
 
 export type GetTrackInteractionsDto = PaginationQueries & {

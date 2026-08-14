@@ -35,9 +35,49 @@ export const trackQueries = {
                 JOIN "Comment" c ON c."interactionId" = i.id
                 WHERE i."targetId" = t.id AND i."targetType" = 'track' AND c."parentId" IS NULL
             ) AS "commentsCount",
+            COALESCE(interactions_data.interactions, '[]') AS interactions,
             CASE WHEN user_int.user_interaction IS NOT NULL THEN (user_int.user_interaction->>'isLiked')::boolean ELSE false END AS "isLiked",
             user_int.user_interaction AS "currentUserInteraction"
         FROM "Track" t
+        LEFT JOIN LATERAL (
+            SELECT json_agg(
+                json_build_object(
+                    'id', int_data.id,
+                    'user', json_build_object(
+                        'id', int_data.uid,
+                        'username', int_data.username,
+                        'fullname', int_data.fullname,
+                        'avatar', int_data.avatar
+                    ),
+                    'rating', int_data."rating",
+                    'isLiked', COALESCE(int_data."isLiked", false),
+                    'comment', json_build_object(
+                        'id', int_data.cid,
+                        'content', int_data.content,
+                        'date', int_data."createdAt"
+                    )
+                )
+            ) AS interactions
+            FROM (
+                SELECT 
+                    t_int.id, 
+                    t_int."rating", 
+                    t_int."isLiked",
+                    c.id AS cid, 
+                    c.content, 
+                    c."createdAt",
+                    u.id AS uid, 
+                    u.username, 
+                    u.fullname, 
+                    u.avatar
+                FROM "Interaction" t_int
+                JOIN "Comment" c ON c."interactionId" = t_int.id AND c."parentId" IS NULL
+                LEFT JOIN "User" u ON u.id = t_int."userId"
+                WHERE t_int."targetId" = t.id AND t_int."targetType" = 'track'
+                ORDER BY c."createdAt" DESC
+                LIMIT 3
+            ) int_data
+        ) interactions_data ON true
         LEFT JOIN LATERAL (
             SELECT json_build_object(
                 'id', cu_int.id,
