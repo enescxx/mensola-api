@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import { getLikedTracksList, getTrackDetails } from "@/controllers/track";
+import { getLikedTracksList, getTrackDetails, likeTrackHandler, unlikeTrackHandler } from "@/controllers/track";
 
-import { extractUser } from "@/middlewares/auth";
+import { extractUser, verifyToken } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";
 
 import { trackPaginationQuerySchema, trackParamSchema } from "@/validations/track.validation";
@@ -16,6 +16,20 @@ router.get(
     extractUser,
     validate(trackParamSchema),
     getTrackDetails,
+);
+
+router.post(
+    "/:trackId/like",
+    verifyToken,
+    validate(trackParamSchema),
+    likeTrackHandler,
+);
+
+router.delete(
+    "/:trackId/like",
+    verifyToken,
+    validate(trackParamSchema),
+    unlikeTrackHandler,
 );
 
 export default router;

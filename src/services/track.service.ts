@@ -39,3 +39,39 @@ export const getTrackById = async (trackId: string, userId?: string) => {
     }
     return result.rows[0];
 };
+
+/**
+ * Likes a track for the authenticated user.
+ *
+ * @param trackId - The ID of the track to like.
+ * @param userId - The ID of the user.
+ * @returns An object containing trackId and isLiked status.
+ */
+export const likeTrack = async (trackId: string, userId: string) => {
+    // Check if the track exists
+    const trackCheck = await pool.query(`SELECT id FROM "Track" WHERE id = $1`, [trackId]);
+    if (trackCheck.rows.length === 0) {
+        throw new ApiError("Track not found", 404);
+    }
+
+    const result = await pool.query(trackQueries.likes.add, [userId, trackId]);
+    return result.rows[0];
+};
+
+/**
+ * Unlikes a track for the authenticated user.
+ *
+ * @param trackId - The ID of the track to unlike.
+ * @param userId - The ID of the user.
+ * @returns An object containing trackId and isLiked status.
+ */
+export const unlikeTrack = async (trackId: string, userId: string) => {
+    // Check if the track exists
+    const trackCheck = await pool.query(`SELECT id FROM "Track" WHERE id = $1`, [trackId]);
+    if (trackCheck.rows.length === 0) {
+        throw new ApiError("Track not found", 404);
+    }
+
+    const result = await pool.query(trackQueries.likes.remove, [userId, trackId]);
+    return result.rows[0] || { trackId, isLiked: false };
+};

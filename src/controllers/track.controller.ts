@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 
-import { getLikedTracks, getTrackById } from "@/services/track";
+import { getLikedTracks, getTrackById, likeTrack, unlikeTrack } from "@/services/track";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetLikedTracksDto } from "@/types/track";
@@ -48,6 +48,44 @@ export const getTrackDetails = async (req: TypedRequest<{ trackId: string }>, re
         const trackDetails = await getTrackById(trackId, userId);
 
         return sendResponse(res, 200, trackDetails);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Likes a specific track.
+ *
+ * @route   POST /api/tracks/:trackId/like
+ * @access  Private
+ */
+export const likeTrackHandler = async (req: TypedRequest<{ trackId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const trackId = req.params.trackId;
+        const userId = req.user!.id;
+
+        const result = await likeTrack(trackId, userId);
+
+        return sendResponse(res, 200, result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Unlikes a specific track.
+ *
+ * @route   DELETE /api/tracks/:trackId/like
+ * @access  Private
+ */
+export const unlikeTrackHandler = async (req: TypedRequest<{ trackId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const trackId = req.params.trackId;
+        const userId = req.user!.id;
+
+        const result = await unlikeTrack(trackId, userId);
+
+        return sendResponse(res, 200, result);
     } catch (error) {
         next(error);
     }
