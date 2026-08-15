@@ -254,6 +254,25 @@ export const playlistQueries = {
             ON CONFLICT ("playlistId", "trackId") DO NOTHING
             RETURNING "playlistId", "trackId", "addedBy", "addedAt";
         `,
+        /**
+         * Removes a track from a custom playlist, ensuring that only the playlist creator or an owner can perform this action.
+         */
+        removeTrack: `
+            DELETE FROM "PlaylistItem"
+            WHERE "playlistId" = $1 
+              AND "trackId" = $2
+              AND EXISTS (
+                  SELECT 1 FROM "Playlist" p
+                  WHERE p.id = $1 AND (
+                      p."creatorId" = $3 
+                      OR EXISTS (
+                          SELECT 1 FROM "PlaylistOwner" po 
+                          WHERE po."playlistId" = p.id AND po."userId" = $3
+                      )
+                  )
+              )
+            RETURNING *;
+        `,
     },
     interaction: {
         upsert: `

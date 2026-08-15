@@ -709,6 +709,73 @@ describe("Playlist API", () => {
             expect(response.body.success).toBe(false);
         });
     });
+
+    describe("DELETE /api/playlists/:playlistId/items/:trackId", () => {
+        let testPlaylist: IPlaylist;
+        let testTrack: any;
+
+        beforeEach(async () => {
+            testPlaylist = await createTestPlaylist(testUserA.id, {
+                title: "Test Playlist",
+                isPrivate: false,
+            });
+            testTrack = await createTestTrack({ title: "Test Track" });
+
+            // Pre-add track to testPlaylist
+            await addTestTrackToPlaylist(testPlaylist.id, testTrack.id, testUserA.id);
+        });
+
+        it("should remove a track from the playlist successfully", async () => {
+            const response = await request(app)
+                .delete(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+
+            // Verify item is removed
+            const itemsResponse = await request(app)
+                .get(`/api/playlists/${testPlaylist.id}/items`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+            expect(itemsResponse.body.data.items).toHaveLength(0);
+        });
+
+        it("should return 404 if track is not in the playlist", async () => {
+            const newTrack = await createTestTrack({ title: "Other Track" });
+            const response = await request(app)
+                .delete(`/api/playlists/${testPlaylist.id}/items/${newTrack.id}`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 404 if a user tries to remove a track from another user's playlist without permission", async () => {
+            const response = await request(app)
+                .delete(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`)
+                .set("Authorization", `Bearer ${testUserBToken}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 401 when unauthorized", async () => {
+            const response = await request(app)
+                .delete(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`);
+
+            expect(response.status).toBe(401);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 400 for invalid ID format", async () => {
+            const response = await request(app)
+                .delete(`/api/playlists/invalid-id/items/${testTrack.id}`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(400);
+            expect(response.body.success).toBe(false);
+        });
+    });
 });
 
 

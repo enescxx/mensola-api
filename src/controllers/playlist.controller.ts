@@ -5,6 +5,7 @@ import {
     getLikedPlaylists,
     getPlaylistItems,
     addTrackToPlaylist as addTrackToPlaylistService,
+    removeTrackFromPlaylist as removeTrackFromPlaylistService,
     getPlaylistDetails,
     getPlaylistInteractions,
     upsertPlaylistInteraction,
@@ -145,6 +146,29 @@ export const addTrackToPlaylist = async (
 
         const addedItem = await addTrackToPlaylistService({ playlistId, trackId, userId });
         return sendResponse(res, 201, addedItem, "Track has been added to the playlist successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Removes a specific track from a custom playlist for the authenticated user.
+ *
+ * @route   DELETE /api/playlists/:playlistId/items/:trackId
+ * @desc    Removes a track from a specific playlist.
+ * @access  VerifyToken (Requires valid Access Token)
+ */
+export const removeTrackFromPlaylist = async (
+    req: TypedRequest<{ playlistId: string; trackId: string }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const { playlistId, trackId } = req.params;
+        const userId = req.user!.id;
+
+        await removeTrackFromPlaylistService({ playlistId, trackId, userId });
+        return sendResponse(res, 200, null, "Track has been removed from the playlist successfully.");
     } catch (error) {
         next(error);
     }

@@ -10,6 +10,7 @@ import {
     likePlaylist,
     unlikePlaylist,
     addTrackToPlaylist,
+    removeTrackFromPlaylist,
 } from "@/controllers/playlist";
 
 import { extractUser, verifyToken } from "@/middlewares/auth";
@@ -25,6 +26,7 @@ import {
 const router = Router();
 
 router.post("/:playlistId/items/:trackId", verifyToken, validate(addTrackToPlaylistSchema), addTrackToPlaylist);
+router.delete("/:playlistId/items/:trackId", verifyToken, validate(addTrackToPlaylistSchema), removeTrackFromPlaylist);
 
 router.get("/likes", extractUser, validate(playlistPaginationQuerySchema), getLikedPlaylistsList);
 router.get("/:playlistId/items", extractUser, validate(playlistIdParamSchema), getPlaylistItemsList);

@@ -19,6 +19,7 @@ import {
     LikePlaylistResponse,
     UnlikePlaylistResponse,
     AddTrackToPlaylistDto,
+    RemoveTrackFromPlaylistDto,
 } from "@/types/playlist";
 import { ApiError } from "@/utils/error";
 
@@ -120,6 +121,26 @@ export const addTrackToPlaylist = async (dto: AddTrackToPlaylistDto) => {
     }
 
     return addedItem;
+};
+
+/**
+ * Removes a specific track from a custom playlist.
+ *
+ * @param dto - Data transfer object containing the playlist ID, track ID, and user ID.
+ * @returns void
+ * @throws {ApiError} 404 Not Found if the playlist does not exist, the track is not in the list, or the user does not have permission to modify it.
+ */
+export const removeTrackFromPlaylist = async (dto: RemoveTrackFromPlaylistDto): Promise<void> => {
+    const { playlistId, trackId, userId } = dto;
+
+    const result = await pool.query(playlistQueries.items.removeTrack, [playlistId, trackId, userId]);
+
+    if (result.rows.length === 0) {
+        throw new ApiError(
+            "Track not found in the playlist or you don't have permission to modify it.",
+            404,
+        );
+    }
 };
 
 /**

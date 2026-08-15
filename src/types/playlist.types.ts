@@ -118,6 +118,8 @@ type AddTrackToPlaylistDto = {
     userId: UserId;
 };
 
+type RemoveTrackFromPlaylistDto = AddTrackToPlaylistDto;
+
 export {
     GetUserPlaylistsDto,
     GetUserPlaylistsResponseItem,
@@ -137,4 +139,5 @@ export {
     LikePlaylistResponse,
     UnlikePlaylistResponse,
     AddTrackToPlaylistDto,
+    RemoveTrackFromPlaylistDto,
 };
