@@ -1,5 +1,5 @@
 const testPool = require("./tests/testDb").default || require("./tests/testDb");
-const {initDatabase} = require("./src/scripts/initDb");
+const { runMigrations } = require("./src/scripts/migrate");
 
 jest.mock("@/config/db", () => {
     return require("./tests/testDb");
@@ -7,7 +7,7 @@ jest.mock("@/config/db", () => {
 
 beforeAll(async () => {
     await testPool.query("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
-    await initDatabase(testPool);
+    await runMigrations(testPool);
 });
 
 afterAll(async () => {

@@ -4,13 +4,14 @@
     "main": "index.js",
     "scripts": {
         "build": "tsc",
-        "start": "node dist/index.js",
-        "dev": "tsx watch src/index.ts",
+        "start": "npm run migrate && node dist/index.js",
+        "dev": "npm run migrate && tsx watch src/index.ts",
         "test": "jest --detectOpenHandles --runInBand",
         "docker:dev": "docker compose up --build",
         "docker:dev:down": "docker compose down",
         "docker:test": "docker compose -f docker-compose.test.yaml up --build --abort-on-container-exit",
-        "docker:test:down": "docker compose -f docker-compose.test.yaml down -v"
+        "docker:test:down": "docker compose -f docker-compose.test.yaml down -v",
+        "migrate": "tsx src/scripts/migrate.ts"
     },
     "keywords": [],
     "author": "",
