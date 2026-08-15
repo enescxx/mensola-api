@@ -152,4 +152,77 @@ describe("Album API", () => {
             expect(response.body.success).toBe(false);
         });
     });
+
+    describe("POST /api/albums/:albumId/like", () => {
+        let testAlbum: IAlbum;
+
+        beforeEach(async () => {
+            testAlbum = await createTestAlbum({ title: "Album To Like" });
+        });
+
+        it("should like an album successfully", async () => {
+            const response = await request(app)
+                .post(`/api/albums/${testAlbum.id}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.albumId).toBe(testAlbum.id);
+            expect(response.body.data.isLiked).toBe(true);
+        });
+
+        it("should return 401 when unauthorized", async () => {
+            const response = await request(app).post(`/api/albums/${testAlbum.id}/like`);
+
+            expect(response.status).toBe(401);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 404 for non-existent album ID", async () => {
+            const nonExistentId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app)
+                .post(`/api/albums/${nonExistentId}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+    });
+
+    describe("DELETE /api/albums/:albumId/like", () => {
+        let testAlbum: IAlbum;
+
+        beforeEach(async () => {
+            testAlbum = await createTestAlbum({ title: "Album To Unlike" });
+            await createTestInteraction(testUserA.id, testAlbum.id, { targetType: "album", isLiked: true });
+        });
+
+        it("should unlike an album successfully", async () => {
+            const response = await request(app)
+                .delete(`/api/albums/${testAlbum.id}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.albumId).toBe(testAlbum.id);
+            expect(response.body.data.isLiked).toBe(false);
+        });
+
+        it("should return 401 when unauthorized", async () => {
+            const response = await request(app).delete(`/api/albums/${testAlbum.id}/like`);
+
+            expect(response.status).toBe(401);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 404 for non-existent album ID", async () => {
+            const nonExistentId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app)
+                .delete(`/api/albums/${nonExistentId}/like`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+    });
 });

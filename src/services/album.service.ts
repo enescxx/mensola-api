@@ -9,6 +9,10 @@ import {
     GetAlbumTracksDto,
     GetAlbumTracksResponse,
     AlbumTrackResponseItem,
+    LikeAlbumDto,
+    UnlikeAlbumDto,
+    LikeAlbumResponse,
+    UnlikeAlbumResponse,
 } from "@/types/album.types";
 import { ApiError } from "@/utils/error";
 
@@ -77,4 +81,40 @@ export const getAlbumTracks = async (dto: GetAlbumTracksDto): Promise<GetAlbumTr
     ]);
 
     return result.rows;
+};
+
+/**
+ * Likes an album for the authenticated user.
+ *
+ * @param dto - Data transfer object containing userId and albumId.
+ * @returns An object containing albumId and isLiked status.
+ */
+export const likeAlbum = async (dto: LikeAlbumDto): Promise<LikeAlbumResponse> => {
+    const { userId, albumId } = dto;
+
+    const albumExists = await pool.query(albumQueries.tracks.checkExists, [albumId]);
+    if (albumExists.rows.length === 0) {
+        throw new ApiError("Album not found.", 404);
+    }
+
+    const result = await pool.query<LikeAlbumResponse>(albumQueries.likes.add, [userId, albumId]);
+    return result.rows[0];
+};
+
+/**
+ * Unlikes an album for the authenticated user.
+ *
+ * @param dto - Data transfer object containing userId and albumId.
+ * @returns An object containing albumId and isLiked status.
+ */
+export const unlikeAlbum = async (dto: UnlikeAlbumDto): Promise<UnlikeAlbumResponse> => {
+    const { userId, albumId } = dto;
+
+    const albumExists = await pool.query(albumQueries.tracks.checkExists, [albumId]);
+    if (albumExists.rows.length === 0) {
+        throw new ApiError("Album not found.", 404);
+    }
+
+    const result = await pool.query<UnlikeAlbumResponse>(albumQueries.likes.remove, [userId, albumId]);
+    return result.rows[0] || { albumId, isLiked: false };
 };

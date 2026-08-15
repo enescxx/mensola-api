@@ -1,6 +1,12 @@
 import { Response, NextFunction } from "express";
 
-import { getLikedAlbums, getAlbumById, getAlbumTracks } from "@/services/album.service";
+import {
+    getLikedAlbums,
+    getAlbumById,
+    getAlbumTracks,
+    likeAlbum as likeAlbumService,
+    unlikeAlbum as unlikeAlbumService,
+} from "@/services/album.service";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetLikedAlbumsDto } from "@/types/album.types";
@@ -91,6 +97,44 @@ export const getAlbumTracksList = async (
             },
             "Album tracks retrieved successfully.",
         );
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Likes a specific album for the authenticated user.
+ *
+ * @route   POST /api/albums/:albumId/like
+ * @access  VerifyToken
+ */
+export const likeAlbum = async (req: TypedRequest<{ albumId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user!.id;
+        const albumId = req.params.albumId;
+
+        const result = await likeAlbumService({ userId, albumId });
+
+        return sendResponse(res, 200, result, "Album liked successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Unlikes a specific album for the authenticated user.
+ *
+ * @route   DELETE /api/albums/:albumId/like
+ * @access  VerifyToken
+ */
+export const unlikeAlbum = async (req: TypedRequest<{ albumId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user!.id;
+        const albumId = req.params.albumId;
+
+        const result = await unlikeAlbumService({ userId, albumId });
+
+        return sendResponse(res, 200, result, "Album unliked successfully.");
     } catch (error) {
         next(error);
     }

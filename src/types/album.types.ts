@@ -55,3 +55,17 @@ export type AlbumTrackResponseItem = {
 };
 
 export type GetAlbumTracksResponse = AlbumTrackResponseItem[];
+
+export type LikeAlbumDto = {
+    userId: UserId;
+    albumId: string;
+};
+
+export type UnlikeAlbumDto = LikeAlbumDto;
+
+export type LikeAlbumResponse = {
+    albumId: string;
+    isLiked: boolean;
+};
+
+export type UnlikeAlbumResponse = LikeAlbumResponse;
