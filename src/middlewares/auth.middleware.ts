@@ -9,7 +9,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
     const token = authHeader && authHeader.split(" ")[1];
 
     if (!token) {
-        throw new ApiError("Access denied. No token provided.", 401);
+        return next(new ApiError("Access denied. No token provided.", 401));
     }
 
     try {
