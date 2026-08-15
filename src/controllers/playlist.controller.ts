@@ -14,15 +14,9 @@ import {
 } from "@/services/playlist";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
-import {
-    GetUserPlaylistsDto,
-    GetLikedPlaylistsDto,
-    UpsertPlaylistInteractionDto,
-    LikePlaylistDto,
-    UnlikePlaylistDto,
-} from "@/types/playlist";
-import { PaginationQueries } from "@/types/track";
+import { GetUserPlaylistsDto, GetLikedPlaylistsDto, UpsertPlaylistInteractionDto } from "@/types/playlist";
 import { ApiError } from "@/utils/error";
+import { PaginationQueries, PlaylistId, TrackId } from "@/types/common";
 
 /**
  * Retrieves a paginated list of playlists for a target user (or current user).
@@ -37,12 +31,12 @@ export const getUserPlaylistsList = async (
 ) => {
     try {
         const currentUserId = req.user?.id;
-        const userId = (req.query.userId as string) || currentUserId;
+        const userId = req.query.userId || currentUserId;
         if (!userId) {
             throw new ApiError("User ID is required.", 400);
         }
 
-        const trackId = req.query.trackId as string | undefined;
+        const trackId = req.query.trackId;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
 
@@ -72,7 +66,7 @@ export const getLikedPlaylistsList = async (
 ) => {
     try {
         const currentUserId = req.user?.id;
-        const userId = (req.query.userId as string) || currentUserId;
+        const userId = req.query.userId || currentUserId;
         if (!userId) {
             throw new ApiError("User ID is required.", 400);
         }
@@ -100,7 +94,7 @@ export const getLikedPlaylistsList = async (
  * @access  Public / Optional Auth
  */
 export const getPlaylistItemsList = async (
-    req: TypedRequest<{ playlistId: string }, {}, Partial<PaginationQueries>>,
+    req: TypedRequest<{ playlistId: PlaylistId }, {}, Partial<PaginationQueries>>,
     res: Response,
     next: NextFunction,
 ) => {
@@ -137,12 +131,13 @@ export const getPlaylistItemsList = async (
  * @access  VerifyToken (Requires valid Access Token)
  */
 export const addTrackToPlaylist = async (
-    req: TypedRequest<{ playlistId: string; trackId: string }>,
+    req: TypedRequest<{ playlistId: PlaylistId; trackId: TrackId }>,
     res: Response,
     next: NextFunction,
 ) => {
     try {
-        const { playlistId, trackId } = req.params;
+        const playlistId = req.params.playlistId;
+        const trackId = req.params.trackId;
         const userId = req.user!.id;
 
         const addedItem = await addTrackToPlaylistService({ playlistId, trackId, userId });
@@ -160,12 +155,13 @@ export const addTrackToPlaylist = async (
  * @access  VerifyToken (Requires valid Access Token)
  */
 export const removeTrackFromPlaylist = async (
-    req: TypedRequest<{ playlistId: string; trackId: string }>,
+    req: TypedRequest<{ playlistId: PlaylistId; trackId: TrackId }>,
     res: Response,
     next: NextFunction,
 ) => {
     try {
-        const { playlistId, trackId } = req.params;
+        const playlistId = req.params.playlistId;
+        const trackId = req.params.trackId;
         const userId = req.user!.id;
 
         await removeTrackFromPlaylistService({ playlistId, trackId, userId });
@@ -181,7 +177,11 @@ export const removeTrackFromPlaylist = async (
  * @route   GET /api/playlists/:playlistId
  * @access  Public / Optional Auth
  */
-export const getPlaylistById = async (req: TypedRequest<{ playlistId: string }>, res: Response, next: NextFunction) => {
+export const getPlaylistById = async (
+    req: TypedRequest<{ playlistId: PlaylistId }>,
+    res: Response,
+    next: NextFunction,
+) => {
     try {
         const currentUserId = req.user?.id;
         const playlistId = req.params.playlistId;
@@ -201,7 +201,7 @@ export const getPlaylistById = async (req: TypedRequest<{ playlistId: string }>,
  * @access  Public / Optional Auth
  */
 export const getPlaylistInteractionsList = async (
-    req: TypedRequest<{ playlistId: string }, {}, Partial<PaginationQueries>>,
+    req: TypedRequest<{ playlistId: PlaylistId }, {}, Partial<PaginationQueries>>,
     res: Response,
     next: NextFunction,
 ) => {
@@ -230,13 +230,13 @@ export const getPlaylistInteractionsList = async (
  * @access  VerifyToken
  */
 export const createPlaylistInteraction = async (
-    req: TypedRequest<{ playlistId: string }, UpsertPlaylistInteractionDto>,
+    req: TypedRequest<{ playlistId: PlaylistId }, UpsertPlaylistInteractionDto>,
     res: Response,
     next: NextFunction,
 ) => {
     try {
-        const userId = req.user!.id;
         const playlistId = req.params.playlistId;
+        const userId = req.user!.id;
         const { rating, comment, isLiked } = req.body;
 
         const result = await upsertPlaylistInteraction({
@@ -259,10 +259,14 @@ export const createPlaylistInteraction = async (
  * @route   POST /api/playlists/:playlistId/like
  * @access  VerifyToken
  */
-export const likePlaylist = async (req: TypedRequest<{ playlistId: string }>, res: Response, next: NextFunction) => {
+export const likePlaylist = async (
+    req: TypedRequest<{ playlistId: PlaylistId }>,
+    res: Response,
+    next: NextFunction,
+) => {
     try {
-        const userId = req.user!.id;
         const playlistId = req.params.playlistId;
+        const userId = req.user!.id;
 
         const result = await likePlaylistService({ userId, playlistId });
 
@@ -278,10 +282,14 @@ export const likePlaylist = async (req: TypedRequest<{ playlistId: string }>, re
  * @route   DELETE /api/playlists/:playlistId/like
  * @access  VerifyToken
  */
-export const unlikePlaylist = async (req: TypedRequest<{ playlistId: string }>, res: Response, next: NextFunction) => {
+export const unlikePlaylist = async (
+    req: TypedRequest<{ playlistId: PlaylistId }>,
+    res: Response,
+    next: NextFunction,
+) => {
     try {
-        const userId = req.user!.id;
         const playlistId = req.params.playlistId;
+        const userId = req.user!.id;
 
         const result = await unlikePlaylistService({ userId, playlistId });
 

@@ -1,83 +1,54 @@
-import { IAlbum } from "@/types/music";
-import { PaginationQueries } from "@/types/common";
-import { UserId } from "@/types/user";
+import { ArtistSummary, IAlbum } from "@/types/music";
+import { AlbumId, ArtistId, PaginationQueries, SpotifyTrackId, TrackId, UserId } from "@/types/common";
+import { CurrentUserInteraction, InteractionItemResponse } from "./interaction.types";
 
-export type GetLikedAlbumsDto = PaginationQueries & {
-    userId: UserId;
-};
+// ==========================================
+// DTOs & Payloads
+// ==========================================
 
-export type GetLikedAlbumsResponseItem = IAlbum & {
-    isLiked: boolean;
-};
-
-export type GetLikedAlbumsResponse = GetLikedAlbumsResponseItem[];
-
-export type GetAlbumDetailsDto = {
-    albumId: string;
-    currentUserId?: UserId;
-};
-
-export type GetAlbumDetailsResponse = IAlbum & {
-    artists: { id: string; name: string; avatar?: string }[];
-    likesCount: number;
-    commentsCount: number;
-    isLiked: boolean;
-    interactions: {
-        id: string;
-        user: { id: string; username: string; fullname?: string; avatar?: string };
-        rating?: number | null;
-        isLiked?: boolean;
-        comment: { id: string; content: string; date: string };
-    }[];
-    currentUserInteraction?: {
-        id: string;
-        rating?: number | null;
-        isLiked?: boolean;
-        comment?: { id: string; content: string; date: string } | null;
-    } | null;
-};
-
-export type GetAlbumTracksDto = PaginationQueries & {
-    albumId: string;
-    currentUserId?: UserId;
-};
-
-export type AlbumTrackResponseItem = {
-    id: string;
-    spotifyId: string;
-    title: string;
-    duration: number;
-    image?: string;
-    albumId?: string;
-    createdAt?: Date | string;
-    isLiked?: boolean;
-    artists?: { id: string; name: string }[];
-};
-
-export type GetAlbumTracksResponse = AlbumTrackResponseItem[];
-
-export type LikeAlbumDto = {
-    userId: UserId;
-    albumId: string;
-};
-
+export type GetLikedAlbumsDto = PaginationQueries & { userId: UserId };
+export type GetAlbumDetailsDto = { albumId: AlbumId; currentUserId?: UserId };
+export type GetAlbumTracksDto = PaginationQueries & { albumId: AlbumId; currentUserId?: UserId };
+export type LikeAlbumDto = { userId: UserId; albumId: AlbumId };
 export type UnlikeAlbumDto = LikeAlbumDto;
-
-export type LikeAlbumResponse = {
-    albumId: string;
-    isLiked: boolean;
-};
-
-export type UnlikeAlbumResponse = LikeAlbumResponse;
-
-export type GetAlbumInteractionsDto = PaginationQueries & {
-    albumId: string;
-};
+export type GetAlbumInteractionsDto = PaginationQueries & { albumId: AlbumId };
 
 export type UpsertAlbumInteractionDto = {
     userId: UserId;
-    albumId: string;
+    albumId: AlbumId;
     rating?: number | null;
     comment?: string | null;
     isLiked?: boolean;
 };
+
+// ==========================================
+// API Responses
+// ==========================================
+
+export type GetLikedAlbumsResponseItem = IAlbum & { isLiked: boolean };
+export type GetLikedAlbumsResponse = GetLikedAlbumsResponseItem[];
+
+export type GetAlbumDetailsResponse = IAlbum & {
+    artists: { id: ArtistId; name: string; avatar?: string }[];
+    likesCount: number;
+    commentsCount: number;
+    isLiked: boolean;
+    interactions: InteractionItemResponse[];
+    currentUserInteraction?: CurrentUserInteraction;
+};
+
+export type AlbumTrackResponseItem = {
+    id: TrackId;
+    spotifyId: SpotifyTrackId;
+    title: string;
+    duration: number;
+    image?: string;
+    albumId?: AlbumId;
+    createdAt?: Date | string;
+    isLiked?: boolean;
+    artists?: ArtistSummary[];
+};
+
+export type GetAlbumTracksResponse = AlbumTrackResponseItem[];
+export type LikeAlbumResponse = { albumId: AlbumId; isLiked: boolean };
+export type UnlikeAlbumResponse = LikeAlbumResponse;

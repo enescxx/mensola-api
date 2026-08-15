@@ -1,92 +1,30 @@
 import { IUser } from "@/types/user";
 
-/*
-==========================================================================
-                    DATA TRANSFER OBJECTS (DTOs)
-==========================================================================
-*/
+// ==========================================
+// DTOs & Payloads
+// ==========================================
 
-/**
- * Payload required for registering a new user.
- * Picks 'username' and 'email' from IUser and requires a raw 'password'.
- */
-type CreateUserDto = Pick<IUser, "username" | "email"> & { password: string };
+export type CreateUserDto = Pick<IUser, "username" | "email"> & { password: string };
+export type LoginUserDto = Pick<IUser, "email"> & { password: string };
+export type TokenRefreshDto = { refreshToken: string };
+export type LogoutDto = { refreshToken: string };
+export type SendResetEmailDto = Pick<IUser, "email">;
+export type VerifyCodeDto = Pick<IUser, "email"> & { code: string };
+export type UpdatePasswordDto = { ticket: string; newPassword: string };
 
-/**
- * Payload required for user authentication/login.
- */
-type LoginUserDto = Pick<IUser, "email"> & { password: string };
+// ==========================================
+// Auth API Responses
+// ==========================================
 
-/**
- * Payload required to issue a new access token using a refresh token.
- */
-type TokenRefreshDto = { refreshToken: string };
-
-/**
- * Payload required to revoke an active user session.
- */
-type LogoutDto = { refreshToken: string };
-
-/**
- * Payload required to initiate the password reset process via email.
- */
-type SendResetEmailDto = Pick<IUser, "email">;
-
-/**
- * Payload required to verify the 6-digit OTP code sent for password reset.
- */
-type VerifyCodeDto = Pick<IUser, "email"> & { code: string };
-
-/**
- * Payload required to set a new password using a single-use reset ticket.
- */
-type UpdatePasswordDto = { ticket: string; newPassword: string };
-
-/*
-==========================================================================
-                    SERVICE RESPONSE TYPES
-========================================================================== 
-*/
-
-/**
- * Response payload returned after successful user registration.
- */
-interface CreateUserResponse {
+export interface CreateUserResponse {
     user: IUser;
     accessToken: string;
     refreshToken: string;
 }
-
-/**
- * Response payload returned after successful user login.
- */
-interface LoginUserResponse {
+export interface LoginUserResponse {
     user: IUser;
     accessToken: string;
     refreshToken: string;
 }
-
-/**
- * Response payload returned after a successful token refresh operation.
- */
-type TokenRefreshResponse = { accessToken: string };
-
-/**
- * Response payload returned after successful OTP code verification,
- * providing a temporary reset ticket.
- */
-type VerifyCodeResponse = { ticket: string };
-
-export {
-    CreateUserDto,
-    LoginUserDto,
-    TokenRefreshDto,
-    LogoutDto,
-    SendResetEmailDto,
-    VerifyCodeDto,
-    UpdatePasswordDto,
-    CreateUserResponse,
-    LoginUserResponse,
-    TokenRefreshResponse,
-    VerifyCodeResponse
-};
+export type TokenRefreshResponse = { accessToken: string };
+export type VerifyCodeResponse = { ticket: string };

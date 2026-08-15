@@ -12,8 +12,8 @@ import {
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetLikedAlbumsDto, UpsertAlbumInteractionDto } from "@/types/album.types";
-import { PaginationQueries } from "@/types/track";
 import { ApiError } from "@/utils/error";
+import { AlbumId, PaginationQueries } from "@/types/common";
 
 /**
  * Retrieves a paginated list of albums liked by a target user (or current user).
@@ -28,7 +28,7 @@ export const getLikedAlbumsList = async (
 ) => {
     try {
         const currentUserId = req.user?.id;
-        const userId = (req.query.userId as string) || currentUserId;
+        const userId = req.query.userId || currentUserId;
         if (!userId) {
             throw new ApiError("User ID is required.", 400);
         }
@@ -42,7 +42,7 @@ export const getLikedAlbumsList = async (
             items: albums,
             page,
             limit,
-            totalItems: albums.length, 
+            totalItems: albums.length,
         });
     } catch (error) {
         next(error);
@@ -55,7 +55,7 @@ export const getLikedAlbumsList = async (
  * @route   GET /api/albums/:albumId
  * @access  Public / Optional Auth
  */
-export const getAlbumDetails = async (req: TypedRequest<{ albumId: string }>, res: Response, next: NextFunction) => {
+export const getAlbumDetails = async (req: TypedRequest<{ albumId: AlbumId }>, res: Response, next: NextFunction) => {
     try {
         const currentUserId = req.user?.id;
         const albumId = req.params.albumId;
@@ -75,7 +75,7 @@ export const getAlbumDetails = async (req: TypedRequest<{ albumId: string }>, re
  * @access  Public / Optional Auth
  */
 export const getAlbumTracksList = async (
-    req: TypedRequest<{ albumId: string }, {}, Partial<PaginationQueries>>,
+    req: TypedRequest<{ albumId: AlbumId }, {}, Partial<PaginationQueries>>,
     res: Response,
     next: NextFunction,
 ) => {
@@ -110,7 +110,7 @@ export const getAlbumTracksList = async (
  * @route   POST /api/albums/:albumId/like
  * @access  VerifyToken
  */
-export const likeAlbum = async (req: TypedRequest<{ albumId: string }>, res: Response, next: NextFunction) => {
+export const likeAlbum = async (req: TypedRequest<{ albumId: AlbumId }>, res: Response, next: NextFunction) => {
     try {
         const userId = req.user!.id;
         const albumId = req.params.albumId;
@@ -129,7 +129,7 @@ export const likeAlbum = async (req: TypedRequest<{ albumId: string }>, res: Res
  * @route   DELETE /api/albums/:albumId/like
  * @access  VerifyToken
  */
-export const unlikeAlbum = async (req: TypedRequest<{ albumId: string }>, res: Response, next: NextFunction) => {
+export const unlikeAlbum = async (req: TypedRequest<{ albumId: AlbumId }>, res: Response, next: NextFunction) => {
     try {
         const userId = req.user!.id;
         const albumId = req.params.albumId;
@@ -149,7 +149,7 @@ export const unlikeAlbum = async (req: TypedRequest<{ albumId: string }>, res: R
  * @access  Public / Optional Auth
  */
 export const getAlbumInteractionsList = async (
-    req: TypedRequest<{ albumId: string }, {}, Partial<PaginationQueries>>,
+    req: TypedRequest<{ albumId: AlbumId }, {}, Partial<PaginationQueries>>,
     res: Response,
     next: NextFunction,
 ) => {
@@ -178,7 +178,7 @@ export const getAlbumInteractionsList = async (
  * @access  VerifyToken
  */
 export const createAlbumInteraction = async (
-    req: TypedRequest<{ albumId: string }, UpsertAlbumInteractionDto>,
+    req: TypedRequest<{ albumId: AlbumId }, UpsertAlbumInteractionDto>,
     res: Response,
     next: NextFunction,
 ) => {

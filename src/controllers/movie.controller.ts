@@ -52,8 +52,8 @@ import {
     UnlikeMovieListDto,
     LikeMovieDto,
     UnlikeMovieDto,
-    PaginationQueries,
 } from "@/types/movie";
+import { MovieId, MovieListId, PaginationQueries } from "@/types/common";
 
 /* ==========================================================================
    Movie Library Controllers
@@ -71,11 +71,10 @@ const getFavoriteMovies = async (
     next: NextFunction,
 ) => {
     try {
-        const userId = (req.query.userId as string) || req.user?.id;
+        const userId = req.query.userId || req.user?.id;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
 
-        // Service katmanı userId kontrolünü zaten yapıyor
         const favoriteMovies = await getFavorites({ userId, limit, page });
 
         return sendResponse(res, 200, {
@@ -101,7 +100,7 @@ const getWatchlistMovies = async (
     next: NextFunction,
 ) => {
     try {
-        const userId = (req.query.userId as string) || req.user?.id;
+        const userId = req.query.userId || req.user?.id;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
 
@@ -130,7 +129,7 @@ const getWatchedMovies = async (
     next: NextFunction,
 ) => {
     try {
-        const userId = (req.query.userId as string) || req.user?.id;
+        const userId = req.query.userId || req.user?.id;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
 
@@ -159,7 +158,7 @@ const getLikedMoviesList = async (
     next: NextFunction,
 ) => {
     try {
-        const userId = (req.query.userId as string) || req.user?.id;
+        const userId = req.query.userId || req.user?.id;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
 
@@ -189,8 +188,8 @@ const getLikedMoviesList = async (
 const getMovieLists = async (req: TypedRequestQuery<Partial<GetUserListsDto>>, res: Response, next: NextFunction) => {
     try {
         const currentUserId = req.user?.id;
-        const userId = (req.query.userId as string) || currentUserId;
-        const movieId = req.query.movieId as string | undefined;
+        const userId = req.query.userId || req.user?.id;
+        const movieId = req.query.movieId;
 
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 5;
@@ -221,7 +220,7 @@ const getLikedMovieLists = async (
 ) => {
     try {
         const currentUserId = req.user?.id;
-        const userId = (req.query.userId as string) || currentUserId;
+        const userId = req.query.userId || req.user?.id;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 5;
 
@@ -278,7 +277,7 @@ const createMovieList = async (
  * @route   POST /api/movies/:movieId/watched
  * @access  Private (Requires Access Token)
  */
-const markMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
+const markMovieAsWatched = async (req: TypedRequest<{ movieId: MovieId }>, res: Response, next: NextFunction) => {
     try {
         const userId = req.user!.id;
         const movieId = req.params.movieId;
@@ -298,7 +297,7 @@ const markMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res: R
  * @access  Private (Requires Access Token)
  */
 
-const unmarkMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
+const unmarkMovieAsWatched = async (req: TypedRequest<{ movieId: MovieId }>, res: Response, next: NextFunction) => {
     try {
         const userId = req.user!.id;
         const movieId = req.params.movieId;
@@ -324,7 +323,6 @@ const unmarkMovieAsWatched = async (req: TypedRequest<{ movieId: string }>, res:
 const getMovieById = async (req: TypedRequest<GetMovieDto>, res: Response, next: NextFunction) => {
     try {
         const currentUserId = req.user?.id;
-
         const movieId = req.params.movieId;
 
         const movie = await getMovie({ movieId, currentUserId });
@@ -345,7 +343,7 @@ const getMovieById = async (req: TypedRequest<GetMovieDto>, res: Response, next:
  * @desc    Add a movie to the authenticated user's watchlist
  * @access  Private (Requires Access Token)
  */
-const addMovieToWatchlist = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
+const addMovieToWatchlist = async (req: TypedRequest<{ movieId: MovieId }>, res: Response, next: NextFunction) => {
     try {
         const userId = req.user!.id;
         const movieId = req.params.movieId;
@@ -364,7 +362,7 @@ const addMovieToWatchlist = async (req: TypedRequest<{ movieId: string }>, res: 
  * @desc    Completely removes a movie from the user's watchlist.
  * @access  Private (Requires Access Token)
  */
-const removeMovieFromWatchlist = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
+const removeMovieFromWatchlist = async (req: TypedRequest<{ movieId: MovieId }>, res: Response, next: NextFunction) => {
     try {
         const userId = req.user!.id;
         const movieId = req.params.movieId;
@@ -387,7 +385,7 @@ const removeMovieFromWatchlist = async (req: TypedRequest<{ movieId: string }>, 
  * @desc    Add a movie to the authenticated user's favorites list
  * @access  Private (Requires Access Token)
  */
-const addMovieToFavorites = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
+const addMovieToFavorites = async (req: TypedRequest<{ movieId: MovieId }>, res: Response, next: NextFunction) => {
     try {
         const userId = req.user!.id;
         const movieId = req.params.movieId;
@@ -406,7 +404,7 @@ const addMovieToFavorites = async (req: TypedRequest<{ movieId: string }>, res: 
  * @desc    Completely removes a movie from the user's favorites list.
  * @access  Private (Requires Access Token)
  */
-const removeMovieFromFavorites = async (req: TypedRequest<{ movieId: string }>, res: Response, next: NextFunction) => {
+const removeMovieFromFavorites = async (req: TypedRequest<{ movieId: MovieId }>, res: Response, next: NextFunction) => {
     try {
         const userId = req.user!.id;
         const movieId = req.params.movieId;
@@ -430,7 +428,7 @@ const removeMovieFromFavorites = async (req: TypedRequest<{ movieId: string }>, 
  * @access  Private (Requires Access Token)
  */
 const updateMovieList = async (
-    req: TypedRequest<{ listId: string }, Omit<UpdateMovieListDto, "listId" | "userId">>,
+    req: TypedRequest<{ listId: MovieListId }, Omit<UpdateMovieListDto, "listId" | "userId">>,
     res: Response,
     next: NextFunction,
 ) => {
@@ -460,7 +458,7 @@ const updateMovieList = async (
  * @desc    Deletes an existing movie list.
  * @access  Private (Requires Access Token)
  */
-const deleteMovieList = async (req: TypedRequest<{ listId: string }>, res: Response, next: NextFunction) => {
+const deleteMovieList = async (req: TypedRequest<{ listId: MovieListId }>, res: Response, next: NextFunction) => {
     try {
         const userId = req.user!.id;
         const listId = req.params.listId;
@@ -479,7 +477,7 @@ const deleteMovieList = async (req: TypedRequest<{ listId: string }>, res: Respo
  * @desc    Fetches a specific movie list with detailed information.
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
-const getMovieListById = async (req: TypedRequest<{ listId: string }>, res: Response, next: NextFunction) => {
+const getMovieListById = async (req: TypedRequest<{ listId: MovieListId }>, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?.id;
         const listId = req.params.listId;
@@ -499,7 +497,7 @@ const getMovieListById = async (req: TypedRequest<{ listId: string }>, res: Resp
  * @access  Public / Optional Auth (Attaches viewer context if token provided)
  */
 const getMovieListItems = async (
-    req: TypedRequest<{ listId: string }, {}, Partial<PaginationQueries>>,
+    req: TypedRequest<{ listId: MovieListId }, {}, Partial<PaginationQueries>>,
     res: Response,
     next: NextFunction,
 ) => {
@@ -528,7 +526,7 @@ const getMovieListItems = async (
  * @access  Public / Optional Auth
  */
 const getMovieListInteractions = async (
-    req: TypedRequest<{ listId: string }, {}, Partial<PaginationQueries>>,
+    req: TypedRequest<{ listId: MovieListId }, {}, Partial<PaginationQueries>>,
     res: Response,
     next: NextFunction,
 ) => {
@@ -556,7 +554,7 @@ const getMovieListInteractions = async (
  * @access  VerifyToken
  */
 const createMovieListInteraction = async (
-    req: TypedRequest<{ listId: string }, UpsertMovieInteractionDto>,
+    req: TypedRequest<{ listId: MovieListId }, UpsertMovieInteractionDto>,
     res: Response,
     next: NextFunction,
 ) => {
@@ -593,7 +591,8 @@ const addMovieToList = async (
     next: NextFunction,
 ) => {
     try {
-        const { listId, movieId } = req.params;
+        const listId = req.params.listId;
+        const movieId = req.params.movieId;
         const userId = req.user!.id;
 
         const addedItem = await addItemToList({ listId, movieId, userId });
@@ -616,7 +615,8 @@ const removeMovieFromList = async (
     next: NextFunction,
 ) => {
     try {
-        const { listId, movieId } = req.params;
+        const listId = req.params.listId;
+        const movieId = req.params.movieId;
         const userId = req.user!.id;
 
         await removeItemFromList({ listId, movieId, userId });
@@ -636,7 +636,7 @@ const removeMovieFromList = async (
  */
 const likeMovieList = async (req: TypedRequest<LikeMovieListDto>, res: Response, next: NextFunction) => {
     try {
-        const { listId } = req.params;
+        const listId = req.params.listId;
         const userId = req.user!.id;
 
         const likeResult = await likeList({ userId, listId });
@@ -655,7 +655,7 @@ const likeMovieList = async (req: TypedRequest<LikeMovieListDto>, res: Response,
  */
 const unlikeMovieList = async (req: TypedRequest<UnlikeMovieListDto>, res: Response, next: NextFunction) => {
     try {
-        const { listId } = req.params;
+        const listId = req.params.listId;
         const userId = req.user!.id;
 
         const unlikeResult = await unlikeList({ userId, listId });
@@ -675,7 +675,7 @@ const unlikeMovieList = async (req: TypedRequest<UnlikeMovieListDto>, res: Respo
  */
 const likeMovie = async (req: TypedRequest<Omit<LikeMovieDto, "userId">>, res: Response, next: NextFunction) => {
     try {
-        const { movieId } = req.params;
+        const movieId = req.params.movieId;
         const userId = req.user!.id;
 
         const likeResult = await likeMovieService({ userId, movieId });
@@ -694,7 +694,7 @@ const likeMovie = async (req: TypedRequest<Omit<LikeMovieDto, "userId">>, res: R
  */
 const unlikeMovie = async (req: TypedRequest<Omit<UnlikeMovieDto, "userId">>, res: Response, next: NextFunction) => {
     try {
-        const { movieId } = req.params;
+        const movieId = req.params.movieId;
         const userId = req.user!.id;
 
         const unlikeResult = await unlikeMovieService({ userId, movieId });
@@ -711,13 +711,13 @@ const unlikeMovie = async (req: TypedRequest<Omit<UnlikeMovieDto, "userId">>, re
  * @access  Private
  */
 const createMovieInteraction = async (
-    req: TypedRequest<{ movieId: string }, { rating?: number; comment?: string; isLiked?: boolean }>,
+    req: TypedRequest<{ movieId: MovieId }, { rating?: number; comment?: string; isLiked?: boolean }>,
     res: Response,
     next: NextFunction,
 ) => {
     try {
-        const userId = req.user!.id;
         const movieId = req.params.movieId;
+        const userId = req.user!.id;
         const { rating, comment, isLiked } = req.body;
 
         const result = await upsertMovieInteraction({

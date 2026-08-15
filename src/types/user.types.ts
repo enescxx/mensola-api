@@ -1,15 +1,13 @@
 import { IMovie } from "@/types/movie";
 import { ITrack } from "@/types/music";
+import { SessionId, UserId } from "@/types/common";
 
-/*
-==========================================================================
-                    Core User Entities & Primitives
-==========================================================================
-*/
+// ==========================================
+// Core Models
+// ==========================================
 
-/** Core User Domain Model */
-interface IUser {
-    id: string;
+export interface IUser {
+    id: UserId;
     email: string;
     username: string;
     fullname?: string;
@@ -22,26 +20,20 @@ interface IUser {
     updatedAt?: Date | string;
 }
 
-/** Type alias for User ID to maintain a single source of truth */
-type UserId = IUser["id"];
-
-/** User Authentication Session Model */
-interface ISession {
-    id: string;
+export interface ISession {
+    id: SessionId;
     userId: UserId;
     refreshToken: string;
     createdAt?: Date | string;
 }
 
-/** User Follow Relationship Model */
-interface IFollow {
+export interface IFollow {
     followerId: UserId;
     followingId: UserId;
     followedAt?: Date | string;
 }
 
-/** Aggregated User Statistics & Profile Favorites */
-interface IStats {
+export interface IStats {
     movieListCount: number;
     playlistCount: number;
     watchlistMoviesCount: number;
@@ -57,111 +49,42 @@ interface IStats {
     favoriteMovies?: IMovie[];
 }
 
-/*==========================================================================
-                    Profile DTOs & Response Contracts
-==========================================================================
-*/
+// ==========================================
+// DTOs & Payloads
+// ==========================================
 
-/** Input parameters for fetching a user profile */
-type GetUserProfileDto = {
-    targetUserId: UserId;
-    viewerId?: UserId;
-};
-
-/** Full User Profile Response structure including stats and relationship flags */
-type GetUserProfileResponse = IUser &
-    IStats & {
-        mutualFollowers?: Pick<IUser, "id" | "username" | "fullname">[];
-        isFollowingByMe?: boolean;
-    };
-
-/** Input payload for updating customizable user profile fields */
-type ProfileUpdateDto = {
-    userId: UserId;
-    updateData: Partial<Pick<IUser, "fullname" | "bio" | "avatar">>;
-};
-
-/** Response contract after updating profile fields */
-type ProfileUpdateResponse = Pick<IUser, "id" | "username" | "fullname" | "bio" | "avatar">;
-
-/*    
-==========================================================================
-                    Followers & Following DTOs & Responses
-==========================================================================
-*/
-
-/** Input parameters for paginated follower/following list queries */
-type GetFollowersDto = {
+export type GetUserProfileDto = { targetUserId: UserId; viewerId?: UserId };
+export type ProfileUpdateDto = { userId: UserId; updateData: Partial<Pick<IUser, "fullname" | "bio" | "avatar">> };
+export type GetFollowersDto = {
     page: number;
     limit: number;
     targetUserId: UserId;
     viewerId?: UserId;
 };
+export type GetFollowingDto = GetFollowersDto;
+export type FollowDto = { followerId: UserId; followingId: UserId };
+export type UnfollowDto = { followerId: UserId; followingId: UserId };
 
-/** Single item representation in a followers list */
-type GetFollowersResponseItem = Pick<IUser, "id" | "username" | "fullname" | "avatar"> & {
+// ==========================================
+// API Responses
+// ==========================================
+
+export type GetUserProfileResponse = IUser &
+    IStats & {
+        mutualFollowers?: Pick<IUser, "id" | "username" | "fullname">[];
+        isFollowingByMe?: boolean;
+    };
+export type ProfileUpdateResponse = Pick<IUser, "id" | "username" | "fullname" | "bio" | "avatar">;
+export type GetFollowersResponseItem = UserSummary & {
     isFollowing: boolean;
     isFollower: boolean;
 };
+export type GetFollowersResponse = GetFollowersResponseItem[];
+export type GetFollowingResponseItem = GetFollowersResponseItem;
+export type GetFollowingResponse = GetFollowingResponseItem[];
 
-/** Array response for followers query */
-type GetFollowersResponse = GetFollowersResponseItem[];
+// ==========================================
+// Shared Projections (DTO / Response Items)
+// ==========================================
 
-/** Input parameters for fetching following list (Identical to GetFollowersDto) */
-type GetFollowingDto = GetFollowersDto;
-
-/** Single item representation in a following list */
-type GetFollowingResponseItem = GetFollowersResponseItem;
-
-/** Array response for following query */
-type GetFollowingResponse = GetFollowingResponseItem[];
-
-/*
-==========================================================================
-                    Social Action DTOs (Follow / Unfollow)
-==========================================================================
-*/
-
-/** Payload for initiating a follow relationship */
-type FollowDto = {
-    followerId: UserId;
-    followingId: UserId;
-};
-
-/** Payload for removing a follow relationship */
-type UnfollowDto = {
-    followerId: UserId;
-    followingId: UserId;
-};
-
-/*
-==========================================================================
-   Exports
-==========================================================================
-*/
-export {
-    // Entities
-    IUser,
-    UserId,
-    ISession,
-    IFollow,
-    IStats,
-
-    // Profile Contracts
-    GetUserProfileDto,
-    GetUserProfileResponse,
-    ProfileUpdateDto,
-    ProfileUpdateResponse,
-
-    // Relation Contracts
-    GetFollowersDto,
-    GetFollowersResponseItem,
-    GetFollowersResponse,
-    GetFollowingDto,
-    GetFollowingResponseItem,
-    GetFollowingResponse,
-
-    // Action Contracts
-    FollowDto,
-    UnfollowDto
-};
+export type UserSummary = Pick<IUser, "id" | "username" | "fullname" | "avatar">;

@@ -1,9 +1,17 @@
 import { Request, Response, NextFunction } from "express";
 
-import { getLikedTracks, getTrackById, likeTrack, unlikeTrack, getTrackInteractions, upsertTrackInteraction } from "@/services/track";
+import {
+    getLikedTracks,
+    getTrackById,
+    likeTrack,
+    unlikeTrack,
+    getTrackInteractions,
+    upsertTrackInteraction,
+} from "@/services/track";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetLikedTracksDto, UpsertTrackInteractionDto } from "@/types/track";
+import { TrackId } from "@/types/common";
 
 /**
  * Retrieves a paginated list of liked tracks for a target user (or current user).
@@ -17,7 +25,7 @@ export const getLikedTracksList = async (
     next: NextFunction,
 ) => {
     try {
-        const userId = (req.query.userId as string) || req.user?.id;
+        const userId = req.query.userId || req.user?.id;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
 
@@ -40,7 +48,7 @@ export const getLikedTracksList = async (
  * @route   GET /api/tracks/:trackId
  * @access  Public / Optional Auth
  */
-export const getTrackDetails = async (req: TypedRequest<{ trackId: string }>, res: Response, next: NextFunction) => {
+export const getTrackDetails = async (req: TypedRequest<{ trackId: TrackId }>, res: Response, next: NextFunction) => {
     try {
         const trackId = req.params.trackId;
         const userId = req.user?.id;
@@ -59,7 +67,7 @@ export const getTrackDetails = async (req: TypedRequest<{ trackId: string }>, re
  * @route   POST /api/tracks/:trackId/like
  * @access  Private
  */
-export const likeTrackHandler = async (req: TypedRequest<{ trackId: string }>, res: Response, next: NextFunction) => {
+export const likeTrackHandler = async (req: TypedRequest<{ trackId: TrackId }>, res: Response, next: NextFunction) => {
     try {
         const trackId = req.params.trackId;
         const userId = req.user!.id;
@@ -78,7 +86,11 @@ export const likeTrackHandler = async (req: TypedRequest<{ trackId: string }>, r
  * @route   DELETE /api/tracks/:trackId/like
  * @access  Private
  */
-export const unlikeTrackHandler = async (req: TypedRequest<{ trackId: string }>, res: Response, next: NextFunction) => {
+export const unlikeTrackHandler = async (
+    req: TypedRequest<{ trackId: TrackId }>,
+    res: Response,
+    next: NextFunction,
+) => {
     try {
         const trackId = req.params.trackId;
         const userId = req.user!.id;
@@ -98,7 +110,7 @@ export const unlikeTrackHandler = async (req: TypedRequest<{ trackId: string }>,
  * @access  Public
  */
 export const getTrackInteractionsList = async (
-    req: TypedRequest<{ trackId: string }, {}, Partial<{ page: string | number; limit: string | number }>>,
+    req: TypedRequest<{ trackId: TrackId }, {}, Partial<{ page: string | number; limit: string | number }>>,
     res: Response,
     next: NextFunction,
 ) => {
@@ -127,7 +139,7 @@ export const getTrackInteractionsList = async (
  * @access  VerifyToken
  */
 export const createTrackInteraction = async (
-    req: TypedRequest<{ trackId: string }, UpsertTrackInteractionDto>,
+    req: TypedRequest<{ trackId: TrackId }, UpsertTrackInteractionDto>,
     res: Response,
     next: NextFunction,
 ) => {

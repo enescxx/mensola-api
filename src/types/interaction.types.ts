@@ -1,26 +1,47 @@
-interface IInteraction {
-  id: string;
-  userId: string;
-  targetId: string;
-  targetType: "movie" | "track" | "playlist" | "album" | "movieList";
-  isLiked: boolean;
-  rating?: number;
-  interactedAt?: Date | string;
-  updatedAt?: Date | string;
+import { AlbumId, CommentId, InteractionId, MovieId, MovieListId, PlaylistId, TrackId, UserId } from "@/types/common";
+import { UserSummary } from "@/types/user";
+
+// ==========================================
+// Core Entities & Action Models
+// ==========================================
+
+export interface IInteraction {
+    id: InteractionId;
+    userId: UserId;
+    targetId: MovieId | TrackId | PlaylistId | AlbumId | MovieListId;
+    targetType: "movie" | "track" | "playlist" | "album" | "movieList";
+    isLiked: boolean;
+    rating?: number;
+    interactedAt?: Date | string;
+    updatedAt?: Date | string;
+}
+export interface IComment {
+    id: CommentId;
+    userId: UserId;
+    interactionId: InteractionId;
+    parentId?: CommentId;
+    content: string;
+    createdAt?: Date | string;
+}
+export interface ICommentLike {
+    userId: UserId;
+    commentId: CommentId;
 }
 
-interface IComment {
-  id: string;
-  userId: string;
-  interactionId: string;
-  parentId?: string;
-  content: string;
-  createdAt?: Date | string;
-}
+// ==========================================
+// Shared Projections (DTO / Response Items)
+// ==========================================
 
-interface ICommentLike {
-  userId: string;
-  commentId: string;
-}
-
-export { IInteraction, IComment, ICommentLike };
+export type InteractionCommentItem = Pick<IComment, "id" | "content"> & {
+    date: IComment["createdAt"];
+};
+export type CurrentUserInteraction =
+    | (Pick<IInteraction, "id" | "rating"> & {
+          isLiked?: boolean;
+          comment?: InteractionCommentItem | null;
+      })
+    | null;
+export type InteractionItemResponse = Pick<IInteraction, "id" | "rating" | "isLiked"> & {
+    user: UserSummary;
+    comment: InteractionCommentItem;
+};

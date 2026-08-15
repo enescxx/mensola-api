@@ -1,13 +1,10 @@
-import { IUser, UserId } from "@/types/user";
+import { UserId } from "@/types/common";
 
 declare global {
     namespace Express {
         interface Request {
-            user?: {
-                id: UserId;
-                email?: string;
-                username?: string;
-            };
+            /** Authenticated user payload. Null when accessed via public/extractUser fallback */
+            user?: { id: UserId } | null;
         }
     }
 }

@@ -7,6 +7,7 @@ import { ApiError } from "@/utils/error";
 
 import { TypedRequest, TypedRequestBody, TypedRequestQuery } from "@/types/express";
 import { ProfileUpdateDto } from "@/types/user";
+import { UserId } from "@/types/common";
 
 /**
  * Query parameters contract for paginated list requests
@@ -14,7 +15,7 @@ import { ProfileUpdateDto } from "@/types/user";
 type PaginationQuery = {
     page?: string;
     limit?: string;
-    userId?: string;
+    userId?: UserId;
 };
 
 /**
@@ -34,7 +35,7 @@ const getMe = async (req: Request, res: Response, next: NextFunction) => {
 /**
  * Fetches a target user's profile by URL parameter ID.
  */
-const getUserById = async (req: TypedRequest<{ userId: string }>, res: Response, next: NextFunction) => {
+const getUserById = async (req: TypedRequest<{ userId: UserId }>, res: Response, next: NextFunction) => {
     try {
         const targetUserId = req.params.userId;
         const viewerId = req.user?.id;
@@ -53,13 +54,13 @@ const getUserById = async (req: TypedRequest<{ userId: string }>, res: Response,
 const updateProfile = async (
     req: TypedRequestBody<ProfileUpdateDto["updateData"]>,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
     try {
         const userId = req.user!.id;
         const updatedFields = await profileUpdate({
             userId,
-            updateData: req.body
+            updateData: req.body,
         });
 
         return sendResponse(res, 200, { user: updatedFields }, "Profile updated successfully.");
@@ -73,7 +74,7 @@ const updateProfile = async (
  */
 const getUserFollowers = async (req: TypedRequestQuery<PaginationQuery>, res: Response, next: NextFunction) => {
     try {
-        const targetUserId = req.query.userId || req.user?.id;
+        const targetUserId: UserId = (req.query.userId || req.user?.id) as UserId;
         if (!targetUserId) {
             throw new ApiError("Target user ID is required.", 400);
         }
@@ -85,14 +86,14 @@ const getUserFollowers = async (req: TypedRequestQuery<PaginationQuery>, res: Re
             page,
             limit,
             targetUserId,
-            viewerId
+            viewerId,
         });
 
         return sendResponse(res, 200, {
             items: followers,
             page,
             limit,
-            hasMore: followers.length === limit
+            hasMore: followers.length === limit,
         });
     } catch (error) {
         next(error);
@@ -117,14 +118,14 @@ const getUserFollowing = async (req: TypedRequestQuery<PaginationQuery>, res: Re
             page,
             limit,
             targetUserId,
-            viewerId
+            viewerId,
         });
 
         return sendResponse(res, 200, {
             items: following,
             page,
             limit,
-            hasMore: following.length === limit
+            hasMore: following.length === limit,
         });
     } catch (error) {
         next(error);
@@ -134,7 +135,7 @@ const getUserFollowing = async (req: TypedRequestQuery<PaginationQuery>, res: Re
 /**
  * Creates a follow relationship with the target user.
  */
-const followUser = async (req: TypedRequest<{ userId: string }>, res: Response, next: NextFunction) => {
+const followUser = async (req: TypedRequest<{ userId: UserId }>, res: Response, next: NextFunction) => {
     try {
         const targetUserId = req.params.userId;
         const currentUserId = req.user!.id;
@@ -150,7 +151,7 @@ const followUser = async (req: TypedRequest<{ userId: string }>, res: Response, 
 /**
  * Removes a follow relationship with the target user.
  */
-const unfollowUser = async (req: TypedRequest<{ userId: string }>, res: Response, next: NextFunction) => {
+const unfollowUser = async (req: TypedRequest<{ userId: UserId }>, res: Response, next: NextFunction) => {
     try {
         const targetUserId = req.params.userId;
         const currentUserId = req.user!.id;

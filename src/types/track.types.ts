@@ -1,70 +1,33 @@
-import { ITrack } from "@/types/music";
-import { UserId } from "@/types/user";
+import { ArtistSummary, ITrack } from "@/types/music";
+import { PaginationQueries, TrackId, UserId } from "@/types/common";
+import { CurrentUserInteraction, InteractionItemResponse } from "@/types/interaction";
 
-export type PaginationQueries = {
-    page: number;
-    limit: number;
-};
+// ==========================================
+// DTOs & Payloads
+// ==========================================
 
-export type GetLikedTracksDto = PaginationQueries & {
-    userId?: UserId;
-};
-
-export type TrackResponseItem = ITrack & {
-    isLiked?: boolean;
-};
-
-export type GetLikedTracksResponseItem = TrackResponseItem;
-export type GetLikedTracksResponse = GetLikedTracksResponseItem[];
-
-/**
- * Response type for fetching specific track details.
- */
-export type GetTrackDetailsResponse = ITrack & {
-    artists: {
-        id: string;
-        name: string;
-        avatar?: string;
-    }[];
-    likesCount: number;
-    commentsCount: number;
-    isLiked: boolean;
-    currentUserInteraction?: {
-        id: string;
-        rating?: number | null;
-        isLiked?: boolean;
-        comment?: {
-            id: string;
-            content: string;
-            date: string;
-        } | null;
-    } | null;
-    interactions: {
-        id: string;
-        user: {
-            id: string;
-            username: string;
-            fullname: string;
-            avatar?: string;
-        };
-        rating: number | null;
-        isLiked: boolean;
-        comment: {
-            id: string;
-            content: string;
-            date: string;
-        };
-    }[];
-};
-
-export type GetTrackInteractionsDto = PaginationQueries & {
-    trackId: string;
-};
-
+export type GetLikedTracksDto = PaginationQueries & { userId?: UserId };
+export type GetTrackInteractionsDto = PaginationQueries & { trackId: TrackId };
 export type UpsertTrackInteractionDto = {
-    userId: string;
-    trackId: string;
+    userId: UserId;
+    trackId: TrackId;
     rating?: number;
     comment?: string;
     isLiked?: boolean;
+};
+
+// ==========================================
+// API Responses
+// ==========================================
+
+export type TrackResponseItem = ITrack & { isLiked?: boolean };
+export type GetLikedTracksResponseItem = TrackResponseItem;
+export type GetLikedTracksResponse = GetLikedTracksResponseItem[];
+export type GetTrackDetailsResponse = ITrack & {
+    artists: ArtistSummary[];
+    likesCount: number;
+    commentsCount: number;
+    isLiked: boolean;
+    currentUserInteraction?: CurrentUserInteraction;
+    interactions: InteractionItemResponse[];
 };
