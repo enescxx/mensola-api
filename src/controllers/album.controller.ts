@@ -1,8 +1,8 @@
 import { Response, NextFunction } from "express";
 
-import { getLikedAlbums } from "@/services/album.service";
+import { getLikedAlbums, getAlbumById } from "@/services/album.service";
 import { sendResponse } from "@/utils/response";
-import { TypedRequestQuery } from "@/types/express";
+import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetLikedAlbumsDto } from "@/types/album.types";
 import { ApiError } from "@/utils/error";
 
@@ -35,6 +35,25 @@ export const getLikedAlbumsList = async (
             limit,
             totalItems: albums.length, 
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Retrieves detailed information for a specific album.
+ *
+ * @route   GET /api/albums/:albumId
+ * @access  Public / Optional Auth
+ */
+export const getAlbumDetails = async (req: TypedRequest<{ albumId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const currentUserId = req.user?.id;
+        const albumId = req.params.albumId;
+
+        const album = await getAlbumById({ albumId, currentUserId });
+
+        return sendResponse(res, 200, album, "Album details retrieved successfully.");
     } catch (error) {
         next(error);
     }

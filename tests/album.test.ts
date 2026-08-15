@@ -67,4 +67,50 @@ describe("Album API", () => {
             expect(response.body.data.items).toHaveLength(0);
         });
     });
+
+    describe("GET /api/albums/:albumId", () => {
+        let testAlbum: IAlbum;
+
+        beforeEach(async () => {
+            testAlbum = await createTestAlbum({ title: "Test Album 101", songCount: 12 });
+            await createTestInteraction(testUserA.id, testAlbum.id, {
+                targetType: "album",
+                isLiked: true,
+                rating: 9,
+                comment: "Great album!",
+            });
+        });
+
+        it("should return album details with user interaction context", async () => {
+            const response = await request(app)
+                .get(`/api/albums/${testAlbum.id}`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.id).toBe(testAlbum.id);
+            expect(response.body.data.title).toBe("Test Album 101");
+            expect(response.body.data.isLiked).toBe(true);
+            expect(response.body.data.likesCount).toBe(1);
+            expect(response.body.data.commentsCount).toBe(1);
+            expect(response.body.data.interactions).toHaveLength(1);
+            expect(response.body.data.interactions[0].comment.content).toBe("Great album!");
+            expect(response.body.data.currentUserInteraction).toBeDefined();
+        });
+
+        it("should return 404 for non-existent album ID", async () => {
+            const nonExistentId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app).get(`/api/albums/${nonExistentId}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 400 for invalid album ID format", async () => {
+            const response = await request(app).get("/api/albums/invalid-id");
+
+            expect(response.status).toBe(400);
+            expect(response.body.success).toBe(false);
+        });
+    });
 });

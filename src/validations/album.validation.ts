@@ -21,3 +21,12 @@ export const albumPaginationQuerySchema = z.object({
             .optional(),
     }),
 });
+
+export const albumIdParamSchema = z.object({
+    params: z.object({
+        albumId: z
+            .string({ message: "Album ID is required and must be a string." })
+            .uuid("Invalid album ID format.")
+            .trim(),
+    }),
+});

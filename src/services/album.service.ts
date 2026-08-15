@@ -1,6 +1,12 @@
 import pool from "@/config/db";
 import { albumQueries } from "@/queries/album.queries";
-import { GetLikedAlbumsDto, GetLikedAlbumsResponse, GetLikedAlbumsResponseItem } from "@/types/album.types";
+import {
+    GetLikedAlbumsDto,
+    GetLikedAlbumsResponse,
+    GetLikedAlbumsResponseItem,
+    GetAlbumDetailsDto,
+    GetAlbumDetailsResponse,
+} from "@/types/album.types";
 import { ApiError } from "@/utils/error";
 
 /**
@@ -23,4 +29,24 @@ export const getLikedAlbums = async (dto: GetLikedAlbumsDto): Promise<GetLikedAl
     ]);
 
     return result.rows;
+};
+
+/**
+ * Retrieves detailed information for a specific album.
+ *
+ * @param dto - Data transfer object containing albumId and optional currentUserId.
+ * @returns A promise that resolves to album details.
+ */
+export const getAlbumById = async (dto: GetAlbumDetailsDto): Promise<GetAlbumDetailsResponse> => {
+    const { albumId, currentUserId = null } = dto;
+
+    const result = await pool.query<GetAlbumDetailsResponse>(albumQueries.getById, [albumId, currentUserId]);
+
+    const album = result.rows[0];
+
+    if (!album) {
+        throw new ApiError("Album not found.", 404);
+    }
+
+    return album;
 };
