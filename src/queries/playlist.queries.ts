@@ -11,7 +11,11 @@ export const playlistQueries = {
                     SELECT COUNT(*)::int
                     FROM "PlaylistItem" pi
                     WHERE pi."playlistId" = p.id
-                ) AS "songCount"
+                ) AS "songCount",
+                EXISTS (
+                    SELECT 1 FROM "PlaylistItem" pi
+                    WHERE pi."playlistId" = p.id AND ($5::uuid IS NOT NULL AND pi."trackId" = $5::uuid)
+                ) AS "containsTrack"
             FROM "Playlist" p
             WHERE p."creatorId" = $1
               AND p."listType" = 'custom'

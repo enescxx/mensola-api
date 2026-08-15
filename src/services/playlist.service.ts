@@ -32,12 +32,14 @@ import { ApiError } from "@/utils/error";
 export const getUserPlaylists = async (dto: GetUserPlaylistsDto): Promise<GetUserPlaylistsResponse> => {
     const offset = (dto.page - 1) * dto.limit;
     const currentUserId = dto.currentUserId || null;
+    const trackId = dto.trackId || null;
 
     const result = await pool.query<GetUserPlaylistsResponseItem>(playlistQueries.lists.getUserPlaylists, [
         dto.userId,
         currentUserId,
         dto.limit,
         offset,
+        trackId,
     ]);
 
     return result.rows;

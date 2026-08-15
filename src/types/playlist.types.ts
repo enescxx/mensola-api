@@ -5,6 +5,7 @@ import { IPlaylist } from "@/types/music";
 type GetUserPlaylistsDto = PaginationQueries & {
     userId: UserId;
     currentUserId?: UserId;
+    trackId?: string;
 };
 
 type GetUserPlaylistsResponseItem = IPlaylist & {

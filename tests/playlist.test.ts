@@ -102,6 +102,24 @@ describe("Playlist API", () => {
             // Wait, testUserAToken has 2 playlists. limit=1 should return 1 item.
             expect(response.body.data.totalItems).toBe(1); // the query counts the fetched items (playlists.length)
         });
+
+        it("should return containsTrack=true when trackId is provided and present in playlist", async () => {
+            const track = await createTestTrack({ title: "Check Track" });
+            await addTestTrackToPlaylist(testUserAPlaylist1.id, track.id, testUserA.id);
+
+            const response = await request(app)
+                .get(`/api/playlists?trackId=${track.id}`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+
+            const pl1 = response.body.data.items.find((p: any) => p.id === testUserAPlaylist1.id);
+            const pl2 = response.body.data.items.find((p: any) => p.id === testUserAPlaylist2.id);
+
+            expect(pl1.containsTrack).toBe(true);
+            expect(pl2.containsTrack).toBe(false);
+        });
     });
 
     describe("GET /api/playlists/likes", () => {

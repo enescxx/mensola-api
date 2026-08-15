@@ -42,10 +42,11 @@ export const getUserPlaylistsList = async (
             throw new ApiError("User ID is required.", 400);
         }
 
+        const trackId = req.query.trackId as string | undefined;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
 
-        const playlists = await getUserPlaylists({ userId, currentUserId, limit, page });
+        const playlists = await getUserPlaylists({ userId, currentUserId, trackId, limit, page });
 
         return sendResponse(res, 200, {
             items: playlists,

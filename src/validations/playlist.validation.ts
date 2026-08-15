@@ -7,6 +7,11 @@ export const playlistPaginationQuerySchema = z.object({
             .uuid("Invalid user ID format. Must be a valid UUID.")
             .optional(),
 
+        trackId: z
+            .string({ message: "Track ID must be a string." })
+            .uuid("Invalid track ID format. Must be a valid UUID.")
+            .optional(),
+
         page: z.coerce
             .number({ message: "Page must be a number." })
             .int("Page must be an integer.")
