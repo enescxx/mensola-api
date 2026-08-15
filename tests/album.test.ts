@@ -3,7 +3,7 @@ import app from "@/app";
 
 import { IUser } from "@/types/user";
 import { createTestUser } from "./helpers/auth.helper";
-import { createTestAlbum, createTestInteraction } from "./helpers/db.helper";
+import { createTestAlbum, createTestInteraction, createTestTrack } from "./helpers/db.helper";
 import { IAlbum } from "@/types/music.types";
 
 describe("Album API", () => {
@@ -108,6 +108,45 @@ describe("Album API", () => {
 
         it("should return 400 for invalid album ID format", async () => {
             const response = await request(app).get("/api/albums/invalid-id");
+
+            expect(response.status).toBe(400);
+            expect(response.body.success).toBe(false);
+        });
+    });
+
+    describe("GET /api/albums/:albumId/tracks", () => {
+        let testAlbum: IAlbum;
+        let track1: any;
+        let track2: any;
+
+        beforeEach(async () => {
+            testAlbum = await createTestAlbum({ title: "Tracked Album" });
+            track1 = await createTestTrack({ title: "Song 1", albumId: testAlbum.id });
+            track2 = await createTestTrack({ title: "Song 2", albumId: testAlbum.id });
+        });
+
+        it("should return tracks belonging to the album", async () => {
+            const response = await request(app)
+                .get(`/api/albums/${testAlbum.id}/tracks`)
+                .set("Authorization", `Bearer ${testUserAToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.items).toHaveLength(2);
+            expect(response.body.data.items[0].title).toBe("Song 1");
+            expect(response.body.data.items[1].title).toBe("Song 2");
+        });
+
+        it("should return 404 for non-existent album ID", async () => {
+            const nonExistentId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app).get(`/api/albums/${nonExistentId}/tracks`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 400 for invalid album ID format", async () => {
+            const response = await request(app).get("/api/albums/invalid-id/tracks");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);

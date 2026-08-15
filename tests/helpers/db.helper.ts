@@ -163,19 +163,20 @@ export const createTestBookmark = async (
     return result.rows[0];
 };
 
-export const createTestTrack = async (options: { title?: string; duration?: number; spotifyId?: string } = {}) => {
+export const createTestTrack = async (options: { title?: string; duration?: number; spotifyId?: string; albumId?: string } = {}) => {
     const {
         title = "Test Track",
         duration = 200,
         spotifyId = `test_spotify_id_${Date.now()}_${Math.random()}`,
+        albumId = null,
     } = options;
 
     const query = `
-    INSERT INTO "Track" ("spotifyId", "title", "duration")
-    VALUES ($1, $2, $3)
+    INSERT INTO "Track" ("spotifyId", "title", "duration", "albumId")
+    VALUES ($1, $2, $3, $4)
     RETURNING *;
   `;
-    const result = await pool.query(query, [spotifyId, title, duration]);
+    const result = await pool.query(query, [spotifyId, title, duration, albumId]);
     return result.rows[0];
 };
 

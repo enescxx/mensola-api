@@ -6,6 +6,9 @@ import {
     GetLikedAlbumsResponseItem,
     GetAlbumDetailsDto,
     GetAlbumDetailsResponse,
+    GetAlbumTracksDto,
+    GetAlbumTracksResponse,
+    AlbumTrackResponseItem,
 } from "@/types/album.types";
 import { ApiError } from "@/utils/error";
 
@@ -49,4 +52,29 @@ export const getAlbumById = async (dto: GetAlbumDetailsDto): Promise<GetAlbumDet
     }
 
     return album;
+};
+
+/**
+ * Retrieves tracks/songs within a specific album.
+ *
+ * @param dto - Data transfer object containing albumId, currentUserId, page, and limit.
+ * @returns A promise that resolves to a list of album tracks.
+ */
+export const getAlbumTracks = async (dto: GetAlbumTracksDto): Promise<GetAlbumTracksResponse> => {
+    const { albumId, currentUserId = null, page, limit } = dto;
+    const offset = (page - 1) * limit;
+
+    const albumExists = await pool.query(albumQueries.tracks.checkExists, [albumId]);
+    if (albumExists.rows.length === 0) {
+        throw new ApiError("Album not found.", 404);
+    }
+
+    const result = await pool.query<AlbumTrackResponseItem>(albumQueries.tracks.get, [
+        albumId,
+        currentUserId,
+        limit,
+        offset,
+    ]);
+
+    return result.rows;
 };

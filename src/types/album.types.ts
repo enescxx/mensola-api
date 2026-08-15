@@ -36,3 +36,22 @@ export type GetAlbumDetailsResponse = IAlbum & {
         comment?: { id: string; content: string; date: string } | null;
     } | null;
 };
+
+export type GetAlbumTracksDto = PaginationQueries & {
+    albumId: string;
+    currentUserId?: UserId;
+};
+
+export type AlbumTrackResponseItem = {
+    id: string;
+    spotifyId: string;
+    title: string;
+    duration: number;
+    image?: string;
+    albumId?: string;
+    createdAt?: Date | string;
+    isLiked?: boolean;
+    artists?: { id: string; name: string }[];
+};
+
+export type GetAlbumTracksResponse = AlbumTrackResponseItem[];

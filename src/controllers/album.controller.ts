@@ -1,9 +1,10 @@
 import { Response, NextFunction } from "express";
 
-import { getLikedAlbums, getAlbumById } from "@/services/album.service";
+import { getLikedAlbums, getAlbumById, getAlbumTracks } from "@/services/album.service";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetLikedAlbumsDto } from "@/types/album.types";
+import { PaginationQueries } from "@/types/track";
 import { ApiError } from "@/utils/error";
 
 /**
@@ -54,6 +55,42 @@ export const getAlbumDetails = async (req: TypedRequest<{ albumId: string }>, re
         const album = await getAlbumById({ albumId, currentUserId });
 
         return sendResponse(res, 200, album, "Album details retrieved successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Retrieves tracks/songs for a specific album.
+ *
+ * @route   GET /api/albums/:albumId/tracks
+ * @access  Public / Optional Auth
+ */
+export const getAlbumTracksList = async (
+    req: TypedRequest<{ albumId: string }, {}, Partial<PaginationQueries>>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const currentUserId = req.user?.id;
+        const albumId = req.params.albumId;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 30;
+
+        const tracks = await getAlbumTracks({ albumId, currentUserId, limit, page });
+
+        return sendResponse(
+            res,
+            200,
+            {
+                items: tracks,
+                page,
+                limit,
+                totalItems: tracks.length,
+                hasMore: tracks.length === limit,
+            },
+            "Album tracks retrieved successfully.",
+        );
     } catch (error) {
         next(error);
     }

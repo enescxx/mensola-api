@@ -119,4 +119,37 @@ export const albumQueries = {
         ) user_int ON true
         WHERE al.id = $1::uuid;
     `,
+    tracks: {
+        checkExists: `
+            SELECT id FROM "Album" WHERE id = $1::uuid;
+        `,
+        get: `
+            SELECT 
+                t."id", 
+                t."spotifyId", 
+                t."title", 
+                t."duration", 
+                t."image", 
+                t."albumId", 
+                t."createdAt",
+                COALESCE(
+                    i_like."isLiked",
+                    false
+                ) AS "isLiked",
+                COALESCE(
+                    (
+                        SELECT json_agg(json_build_object('id', a."id", 'name', a."name"))
+                        FROM "TrackArtist" ta
+                        JOIN "Artist" a ON ta."artistId" = a."id"
+                        WHERE ta."trackId" = t."id"
+                    ), 
+                    '[]'::json
+                ) AS "artists"
+            FROM "Track" t
+            LEFT JOIN "Interaction" i_like ON i_like."userId" = $2::uuid AND i_like."targetId" = t.id AND i_like."targetType" = 'track' AND i_like."isLiked" = true
+            WHERE t."albumId" = $1::uuid
+            ORDER BY t."createdAt" ASC
+            LIMIT $3 OFFSET $4;
+        `,
+    },
 };
