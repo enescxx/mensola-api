@@ -186,4 +186,49 @@ export const albumQueries = {
             LIMIT $3 OFFSET $4;
         `,
     },
+    interaction: {
+        get: `
+            SELECT
+                i.id,
+                i."rating",
+                COALESCE(i."isLiked", false) AS "isLiked",
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'fullname', u.fullname,
+                    'avatar', u.avatar
+                ) AS "user",
+                json_build_object(
+                    'id', c.id,
+                    'content', c.content,
+                    'date', c."createdAt"
+                ) AS "comment",
+                (SELECT COUNT(*)::int FROM "Interaction" sub_i WHERE sub_i."targetId" = i.id AND sub_i."targetType" = 'interaction' AND sub_i."isLiked" = true) AS "likeCount",
+                (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."parentId" = c.id) AS "replyCount"
+            FROM "Comment" c
+            JOIN "Interaction" i ON c."interactionId" = i.id
+            JOIN "User" u ON u.id = i."userId"
+            WHERE i."targetId" = $1
+              AND i."targetType" = 'album'
+              AND c."parentId" IS NULL
+            ORDER BY c."createdAt" DESC
+            LIMIT $2 OFFSET $3;
+        `,
+        upsert: `
+            INSERT INTO "Interaction" ("userId", "targetId", "targetType", "rating", "isLiked", "updatedAt")
+            VALUES ($1, $2, 'album', $3, COALESCE($4, false), NOW())
+            ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE
+            SET "rating" = EXCLUDED."rating",
+                "isLiked" = COALESCE($4, "Interaction"."isLiked"),
+                "updatedAt" = NOW()
+            RETURNING id, "userId", "targetId", "targetType", "rating", "isLiked", "interactedAt", "updatedAt";
+        `,
+        cleanupEmpty: `
+            DELETE FROM "Interaction"
+            WHERE id = $1
+              AND "rating" IS NULL
+              AND ("isLiked" = false OR "isLiked" IS NULL)
+              AND NOT EXISTS (SELECT 1 FROM "Comment" WHERE "interactionId" = $1);
+        `,
+    },
 };

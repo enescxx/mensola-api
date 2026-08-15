@@ -6,10 +6,12 @@ import {
     getAlbumTracks,
     likeAlbum as likeAlbumService,
     unlikeAlbum as unlikeAlbumService,
+    getAlbumInteractions,
+    upsertAlbumInteraction,
 } from "@/services/album.service";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
-import { GetLikedAlbumsDto } from "@/types/album.types";
+import { GetLikedAlbumsDto, UpsertAlbumInteractionDto } from "@/types/album.types";
 import { PaginationQueries } from "@/types/track";
 import { ApiError } from "@/utils/error";
 
@@ -135,6 +137,65 @@ export const unlikeAlbum = async (req: TypedRequest<{ albumId: string }>, res: R
         const result = await unlikeAlbumService({ userId, albumId });
 
         return sendResponse(res, 200, result, "Album unliked successfully.");
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Retrieves interactions/comments for a specific album.
+ *
+ * @route   GET /api/albums/:albumId/interactions
+ * @access  Public / Optional Auth
+ */
+export const getAlbumInteractionsList = async (
+    req: TypedRequest<{ albumId: string }, {}, Partial<PaginationQueries>>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const albumId = req.params.albumId;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 18;
+
+        const interactions = await getAlbumInteractions({ albumId, limit, page });
+
+        return sendResponse(
+            res,
+            200,
+            { items: interactions, page, limit, hasMore: interactions.length === limit },
+            "Album interactions retrieved successfully.",
+        );
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Creates or updates a user interaction (rating, comment, like) for an album.
+ *
+ * @route   POST /api/albums/:albumId/interactions
+ * @access  VerifyToken
+ */
+export const createAlbumInteraction = async (
+    req: TypedRequest<{ albumId: string }, UpsertAlbumInteractionDto>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const albumId = req.params.albumId;
+        const { rating, comment, isLiked } = req.body;
+
+        const result = await upsertAlbumInteraction({
+            userId,
+            albumId,
+            rating,
+            comment,
+            isLiked,
+        });
+
+        return sendResponse(res, 200, result, "Album interaction saved successfully.");
     } catch (error) {
         next(error);
     }

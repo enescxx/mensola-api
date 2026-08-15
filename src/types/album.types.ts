@@ -69,3 +69,15 @@ export type LikeAlbumResponse = {
 };
 
 export type UnlikeAlbumResponse = LikeAlbumResponse;
+
+export type GetAlbumInteractionsDto = PaginationQueries & {
+    albumId: string;
+};
+
+export type UpsertAlbumInteractionDto = {
+    userId: UserId;
+    albumId: string;
+    rating?: number | null;
+    comment?: string | null;
+    isLiked?: boolean;
+};

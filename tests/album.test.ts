@@ -225,4 +225,81 @@ describe("Album API", () => {
             expect(response.body.success).toBe(false);
         });
     });
+
+    describe("GET /api/albums/:albumId/interactions", () => {
+        let testAlbum: IAlbum;
+
+        beforeEach(async () => {
+            testAlbum = await createTestAlbum({ title: "Album With Interactions" });
+            await createTestInteraction(testUserA.id, testAlbum.id, {
+                targetType: "album",
+                rating: 10,
+                comment: "Epic album!",
+                isLiked: true,
+            });
+        });
+
+        it("should return interactions with comments for an album", async () => {
+            const response = await request(app).get(`/api/albums/${testAlbum.id}/interactions`);
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.items).toHaveLength(1);
+            expect(response.body.data.items[0].comment.content).toBe("Epic album!");
+            expect(response.body.data.items[0].rating).toBe("10.0");
+        });
+
+        it("should return 400 for invalid album ID format", async () => {
+            const response = await request(app).get("/api/albums/invalid-id/interactions");
+
+            expect(response.status).toBe(400);
+            expect(response.body.success).toBe(false);
+        });
+    });
+
+    describe("POST /api/albums/:albumId/interactions", () => {
+        let testAlbum: IAlbum;
+
+        beforeEach(async () => {
+            testAlbum = await createTestAlbum({ title: "Album To Post Interaction" });
+        });
+
+        it("should create a new interaction (rating, comment, isLiked) for an album", async () => {
+            const response = await request(app)
+                .post(`/api/albums/${testAlbum.id}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({
+                    rating: 9,
+                    comment: "Harika albüm!",
+                    isLiked: true,
+                });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.albumId).toBe(testAlbum.id);
+            expect(response.body.data.rating).toBe("9.0");
+            expect(response.body.data.isLiked).toBe(true);
+            expect(response.body.data.comment.content).toBe("Harika albüm!");
+        });
+
+        it("should return 401 when unauthorized", async () => {
+            const response = await request(app)
+                .post(`/api/albums/${testAlbum.id}/interactions`)
+                .send({ comment: "Unauthorized comment" });
+
+            expect(response.status).toBe(401);
+            expect(response.body.success).toBe(false);
+        });
+
+        it("should return 404 for non-existent album ID", async () => {
+            const nonExistentId = "00000000-0000-0000-0000-000000000000";
+            const response = await request(app)
+                .post(`/api/albums/${nonExistentId}/interactions`)
+                .set("Authorization", `Bearer ${testUserAToken}`)
+                .send({ comment: "Test comment" });
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+        });
+    });
 });
