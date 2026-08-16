@@ -11,8 +11,9 @@ import {
     refreshTokenSchema,
     forgotPasswordSchema,
     verifyResetCodeSchema,
-    resetPasswordSchema
+    resetPasswordSchema,
 } from "@/validations/auth";
+import { authLimiter, forgotPasswordLimiter } from "@/middlewares/rateLimit";
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.post("/register", validate(registerSchema), register);
  * @desc    Authenticate user & return access/refresh tokens
  * @access  Public
  */
-router.post("/login", validate(loginSchema), login);
+router.post("/login", authLimiter, validate(loginSchema), login);
 
 /**
  * @route   POST /api/auth/refresh
@@ -49,14 +50,14 @@ router.post("/logout", logout);
  * @desc    Initiate password reset process & send verification code
  * @access  Public
  */
-router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
+router.post("/forgot-password", forgotPasswordLimiter, validate(forgotPasswordSchema), forgotPassword);
 
 /**
  * @route   POST /api/auth/verify-reset-code
  * @desc    Verify password reset verification code
  * @access  Public
  */
-router.post("/verify-reset-code", validate(verifyResetCodeSchema), verifyResetCode);
+router.post("/verify-reset-code", authLimiter, validate(verifyResetCodeSchema), verifyResetCode);
 
 /**
  * @route   POST /api/auth/reset-password
