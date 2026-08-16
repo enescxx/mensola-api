@@ -192,9 +192,10 @@ export const trackQueries = {
         upsert: `
             INSERT INTO "Interaction" ("userId", "targetId", "targetType", "rating", "isLiked", "updatedAt")
             VALUES ($1, $2, 'track', $3, COALESCE($4, false), NOW())
-            ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE
-            SET "rating" = EXCLUDED."rating",
-                "isLiked" = COALESCE($4, "Interaction"."isLiked"),
+            ON CONFLICT ("userId", "targetId", "targetType")
+            DO UPDATE SET
+                "rating" = EXCLUDED."rating",
+                "isLiked" = EXCLUDED."isLiked",
                 "updatedAt" = NOW()
             RETURNING id, "userId", "targetId", "targetType", "rating"::float, "isLiked", "interactedAt", "updatedAt";
         `,

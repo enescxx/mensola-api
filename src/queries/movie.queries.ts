@@ -650,13 +650,14 @@ export const movieQueries = {
          */
         interaction: {
             upsert: `
-                INSERT INTO "Interaction" ("userId", "targetId", "targetType", "rating", "isLiked", "updatedAt")
-                VALUES ($1, $2, COALESCE($5, 'movie'), $3, COALESCE($4, false), NOW())
-                ON CONFLICT ("userId", "targetId", "targetType") DO UPDATE
-                SET "rating" = EXCLUDED."rating",
-                    "isLiked" = COALESCE($4, "Interaction"."isLiked"),
+                INSERT INTO "Interaction" ("id", "userId", "targetId", "targetType", "rating", "isLiked", "interactedAt", "updatedAt")
+                VALUES (gen_random_uuid(), $1, $2, $5, $3, COALESCE($4, false), NOW(), NOW())
+                ON CONFLICT ("userId", "targetId", "targetType")
+                DO UPDATE SET
+                    "rating" = EXCLUDED."rating",
+                    "isLiked" = EXCLUDED."isLiked",
                     "updatedAt" = NOW()
-                RETURNING id, "userId", "targetId", "targetType", "rating", "isLiked", "interactedAt", "updatedAt";`,
+                RETURNING "id", "userId", "targetId", "targetType", "rating", "isLiked";`,
 
             /**
              * Inserts or updates a top-level review/comment for an interaction.

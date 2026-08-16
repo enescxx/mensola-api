@@ -22,6 +22,7 @@ import {
     RemoveTrackFromPlaylistDto,
 } from "@/types/playlist";
 import { ApiError } from "@/utils/error";
+import { upsertInteractionComment } from "@/utils/interaction";
 
 /**
  * Retrieves playlists for a specific user.
@@ -138,10 +139,7 @@ export const removeTrackFromPlaylist = async (dto: RemoveTrackFromPlaylistDto): 
     const result = await pool.query(playlistQueries.items.removeTrack, [playlistId, trackId, userId]);
 
     if (result.rows.length === 0) {
-        throw new ApiError(
-            "Track not found in the playlist or you don't have permission to modify it.",
-            404,
-        );
+        throw new ApiError("Track not found in the playlist or you don't have permission to modify it.", 404);
     }
 };
 
@@ -188,73 +186,50 @@ export const getPlaylistInteractions = async (dto: GetPlaylistInteractionsDto) =
  */
 export const upsertPlaylistInteraction = async (dto: UpsertPlaylistInteractionDto) => {
     const { userId, playlistId, rating, comment, isLiked } = dto;
+    const ratingVal = typeof rating === "number" && rating >= 0 ? rating : null;
 
-    const accessResult = await pool.query<{ id: string; hasAccess: boolean }>(
-        playlistQueries.items.checkAccess,
-        [playlistId, userId],
-    );
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
 
-    if (accessResult.rows.length === 0 || !accessResult.rows[0].hasAccess) {
-        throw new ApiError("Playlist not found or access denied.", 404);
-    }
-
-    const ratingVal = typeof rating === "number" && rating > 0 ? rating : null;
-
-    const interactionResult = await pool.query(playlistQueries.interaction.upsert, [
-        userId,
-        playlistId,
-        ratingVal,
-        isLiked ?? null,
-    ]);
-
-    const interaction = interactionResult.rows[0];
-    let commentData: any = null;
-
-    if (comment !== undefined) {
-        const trimmedComment = comment ? comment.trim() : "";
-        if (trimmedComment !== "") {
-            const existingComment = await pool.query(
-                `SELECT id FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL`,
-                [interaction.id],
-            );
-
-            if (existingComment.rows.length > 0) {
-                const commentResult = await pool.query(
-                    `UPDATE "Comment" SET "content" = $1 WHERE id = $2 RETURNING id, "userId", "interactionId", "content", "createdAt"`,
-                    [trimmedComment, existingComment.rows[0].id],
-                );
-                commentData = commentResult.rows[0];
-            } else {
-                const commentResult = await pool.query(
-                    `INSERT INTO "Comment" (id, "userId", "interactionId", "content", "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW()) RETURNING id, "userId", "interactionId", "content", "createdAt"`,
-                    [userId, interaction.id, trimmedComment],
-                );
-                commentData = commentResult.rows[0];
-            }
-        } else {
-            await pool.query(`DELETE FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL`, [
-                interaction.id,
-            ]);
-        }
-    } else {
-        const existingComment = await pool.query(
-            `SELECT id, content, "createdAt" FROM "Comment" WHERE "interactionId" = $1 AND "parentId" IS NULL LIMIT 1`,
-            [interaction.id],
+        const accessResult = await client.query<{ id: string; hasAccess: boolean }>(
+            playlistQueries.items.checkAccess,
+            [playlistId, userId],
         );
-        if (existingComment.rows.length > 0) {
-            commentData = existingComment.rows[0];
+
+        if (accessResult.rows.length === 0 || !accessResult.rows[0].hasAccess) {
+            throw new ApiError("Playlist not found or access denied.", 404);
         }
+
+        const interactionResult = await client.query(playlistQueries.interaction.upsert, [
+            userId,
+            playlistId,
+            ratingVal,
+            isLiked ?? false,
+        ]);
+        const interaction = interactionResult.rows[0];
+
+        const commentData = await upsertInteractionComment(client, interaction.id, userId, comment);
+
+        await client.query(playlistQueries.interaction.cleanupEmpty, [interaction.id]);
+
+        await client.query("COMMIT");
+
+        return {
+            id: interaction.id,
+            playlistId,
+            rating: interaction.rating,
+            isLiked: interaction.isLiked,
+            comment: commentData
+                ? { id: commentData.id, content: commentData.content, date: commentData.createdAt }
+                : null,
+        };
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
     }
-
-    await pool.query(playlistQueries.interaction.cleanupEmpty, [interaction.id]);
-
-    return {
-        id: interaction.id,
-        playlistId,
-        rating: interaction.rating,
-        isLiked: interaction.isLiked,
-        comment: commentData ? { id: commentData.id, content: commentData.content, date: commentData.createdAt } : null,
-    };
 };
 
 /**
@@ -266,10 +241,10 @@ export const upsertPlaylistInteraction = async (dto: UpsertPlaylistInteractionDt
 export const likePlaylist = async (dto: LikePlaylistDto): Promise<LikePlaylistResponse> => {
     const { userId, playlistId } = dto;
 
-    const accessResult = await pool.query<{ id: string; hasAccess: boolean }>(
-        playlistQueries.items.checkAccess,
-        [playlistId, userId],
-    );
+    const accessResult = await pool.query<{ id: string; hasAccess: boolean }>(playlistQueries.items.checkAccess, [
+        playlistId,
+        userId,
+    ]);
 
     if (accessResult.rows.length === 0 || !accessResult.rows[0].hasAccess) {
         throw new ApiError("Playlist not found or access denied.", 404);
@@ -288,10 +263,10 @@ export const likePlaylist = async (dto: LikePlaylistDto): Promise<LikePlaylistRe
 export const unlikePlaylist = async (dto: UnlikePlaylistDto): Promise<UnlikePlaylistResponse> => {
     const { userId, playlistId } = dto;
 
-    const accessResult = await pool.query<{ id: string; hasAccess: boolean }>(
-        playlistQueries.items.checkAccess,
-        [playlistId, userId],
-    );
+    const accessResult = await pool.query<{ id: string; hasAccess: boolean }>(playlistQueries.items.checkAccess, [
+        playlistId,
+        userId,
+    ]);
 
     if (accessResult.rows.length === 0 || !accessResult.rows[0].hasAccess) {
         throw new ApiError("Playlist not found or access denied.", 404);
@@ -300,5 +275,3 @@ export const unlikePlaylist = async (dto: UnlikePlaylistDto): Promise<UnlikePlay
     const result = await pool.query<UnlikePlaylistResponse>(playlistQueries.likes.remove, [userId, playlistId]);
     return result.rows[0] || { playlistId, isLiked: false };
 };
-
-

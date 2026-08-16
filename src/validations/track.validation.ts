@@ -40,12 +40,16 @@ export const createTrackInteractionSchema = z.object({
     }),
     body: z.object({
         rating: z
-            .number()
-            .min(1, "Rating must be at least 1")
+            .number({ message: "Rating must be a number." })
+            .min(0, "Rating must be at least 0")
             .max(10, "Rating cannot exceed 10")
             .optional()
             .nullable(),
-        comment: z.string().max(1000, "Comment cannot exceed 1000 characters").optional().nullable(),
+        comment: z
+            .string({ message: "Comment must be a string." })
+            .max(1000, "Comment cannot exceed 1000 characters")
+            .optional()
+            .nullable(),
         isLiked: z.boolean().optional().nullable(),
     }),
 });
