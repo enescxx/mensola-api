@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS "MovieList" (
     "image" VARCHAR(500) NULL,
     "isPrivate" BOOLEAN DEFAULT false,
     "listType" VARCHAR(50) DEFAULT 'custom' CHECK ("listType" IN ('custom', 'favorites', 'watchlist')),
-"creatorId" UUID NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "creatorId" UUID NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
     "createdAt" TIMESTAMP DEFAULT NOW()
 );
 

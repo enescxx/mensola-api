@@ -368,19 +368,27 @@ export const getListItems = async (dto: GetListItemsDto): Promise<GetListItemsRe
 
     const offset = (page - 1) * limit;
 
+    const accessResult = await pool.query<{ id: string; hasAccess: boolean }>(movieQueries.lists.checkAccess, [
+        listId,
+        userId,
+    ]);
+
+    if (accessResult.rows.length === 0) {
+        throw new ApiError("Movie list not found.", 404);
+    }
+
+    if (!accessResult.rows[0].hasAccess) {
+        throw new ApiError("Movie list not found or you don't have permission to access it.", 404);
+    }
+
     const result = await pool.query<MovieSummary>(movieQueries.lists.items.getMovies, [
         listId,
         userId ?? null,
         limit,
         offset,
     ]);
-    const movieItems = result.rows;
 
-    if (movieItems.length === 0) {
-        throw new ApiError("Movie list not found or you don't have permission to access it.", 404);
-    }
-
-    return movieItems;
+    return result.rows;
 };
 
 /**

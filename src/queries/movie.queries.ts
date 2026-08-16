@@ -150,6 +150,28 @@ export const movieQueries = {
                 );`,
 
         /**
+         * Checks whether a movie list exists and if the user has permission to access it.
+         */
+        checkAccess: `
+            SELECT 
+                ml.id,
+                ml."isPrivate",
+                ml."creatorId",
+                (
+                    ml."isPrivate" = false
+                    OR ($2::uuid IS NOT NULL AND (
+                        ml."creatorId" = $2::uuid
+                        OR EXISTS (
+                            SELECT 1 FROM "MovieListOwner" mlo
+                            WHERE mlo."movieListId" = ml.id AND mlo."userId" = $2::uuid
+                        )
+                    ))
+                ) AS "hasAccess"
+            FROM "MovieList" ml
+            WHERE ml.id = $1::uuid;
+        `,
+
+        /**
          * Inserts a new custom movie list into the database and returns created record.
          */
         create: `
