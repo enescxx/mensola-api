@@ -1,17 +1,18 @@
 import pool from "@/config/db";
 import { bookmarkQueries } from "@/queries/bookmark.queries";
+import { MovieListId, PlaylistId, UserId } from "@/types/common";
 import { ApiError } from "@/utils/error";
 
-export type BookmarkTargetType = "playlist" | "album" | "movieList";
+export type BookmarkTargetType = "playlist" | "movieList";
 
 export interface ToggleBookmarkDto {
-    userId: string;
-    targetId: string;
+    userId: UserId;
+    targetId: PlaylistId | MovieListId;
     targetType: BookmarkTargetType;
 }
 
 export interface GetUserBookmarksDto {
-    userId: string;
+    userId: UserId;
     targetType?: BookmarkTargetType;
     page?: number;
     limit?: number;
@@ -47,12 +48,7 @@ export const getUserBookmarks = async (dto: GetUserBookmarksDto) => {
     const { userId, targetType, page = 1, limit = 20 } = dto;
     const offset = (page - 1) * limit;
 
-    const result = await pool.query(bookmarkQueries.getByUser, [
-        userId,
-        targetType || null,
-        limit,
-        offset,
-    ]);
+    const result = await pool.query(bookmarkQueries.getByUser, [userId, targetType || null, limit, offset]);
 
     return result.rows;
 };

@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS "Bookmark" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "userId" UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
     "targetId" UUID NOT NULL,
-    "targetType" VARCHAR(50) NOT NULL CHECK ("targetType" IN ('playlist', 'album', 'movieList')),
+    "targetType" VARCHAR(50) NOT NULL CHECK ("targetType" IN ('playlist', 'movieList')),
     "createdAt" TIMESTAMP DEFAULT NOW(),
     UNIQUE("userId", "targetId", "targetType")
 );

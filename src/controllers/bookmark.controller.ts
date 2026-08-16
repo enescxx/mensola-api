@@ -3,6 +3,7 @@ import { TypedRequestQuery, TypedRequestBody } from "@/types/express";
 import { toggleBookmark, getUserBookmarks, BookmarkTargetType } from "@/services/bookmark.service";
 import { sendResponse } from "@/utils/response";
 import { ApiError } from "@/utils/error";
+import { MovieListId, PlaylistId, UserId } from "@/types/common";
 
 interface ToggleBookmarkBody {
     targetId: string;
@@ -21,7 +22,7 @@ interface GetBookmarksQuery {
 export const toggleBookmarkHandler = async (
     req: TypedRequestBody<ToggleBookmarkBody>,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
     try {
         const userId = req.user?.id;
@@ -32,13 +33,17 @@ export const toggleBookmarkHandler = async (
             throw new ApiError("targetId and targetType are required.", 400);
         }
 
-        const result = await toggleBookmark({ userId, targetId, targetType });
+        const result = await toggleBookmark({
+            userId: userId as UserId,
+            targetId: targetId as PlaylistId | MovieListId,
+            targetType,
+        });
 
         return sendResponse(
             res,
             200,
             result,
-            result.isSaved ? "Item saved to bookmarks" : "Item removed from bookmarks"
+            result.isSaved ? "Item saved to bookmarks" : "Item removed from bookmarks",
         );
     } catch (error) {
         next(error);
@@ -51,7 +56,7 @@ export const toggleBookmarkHandler = async (
 export const getUserBookmarksHandler = async (
     req: TypedRequestQuery<GetBookmarksQuery>,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
     try {
         const userId = req.user?.id;
