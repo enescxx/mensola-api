@@ -13,7 +13,7 @@ import {
     GetFollowingResponseItem,
     GetFollowingResponse,
     FollowDto,
-    UnfollowDto
+    UnfollowDto,
 } from "@/types/user";
 
 /**
@@ -27,7 +27,7 @@ import {
 export const getUserProfile = async (dto: GetUserProfileDto): Promise<GetUserProfileResponse> => {
     const result = await pool.query<GetUserProfileResponse>(userQueries.profile.get, [
         dto.targetUserId,
-        dto.viewerId || null
+        dto.viewerId || null,
     ]);
 
     if (result.rows.length === 0) {
@@ -48,7 +48,7 @@ export const getUserProfile = async (dto: GetUserProfileDto): Promise<GetUserPro
         likedMovieListsCount: Number(rawData.likedMovieListsCount || 0),
         likedAlbumsCount: Number(rawData.likedAlbumsCount || 0),
         followerCount: Number(rawData.followerCount || 0),
-        followingCount: Number(rawData.followingCount || 0)
+        followingCount: Number(rawData.followingCount || 0),
     };
 
     // Remove personal relationship context if viewing own profile or visiting unauthenticated
@@ -95,12 +95,7 @@ export const profileUpdate = async (dto: ProfileUpdateDto): Promise<ProfileUpdat
 
     values.push(dto.userId);
 
-    const query = `
-        UPDATE "User"
-        SET ${fields.join(", ")}
-        WHERE "id" = $${placeholderIndex}
-        RETURNING id, username, fullname, bio, avatar;
-    `;
+    const query = userQueries.profile.update(fields, placeholderIndex);
 
     const result = await pool.query<ProfileUpdateResponse>(query, values);
 
@@ -125,7 +120,7 @@ export const getFollowers = async (dto: GetFollowersDto): Promise<GetFollowersRe
         dto.targetUserId,
         dto.viewerId || null,
         dto.limit,
-        offset
+        offset,
     ]);
 
     return result.rows;
@@ -145,7 +140,7 @@ export const getFollowing = async (dto: GetFollowingDto): Promise<GetFollowingRe
         dto.targetUserId,
         dto.viewerId || null,
         dto.limit,
-        offset
+        offset,
     ]);
 
     return result.rows;

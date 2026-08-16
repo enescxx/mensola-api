@@ -218,7 +218,20 @@ export const userQueries = {
             ) mutual_follows ON u.id = mutual_follows.target_user_id
         
         
-            WHERE u.id = $1;`
+            WHERE u.id = $1;`,
+
+        /**
+         * Generates a dynamic UPDATE query for modifying user profile fields.
+         *
+         * @param fields - Array of SQL assignment clauses (e.g. ['"fullname" = $1', '"bio" = $2'])
+         * @param userIdPlaceholderIndex - The parameter index for the WHERE clause user ID
+         */
+        update: (fields: string[], userIdPlaceholderIndex: number) => `
+            UPDATE "User"
+            SET ${fields.join(", ")}
+            WHERE "id" = $${userIdPlaceholderIndex}
+            RETURNING id, username, fullname, bio, avatar;
+        `,
     },
 
     /**
@@ -281,7 +294,7 @@ export const userQueries = {
             JOIN "User" u ON f."followingId" = u.id
             WHERE f."followerId" = $1
             ORDER BY f."followedAt" DESC
-            LIMIT $3 OFFSET $4;`
+            LIMIT $3 OFFSET $4;`,
     },
 
     /**
@@ -309,6 +322,6 @@ export const userQueries = {
          */
         unfollow: `
             DELETE FROM "Follow"
-            WHERE "followerId" = $1 AND "followingId" = $2;`
-    }
+            WHERE "followerId" = $1 AND "followingId" = $2;`,
+    },
 };
