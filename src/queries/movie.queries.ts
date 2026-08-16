@@ -57,7 +57,6 @@ export const movieQueries = {
             SELECT 
                 ml.*,
                 COALESCE(list_owners.owners, '[]'::json) AS "owners",
-                COALESCE(preview_movies.movies, '[]'::json) AS "previewMovies",
                 user_int.user_interaction AS "currentUserInteraction",
                 EXISTS (
                     SELECT 1 FROM "Bookmark" b
@@ -98,27 +97,6 @@ export const movieQueries = {
                     WHERE mlo."movieListId" = ml.id
                 ) ml_owners
             ) list_owners ON true
-            
-            LEFT JOIN LATERAL (
-                SELECT json_agg(pm) AS movies
-                FROM (
-                    SELECT
-                        m.id AS "id",
-                        m.title AS "title",
-                        m.poster AS "poster",
-                        m_int.rating AS "rating",
-                        COALESCE(m_int."isLiked", false) AS "isLiked",
-                        EXISTS (
-                            SELECT 1 FROM "Comment" c WHERE c."interactionId" = m_int.id
-                        ) AS "hasReview"
-                    FROM "MovieListItem" mli
-                    JOIN "Movie" m ON m.id = mli."movieId"
-                    LEFT JOIN "Interaction" m_int ON m_int."userId" = $2::uuid AND m_int."targetId" = m.id AND m_int."targetType" = 'movie'
-                    WHERE mli."movieListId" = ml.id
-                    ORDER BY mli."addedAt" DESC
-                    LIMIT 3
-                ) pm
-            ) preview_movies ON true
 
             LEFT JOIN LATERAL (
                 SELECT json_build_object(
@@ -535,7 +513,9 @@ export const movieQueries = {
                     ) AS "hasReview"
                 FROM "WatchedMovie" wm
                 JOIN "Movie" m ON wm."movieId" = m.id
-                LEFT JOIN "Interaction" m_int ON m_int."userId" = wm."userId" AND m_int."targetId" = m.id
+                LEFT JOIN "Interaction" m_int ON m_int."userId" = wm."userId"
+                    AND m_int."targetId" = m.id
+                    AND m_int."targetType" = 'movie'
                 WHERE wm."userId" = $1
                 LIMIT $2 OFFSET $3;`,
 

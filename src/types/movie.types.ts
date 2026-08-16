@@ -144,7 +144,6 @@ export type GetListByIdResponse = IMovieList & {
         isFollowing?: boolean;
         isFollower?: boolean;
     })[];
-    previewMovies: MovieSummary[];
     isSaved?: boolean;
     savesCount?: number;
 };
