@@ -45,6 +45,7 @@ import {
     listAndMovieParamsSchema,
     createMovieInteractionSchema,
 } from "@/validations/movie";
+import { requiredUserId } from "@/middlewares/requiredId";
 
 const router = Router();
 
@@ -52,20 +53,20 @@ const router = Router();
    1. User Library & Collection Routes (Static prefixes)
    ========================================================================== */
 
-router.get("/favorites", extractUser, validate(moviePaginationQuerySchema), getFavoriteMovies);
-router.get("/watchlist", extractUser, validate(moviePaginationQuerySchema), getWatchlistMovies);
-router.get("/watched", extractUser, validate(moviePaginationQuerySchema), getWatchedMovies);
-router.get("/likes", extractUser, validate(moviePaginationQuerySchema), getLikedMoviesList);
+router.get("/favorites", extractUser, validate(moviePaginationQuerySchema), requiredUserId, getFavoriteMovies);
+router.get("/watchlist", extractUser, validate(moviePaginationQuerySchema), requiredUserId, getWatchlistMovies);
+router.get("/watched", extractUser, validate(moviePaginationQuerySchema), requiredUserId, getWatchedMovies);
+router.get("/likes", extractUser, validate(moviePaginationQuerySchema), requiredUserId, getLikedMoviesList);
 
 /* ==========================================================================
    2. Custom Movie Lists Routes (Static & Dynamic Sub-routes)
    ========================================================================== */
 
-router.get("/lists", extractUser, validate(moviePaginationQuerySchema), getMovieLists);
+router.get("/lists", extractUser, validate(moviePaginationQuerySchema), requiredUserId, getMovieLists);
 router.post("/lists", verifyToken, validate(createMovieListSchema), createMovieList);
 
 // List Like/Unlike Operations
-router.get("/lists/likes", extractUser, validate(moviePaginationQuerySchema), getLikedMovieLists);
+router.get("/lists/likes", extractUser, validate(moviePaginationQuerySchema), requiredUserId, getLikedMovieLists);
 router.post("/lists/:listId/like", verifyToken, validate(listIdParamSchema), likeMovieList);
 router.delete("/lists/:listId/like", verifyToken, validate(listIdParamSchema), unlikeMovieList);
 

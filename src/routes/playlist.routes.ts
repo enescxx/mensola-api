@@ -22,13 +22,14 @@ import {
     createPlaylistInteractionSchema,
     addTrackToPlaylistSchema,
 } from "@/validations/playlist";
+import { requiredUserId } from "@/middlewares/requiredId";
 
 const router = Router();
 
 router.post("/:playlistId/items/:trackId", verifyToken, validate(addTrackToPlaylistSchema), addTrackToPlaylist);
 router.delete("/:playlistId/items/:trackId", verifyToken, validate(addTrackToPlaylistSchema), removeTrackFromPlaylist);
 
-router.get("/likes", extractUser, validate(playlistPaginationQuerySchema), getLikedPlaylistsList);
+router.get("/likes", extractUser, validate(playlistPaginationQuerySchema), requiredUserId, getLikedPlaylistsList);
 router.get("/:playlistId/items", extractUser, validate(playlistIdParamSchema), getPlaylistItemsList);
 router.get("/:playlistId/interactions", extractUser, validate(playlistIdParamSchema), getPlaylistInteractionsList);
 router.post(

@@ -18,18 +18,14 @@ import {
     albumIdParamSchema,
     createAlbumInteractionSchema,
 } from "@/validations/album.validation";
+import { requiredUserId } from "@/middlewares/requiredId";
 
 const router = Router();
 
-router.get("/likes", extractUser, validate(albumPaginationQuerySchema), getLikedAlbumsList);
+router.get("/likes", extractUser, validate(albumPaginationQuerySchema), requiredUserId, getLikedAlbumsList);
 router.get("/:albumId/tracks", extractUser, validate(albumIdParamSchema), getAlbumTracksList);
 router.get("/:albumId/interactions", extractUser, validate(albumIdParamSchema), getAlbumInteractionsList);
-router.post(
-    "/:albumId/interactions",
-    verifyToken,
-    validate(createAlbumInteractionSchema),
-    createAlbumInteraction,
-);
+router.post("/:albumId/interactions", verifyToken, validate(createAlbumInteractionSchema), createAlbumInteraction);
 router.post("/:albumId/like", verifyToken, validate(albumIdParamSchema), likeAlbum);
 router.delete("/:albumId/like", verifyToken, validate(albumIdParamSchema), unlikeAlbum);
 router.get("/:albumId", extractUser, validate(albumIdParamSchema), getAlbumDetails);

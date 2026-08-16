@@ -17,10 +17,11 @@ import {
     trackParamSchema,
     createTrackInteractionSchema,
 } from "@/validations/track.validation";
+import { requiredUserId } from "@/middlewares/requiredId";
 
 const router = Router();
 
-router.get("/likes", extractUser, validate(trackPaginationQuerySchema), getLikedTracksList);
+router.get("/likes", extractUser, validate(trackPaginationQuerySchema), requiredUserId, getLikedTracksList);
 router.get("/:trackId", extractUser, validate(trackParamSchema), getTrackDetails);
 router.get("/:trackId/interactions", extractUser, validate(trackParamSchema), getTrackInteractionsList);
 router.post("/:trackId/interactions", verifyToken, validate(createTrackInteractionSchema), createTrackInteraction);
