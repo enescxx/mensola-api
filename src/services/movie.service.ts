@@ -60,10 +60,6 @@ import { upsertInteractionComment } from "@/utils/interaction";
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
 export const getFavorites = async (dto: GetFavoritesDto): Promise<GetFavoritesResponse> => {
-    if (!dto.userId) {
-        throw new ApiError("userId is invalid", 400);
-    }
-
     const offset = (dto.page - 1) * dto.limit;
 
     const result = await pool.query<GetFavoritesResponseItem>(movieQueries.movies.favorites.get, [
@@ -83,10 +79,6 @@ export const getFavorites = async (dto: GetFavoritesDto): Promise<GetFavoritesRe
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
 export const getWatchlist = async (dto: GetWatchlistDto): Promise<GetWatchlistResponse> => {
-    if (!dto.userId) {
-        throw new ApiError("userId is invalid", 400);
-    }
-
     const offset = (dto.page - 1) * dto.limit;
 
     const result = await pool.query<MovieSummary>(movieQueries.movies.watchlist.get, [dto.userId, dto.limit, offset]);
@@ -102,10 +94,6 @@ export const getWatchlist = async (dto: GetWatchlistDto): Promise<GetWatchlistRe
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
 export const getWatched = async (dto: GetWatchedMoviesDto): Promise<GetWatchedMoviesResponse> => {
-    if (!dto.userId) {
-        throw new ApiError("userId is invalid", 400);
-    }
-
     const offset = (dto.page - 1) * dto.limit;
 
     const result = await pool.query<GetWatchedMoviesResponseItem>(movieQueries.movies.watched.get, [
@@ -125,10 +113,6 @@ export const getWatched = async (dto: GetWatchedMoviesDto): Promise<GetWatchedMo
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
 export const getLikedMovies = async (dto: GetLikedMoviesDto): Promise<GetLikedMoviesResponse> => {
-    if (!dto.userId) {
-        throw new ApiError("userId is invalid", 400);
-    }
-
     const offset = (dto.page - 1) * dto.limit;
 
     const result = await pool.query<GetLikedMoviesResponseItem>(movieQueries.movies.likes.get, [
@@ -148,10 +132,6 @@ export const getLikedMovies = async (dto: GetLikedMoviesDto): Promise<GetLikedMo
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
 export const getUserLists = async (dto: GetUserListsDto): Promise<GetUserListsResponse> => {
-    if (!dto.userId) {
-        throw new ApiError("userId is invalid", 400);
-    }
-
     const offset = (dto.page - 1) * dto.limit;
 
     const result = await pool.query<GetUserListsResponseItem>(movieQueries.lists.getUserLists, [
@@ -173,10 +153,6 @@ export const getUserLists = async (dto: GetUserListsDto): Promise<GetUserListsRe
  * @throws {ApiError} 400 Bad Request if userId is missing.
  */
 export const getLikedLists = async (dto: GetLikedListsDto): Promise<GetLikedListsResponse> => {
-    if (!dto.userId) {
-        throw new ApiError("userId is invalid", 400);
-    }
-
     const offset = (dto.page - 1) * dto.limit;
 
     const result = await pool.query<GetLikedListsResponseItem>(movieQueries.lists.likes.get, [

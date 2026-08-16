@@ -25,8 +25,7 @@ export const toggleBookmarkHandler = async (
     next: NextFunction,
 ) => {
     try {
-        const userId = req.user?.id;
-        if (!userId) throw new ApiError("Unauthorized", 401);
+        const userId = req.user!.id;
 
         const { targetId, targetType } = req.body;
         if (!targetId || !targetType) {
@@ -59,13 +58,12 @@ export const getUserBookmarksHandler = async (
     next: NextFunction,
 ) => {
     try {
-        const userId = req.user?.id;
-        if (!userId) throw new ApiError("Unauthorized", 401);
+        const userId = req.user!.id;
 
         const { targetType, page, limit } = req.query;
 
         const bookmarks = await getUserBookmarks({
-            userId,
+            userId: userId as UserId,
             targetType,
             page: page ? parseInt(page, 10) : 1,
             limit: limit ? parseInt(limit, 10) : 20,

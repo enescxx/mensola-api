@@ -53,10 +53,6 @@ export const getUserPlaylists = async (dto: GetUserPlaylistsDto): Promise<GetUse
  * @returns A promise that resolves to a paginated list of liked playlists.
  */
 export const getLikedPlaylists = async (dto: GetLikedPlaylistsDto): Promise<GetLikedPlaylistsResponse> => {
-    if (!dto.userId) {
-        throw new ApiError("userId is invalid", 400);
-    }
-
     const offset = (dto.page - 1) * dto.limit;
     const currentUserId = dto.currentUserId || null;
 
@@ -192,10 +188,10 @@ export const upsertPlaylistInteraction = async (dto: UpsertPlaylistInteractionDt
     try {
         await client.query("BEGIN");
 
-        const accessResult = await client.query<{ id: string; hasAccess: boolean }>(
-            playlistQueries.items.checkAccess,
-            [playlistId, userId],
-        );
+        const accessResult = await client.query<{ id: string; hasAccess: boolean }>(playlistQueries.items.checkAccess, [
+            playlistId,
+            userId,
+        ]);
 
         if (accessResult.rows.length === 0 || !accessResult.rows[0].hasAccess) {
             throw new ApiError("Playlist not found or access denied.", 404);

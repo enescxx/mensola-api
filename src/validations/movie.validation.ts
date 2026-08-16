@@ -102,15 +102,17 @@ export const createMovieListSchema = z.object({
  */
 export const updateMovieListSchema = z.object({
     params: listIdParamSchema.shape.params,
-    body: z.object(
-        {
-            title: z.string().min(1, "Title cannot be empty.").max(100).trim().optional(),
-            description: z.string().max(500).trim().optional(),
-            image: z.string().url("Invalid image URL format.").optional().nullable(),
-            isPrivate: z.boolean().optional(),
-        },
-        { message: "Request body is required." },
-    ),
+    body: z
+        .object(
+            {
+                title: z.string().min(1, "Title cannot be empty.").max(100).trim().optional(),
+                description: z.string().max(500).trim().optional(),
+                image: z.string().url("Invalid image URL format.").optional().nullable(),
+                isPrivate: z.boolean().optional(),
+            },
+            { message: "Request body is required." },
+        )
+        .refine((data) => Object.keys(data).length > 0, "En az bir alan gerekli"),
 });
 
 /**

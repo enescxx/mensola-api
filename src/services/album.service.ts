@@ -26,10 +26,6 @@ import { upsertInteractionComment } from "@/utils/interaction";
  * @returns A promise that resolves to a paginated list of liked albums.
  */
 export const getLikedAlbums = async (dto: GetLikedAlbumsDto): Promise<GetLikedAlbumsResponse> => {
-    if (!dto.userId) {
-        throw new ApiError("userId is invalid", 400);
-    }
-
     const offset = (dto.page - 1) * dto.limit;
 
     const result = await pool.query<GetLikedAlbumsResponseItem>(albumQueries.likes.get, [
