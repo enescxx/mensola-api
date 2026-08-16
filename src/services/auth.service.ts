@@ -162,6 +162,8 @@ const updatePassword = async (dto: UpdatePasswordDto): Promise<boolean> => {
     // Update password & invalidate reset token
     await pool.query(authQueries.user.updatePassword, [hashedNewPassword, user.id]);
 
+    await pool.query(authQueries.token.setNullById, [user.id]);
+
     // Revoke all active sessions for safety after password change
     await pool.query(authQueries.session.deleteByUserId, [user.id]);
 
