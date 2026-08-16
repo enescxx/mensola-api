@@ -19,7 +19,7 @@ import {
     CreateUserResponse,
     LoginUserResponse,
     TokenRefreshResponse,
-    VerifyCodeResponse
+    VerifyCodeResponse,
 } from "@/types/auth";
 import { IUser, ISession } from "@/types/user";
 
@@ -115,8 +115,8 @@ const sendResetEmail = async (dto: SendResetEmailDto): Promise<boolean> => {
         throw new ApiError("No account was found registered with this email address.", 404);
     }
 
-    // Generate 6-digit numeric OTP code
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit numeric OTP code (cryptographically secure)
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
 
     await pool.query(authQueries.token.setByEmail, [otpCode, otpExpires, dto.email]);
