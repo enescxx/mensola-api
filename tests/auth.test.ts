@@ -2,13 +2,13 @@ import request from "supertest";
 
 import app from "@/app";
 import pool from "@/config/db";
-
+import { MESSAGES } from "@/constants/messages";
 import {
     CreateUserDto,
     CreateUserResponse,
     LoginUserResponse,
     TokenRefreshResponse,
-    VerifyCodeResponse
+    VerifyCodeResponse,
 } from "@/types/auth";
 import { ApiResponse } from "@/types/api";
 
@@ -17,7 +17,7 @@ import { ApiResponse } from "@/types/api";
  * Intercepts the email utility to prevent sending actual emails during automated testing.
  */
 jest.mock("@/utils/email", () => ({
-    sendPasswordResetEmail: jest.fn()
+    sendPasswordResetEmail: jest.fn(),
 }));
 
 /**
@@ -39,7 +39,7 @@ describe("Auth Endpoints", () => {
     const testUser: CreateUserDto = {
         email: "test_user@mensola.com",
         username: "testuser123",
-        password: "password123"
+        password: "password123",
     };
 
     const newPassword = "newpassword456";
@@ -73,7 +73,7 @@ describe("Auth Endpoints", () => {
 
             expect(response.status).toBe(400);
             expect(body.success).toBe(false);
-            expect(body.error?.message).toMatch(/already in use/i);
+            expect(body.error?.message).toBe(MESSAGES.ERRORS.EMAIL_USERNAME_IN_USE);
         });
     });
 
@@ -89,7 +89,7 @@ describe("Auth Endpoints", () => {
         it("Should login successfully with correct credentials (200)", async () => {
             const response = await request(app).post("/api/auth/login").send({
                 email: testUser.email,
-                password: testUser.password
+                password: testUser.password,
             });
             const body = response.body as ApiResponse<LoginUserResponse>;
 
@@ -108,13 +108,13 @@ describe("Auth Endpoints", () => {
         it("Should fail to login with an incorrect password (401)", async () => {
             const response = await request(app).post("/api/auth/login").send({
                 email: testUser.email,
-                password: "wrongpassword"
+                password: "wrongpassword",
             });
             const body = response.body as ApiResponse;
 
             expect(response.status).toBe(401);
             expect(body.success).toBe(false);
-            expect(body.error?.message).toMatch(/Invalid email or password/i);
+            expect(body.error?.message).toBe(MESSAGES.ERRORS.INVALID_CREDENTIALS);
         });
     });
 
@@ -163,7 +163,7 @@ describe("Auth Endpoints", () => {
 
             expect(response.status).toBe(200);
             expect(body.success).toBe(true);
-            expect(body.message).toMatch(/logged out successfully/i);
+            expect(body.message).toBe(MESSAGES.SUCCESS.LOGOUT_SUCCESS);
         });
     });
 
@@ -195,7 +195,7 @@ describe("Auth Endpoints", () => {
         it("Step 2: Should return a secure ticket with a correct OTP code (200)", async () => {
             const response = await request(app).post("/api/auth/verify-reset-code").send({
                 email: testUser.email,
-                code: otpCode
+                code: otpCode,
             });
             const body = response.body as ApiResponse<VerifyCodeResponse>;
 
@@ -212,13 +212,13 @@ describe("Auth Endpoints", () => {
         it("Step 3: Should successfully update the password with a valid ticket (200)", async () => {
             const response = await request(app).post("/api/auth/reset-password").send({
                 ticket: resetTicket,
-                newPassword: newPassword
+                newPassword: newPassword,
             });
             const body = response.body as ApiResponse;
 
             expect(response.status).toBe(200);
             expect(body.success).toBe(true);
-            expect(body.message).toMatch(/successfully updated/i);
+            expect(body.message).toBe(MESSAGES.SUCCESS.PASSWORD_UPDATED);
         });
 
         /**
@@ -227,7 +227,7 @@ describe("Auth Endpoints", () => {
         it("Step 4: Should login successfully with the new password (200)", async () => {
             const response = await request(app).post("/api/auth/login").send({
                 email: testUser.email,
-                password: newPassword
+                password: newPassword,
             });
             const body = response.body as ApiResponse;
 

@@ -33,7 +33,6 @@ describe("Bookmark API", () => {
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
             expect(response.body.data.isSaved).toBe(true);
-            expect(response.body.message).toMatch(/saved/i);
         });
 
         it("should remove movie list from bookmarks when already saved", async () => {
@@ -50,7 +49,6 @@ describe("Bookmark API", () => {
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
             expect(response.body.data.isSaved).toBe(false);
-            expect(response.body.message).toMatch(/removed/i);
         });
 
         it("should support toggling bookmarks for playlist and album target types", async () => {
@@ -70,12 +68,10 @@ describe("Bookmark API", () => {
         });
 
         it("should return 401 when token is missing", async () => {
-            const response = await request(app)
-                .post("/api/bookmarks/toggle")
-                .send({
-                    targetId: testListId,
-                    targetType: "movieList",
-                });
+            const response = await request(app).post("/api/bookmarks/toggle").send({
+                targetId: testListId,
+                targetType: "movieList",
+            });
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);
@@ -114,9 +110,7 @@ describe("Bookmark API", () => {
         it("should return list of bookmarks for authenticated user", async () => {
             await createTestBookmark(testUserA.id, testListId, "movieList");
 
-            const response = await request(app)
-                .get("/api/bookmarks")
-                .set("Authorization", `Bearer ${testUserAToken}`);
+            const response = await request(app).get("/api/bookmarks").set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);

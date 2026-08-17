@@ -1,4 +1,5 @@
 import request from "supertest";
+import { MESSAGES } from "@/constants/messages";
 import app from "@/app";
 
 describe("User endpoints", () => {
@@ -99,7 +100,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(403);
             expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/Invalid or expired token/i);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_TOKEN);
         });
     });
 
@@ -186,7 +187,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(403);
             expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/Invalid or expired token/i);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_TOKEN);
         });
     });
 
@@ -211,7 +212,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
-            expect(response.body.message).toMatch(/Profile updated successfully/i);
+            expect(response.body.message).toBe(MESSAGES.SUCCESS.PROFILE_UPDATED);
 
             const updatedUser = response.body.data?.user;
 
@@ -233,7 +234,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/at least one field/i);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.AT_LEAST_ONE_FIELD_REQUIRED);
         });
 
         /**
@@ -247,7 +248,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(403);
             expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/Invalid or expired token/i);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_TOKEN);
         });
     });
 
@@ -320,7 +321,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/Target user ID is required/i);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_USER_ID);
         });
     });
 
@@ -393,7 +394,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/Target user ID is required/i);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_USER_ID);
         });
     });
 
@@ -435,7 +436,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/cannot follow yourself/i);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.CANNOT_FOLLOW_SELF);
         });
 
         /**
@@ -448,7 +449,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(403);
             expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/Invalid or expired token/i);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_TOKEN);
         });
     });
 
@@ -492,7 +493,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/cannot unfollow yourself/i);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.CANNOT_UNFOLLOW_SELF);
         });
 
         /**
@@ -505,7 +506,7 @@ describe("User endpoints", () => {
 
             expect(response.status).toBe(403);
             expect(response.body.success).toBe(false);
-            expect(response.body.error.message).toMatch(/Invalid or expired token/i);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_TOKEN);
         });
     });
 });

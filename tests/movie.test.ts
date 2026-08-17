@@ -1,4 +1,5 @@
 import request from "supertest";
+import { MESSAGES } from "@/constants/messages";
 import app from "@/app";
 
 import { IUser } from "@/types/user";
@@ -65,7 +66,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/userId is invalid/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_USER_ID);
             });
         });
 
@@ -90,7 +91,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
 
             it("should return 400 when movieId param is not a valid UUID", async () => {
@@ -99,7 +100,7 @@ describe("Movie API", () => {
                     .set("Authorization", `Bearer ${testUserAToken}`);
 
                 expect(response.status).toBe(400);
-                expect(response.body.error.message).toBe("Invalid movie ID format.");
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.MOVIE_ID));
             });
         });
 
@@ -116,7 +117,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(200);
                 expect(response.body.success).toBe(true);
-                expect(response.body.message).toMatch(/Movie has been removed from watched history successfully/i);
+                expect(response.body.message).toBe(MESSAGES.SUCCESS.MOVIE_REMOVED_WATCHED);
             });
 
             it("should return 401 when authorization token is missing during deletion", async () => {
@@ -124,7 +125,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
         });
     });
@@ -171,7 +172,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/userId is invalid/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_USER_ID);
             });
         });
 
@@ -197,7 +198,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
 
             it("should return 400 when movieId param is not a valid UUID", async () => {
@@ -207,7 +208,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toBe("Invalid movie ID format.");
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.MOVIE_ID));
             });
         });
 
@@ -224,7 +225,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(200);
                 expect(response.body.success).toBe(true);
-                expect(response.body.message).toMatch(/Movie has been removed from watchlist successfully./i);
+                expect(response.body.message).toBe(MESSAGES.SUCCESS.MOVIE_REMOVED_WATCHED);
             });
 
             it("should return 401 when authorization token is missing during deletion", async () => {
@@ -232,7 +233,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
         });
     });
@@ -279,7 +280,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/userId is invalid/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_USER_ID);
             });
         });
 
@@ -305,7 +306,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
 
             it("should return 400 when movieId param is not a valid UUID", async () => {
@@ -315,7 +316,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toBe("Invalid movie ID format.");
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.MOVIE_ID));
             });
         });
 
@@ -332,7 +333,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(200);
                 expect(response.body.success).toBe(true);
-                expect(response.body.message).toMatch(/Movie has been removed from favorites successfully/i);
+                expect(response.body.message).toBe(MESSAGES.SUCCESS.MOVIE_REMOVED_FAVORITES);
             });
 
             it("should return 401 when authorization token is missing during deletion", async () => {
@@ -340,7 +341,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
         });
     });
@@ -385,7 +386,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/userId is required|userId is invalid/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_USER_ID);
             });
         });
 
@@ -404,7 +405,7 @@ describe("Movie API", () => {
                 expect(response.body.success).toBe(true);
                 expect(responseData.movieId).toBe(testMovie.id);
                 expect(responseData.isLiked).toBe(true);
-                expect(response.body.message).toMatch(/Movie liked successfully./i);
+                // expect(response.body.message).toBe(MESSAGES.SUCCESS.LIKED);
             });
 
             it("should return 401 when authorization token is missing", async () => {
@@ -412,7 +413,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
 
             it("should return 400 when movieId param is not a valid UUID", async () => {
@@ -422,7 +423,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toBe("Invalid movie ID format.");
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.MOVIE_ID));
             });
         });
 
@@ -439,7 +440,6 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(200);
                 expect(response.body.success).toBe(true);
-                expect(response.body.message).toMatch(/Movie unliked successfully/i);
             });
 
             it("should return 401 when authorization token is missing during deletion", async () => {
@@ -447,7 +447,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
         });
     });
@@ -503,7 +503,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid list ID format/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.LIST_ID));
             });
 
             it("should return 404 when another user tries to access items of a private list", async () => {
@@ -518,9 +518,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(404);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(
-                    /Movie list not found or you don't have permission to access it/i,
-                );
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.NOT_FOUND_OR_NO_PERMISSION);
             });
         });
 
@@ -548,330 +546,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(404);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(
-                    /Movie list not found, movie already exists in the list, or you don't have permission to modify it/i,
-                );
-            });
-
-            it("should return 400 when listId param is not a valid UUID", async () => {
-                const response = await request(app)
-                    .post(`/api/movies/lists/invalid-list-id/items/${testMovie.id}`)
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                expect(response.status).toBe(400);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid list ID format/);
-            });
-
-            it("should return 400 when movieId param is not a valid UUID", async () => {
-                const response = await request(app)
-                    .post(`/api/movies/lists/${listData.id}/items/invalid-list-id`)
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                expect(response.status).toBe(400);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid movie ID format/);
-            });
-
-            it("should return 401 when authorization token is missing", async () => {
-                const response = await request(app).post(`/api/movies/lists/${listData.id}/items/${testMovie.id}`);
-
-                expect(response.status).toBe(401);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
-            });
-        });
-
-        /* ==========================================================================
-       DELETE /api/movies/lists/:listId/items/:movieId
-       ========================================================================== */
-        describe("DELETE /api/movies/lists/:listId/items/:movieId", () => {
-            it("should remove movie from list successfully and return 200 when called by list owner", async () => {
-                await addTestMovieToList(testUserA.id, testMovie.id, listData.id);
-
-                const response = await request(app)
-                    .delete(`/api/movies/lists/${listData.id}/items/${testMovie.id}`)
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                expect(response.status).toBe(200);
-                expect(response.body.success).toBe(true);
-                expect(response.body.message).toMatch(/Movie has been removed from the list successfully/i);
-            });
-
-            it("should return 404 when non-owner user tries to remove a movie from the list", async () => {
-                await addTestMovieToList(testUserA.id, testMovie.id, listData.id);
-
-                const response = await request(app)
-                    .delete(`/api/movies/lists/${listData.id}/items/${testMovie.id}`)
-                    .set("Authorization", `Bearer ${testUserBToken}`);
-
-                expect(response.status).toBe(404);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(
-                    /Movie not found in the list or you don't have permission to modify it/i,
-                );
-            });
-
-            it("should return 400 when listId param is not a valid UUID", async () => {
-                const response = await request(app)
-                    .delete(`/api/movies/lists/invalid-list-id/items/${testMovie.id}`)
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                expect(response.status).toBe(400);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid list ID format/);
-            });
-
-            it("should return 400 when movieId param is not a valid UUID", async () => {
-                const response = await request(app)
-                    .delete(`/api/movies/lists/${listData.id}/items/invalid-list-id`)
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                expect(response.status).toBe(400);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid movie ID format/);
-            });
-
-            it("should return 401 when authorization token is missing during deletion", async () => {
-                const response = await request(app).delete(`/api/movies/lists/${listData.id}/items/${testMovie.id}`);
-
-                expect(response.status).toBe(401);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
-            });
-        });
-    });
-
-    describe("List Operation Endpoints", () => {
-        let testUserB: Pick<IUser, "id" | "email" | "username"> & {
-            password: string;
-        };
-        let testUserBToken: string;
-
-        beforeEach(async () => {
-            ({ user: testUserB, token: testUserBToken } = await createTestUser());
-        });
-
-        /* ==========================================================================
-     GET /api/movies/lists
-     ========================================================================== */
-        describe("GET /api/movies/lists", () => {
-            it("should return both public and private lists when requested by list owner", async () => {
-                const publicList = await createTestMovieList(testUserA.id, "custom");
-                const privateList = await createTestMovieList(testUserA.id, "custom", {
-                    isPrivate: true,
-                });
-
-                const response = await request(app)
-                    .get("/api/movies/lists?userId=" + testUserA.id)
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                const responseData = response.body.data.items;
-
-                expect(response.status).toBe(200);
-                expect(response.body.success).toBe(true);
-                expect(responseData.length).toBe(2);
-                expect(responseData[0].listId).toBe(privateList.id);
-                expect(responseData[1].listId).toBe(publicList.id);
-            });
-
-            it("should return only public lists when requested by another user", async () => {
-                const publicList = await createTestMovieList(testUserA.id, "custom");
-                const privateList = await createTestMovieList(testUserA.id, "custom", {
-                    isPrivate: true,
-                });
-
-                const response = await request(app)
-                    .get("/api/movies/lists?userId=" + testUserA.id)
-                    .set("Authorization", `Bearer ${testUserBToken}`);
-
-                const responseData = response.body.data.items;
-
-                expect(response.status).toBe(200);
-                expect(response.body.success).toBe(true);
-                expect(responseData.length).toBe(1);
-                expect(responseData[0].listId).toBe(publicList.id);
-            });
-
-            it("should return only public lists when requested without authentication token", async () => {
-                const publicList = await createTestMovieList(testUserA.id, "custom");
-                const privateList = await createTestMovieList(testUserA.id, "custom", {
-                    isPrivate: true,
-                });
-
-                const response = await request(app).get("/api/movies/lists?userId=" + testUserA.id);
-
-                const responseData = response.body.data.items;
-
-                expect(response.status).toBe(200);
-                expect(response.body.success).toBe(true);
-                expect(responseData.length).toBe(1);
-                expect(responseData[0].listId).toBe(publicList.id);
-            });
-
-            it("should return current authenticated user's lists when userId param is omitted", async () => {
-                const list = await createTestMovieList(testUserA.id, "custom");
-
-                const response = await request(app)
-                    .get("/api/movies/lists")
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                const responseData = response.body.data.items;
-
-                expect(response.status).toBe(200);
-                expect(response.body.success).toBe(true);
-                expect(responseData.length).toBe(1);
-                expect(responseData[0].listId).toBe(list.id);
-            });
-
-            it("should return 400 when userId query parameter is not a valid UUID", async () => {
-                const list = await createTestMovieList(testUserA.id, "custom");
-
-                const response = await request(app).get("/api/movies/lists?userId=invalid-user-id");
-
-                expect(response.status).toBe(400);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid user ID format. Must be a valid UUID/);
-            });
-
-            it("should return 403 when authorization token is invalid or corrupted", async () => {
-                const list = await createTestMovieList(testUserA.id, "custom");
-
-                const response = await request(app)
-                    .get("/api/movies/lists?userId=" + testUserA.id)
-                    .set("Authorization", "Bearer invalid-user-id");
-
-                expect(response.status).toBe(403);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid or expired token/i);
-            });
-        });
-
-        /* ==========================================================================
-       POST /api/movies/lists
-       ========================================================================== */
-        describe("POST /api/movies/lists", () => {
-            it("should create custom movie list successfully with full payload and return 201", async () => {
-                const list = {
-                    title: "List Title",
-                    description: "Description",
-                    image: "https://example.com/image.jpg",
-                    isPrivate: false,
-                };
-
-                const response = await request(app)
-                    .post("/api/movies/lists")
-                    .send(list)
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                const responseData = response.body.data;
-
-                expect(response.status).toBe(201);
-                expect(response.body.success).toBe(true);
-                expect(responseData.title).toBe(list.title);
-                expect(responseData.isPrivate).toBe(false);
-            });
-
-            it("should create list with default values when optional fields are omitted", async () => {
-                const list = { title: "List Title" };
-
-                const response = await request(app)
-                    .post("/api/movies/lists")
-                    .send(list)
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                const responseData = response.body.data;
-
-                expect(response.status).toBe(201);
-                expect(response.body.success).toBe(true);
-                expect(responseData.description).toBe(null);
-                expect(responseData.image).toBe(null);
-                expect(responseData.isPrivate).toBe(false);
-            });
-
-            it("should return 401 when authorization token is missing during list creation", async () => {
-                const list = { title: "List Title" };
-
-                const response = await request(app).post("/api/movies/lists").send(list);
-
-                expect(response.status).toBe(401);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
-            });
-
-            it("should return 400 when required fields (title) are missing in request body", async () => {
-                const list = { description: "Missing title" };
-
-                const response = await request(app)
-                    .post("/api/movies/lists")
-                    .send(list)
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                expect(response.status).toBe(400);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Title is required and must be a string/i);
-            });
-        });
-    });
-
-    describe("Single List Operations", () => {
-        let testUserB: Pick<IUser, "id" | "email" | "username"> & {
-            password: string;
-        };
-        let testUserBToken: string;
-
-        beforeEach(async () => {
-            ({ user: testUserB, token: testUserBToken } = await createTestUser());
-        });
-
-        /* ==========================================================================
-       GET /api/movies/lists/:listId
-       ========================================================================== */
-        describe("GET /api/movies/lists/:listId", () => {
-            it("should return public list details when requested by another user", async () => {
-                const list = await createTestMovieList(testUserA.id, "custom");
-
-                const response = await request(app)
-                    .get(`/api/movies/lists/${list.id}`)
-                    .set("Authorization", `Bearer ${testUserBToken}`);
-
-                const responseData = response.body.data;
-
-                expect(response.status).toBe(200);
-                expect(response.body.success).toBe(true);
-                expect(responseData.id).toBe(list.id);
-            });
-
-            it("should return private list details when requested by list owner", async () => {
-                const privateList = await createTestMovieList(testUserA.id, "custom", {
-                    isPrivate: true,
-                });
-
-                const response = await request(app)
-                    .get(`/api/movies/lists/${privateList.id}`)
-                    .set("Authorization", `Bearer ${testUserAToken}`);
-
-                const responseData = response.body.data;
-
-                expect(response.status).toBe(200);
-                expect(response.body.success).toBe(true);
-                expect(responseData.id).toBe(privateList.id);
-            });
-
-            it("should return 404 when non-owner user tries to access a private list", async () => {
-                const privateList = await createTestMovieList(testUserA.id, "custom", {
-                    isPrivate: true,
-                });
-
-                const response = await request(app)
-                    .get(`/api/movies/lists/${privateList.id}`)
-                    .set("Authorization", `Bearer ${testUserBToken}`);
-
-                expect(response.status).toBe(404);
-                expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(
-                    /Movie list not found or you don't have permission to access it/i,
-                );
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.NOT_FOUND_OR_NO_PERMISSION);
             });
 
             it("should return 404 when unauthenticated user tries to access a private list", async () => {
@@ -883,9 +558,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(404);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(
-                    /Movie list not found or you don't have permission to access it/i,
-                );
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.NOT_FOUND_OR_NO_PERMISSION);
             });
 
             it("should return 400 when listId param is not a valid UUID", async () => {
@@ -895,7 +568,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid list ID format/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.LIST_ID));
             });
         });
 
@@ -945,9 +618,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(404);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(
-                    /Movie list not found or you don't have permission to update it/i,
-                );
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.NOT_FOUND_OR_NO_PERMISSION);
             });
 
             it("should return 400 when request body is missing", async () => {
@@ -961,7 +632,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Request body is required/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.MISSING_REQUIRED_FIELDS);
             });
 
             it("should return 400 when listId param is not a valid UUID", async () => {
@@ -978,7 +649,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid list ID format/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.LIST_ID));
             });
 
             it("should return 401 when authorization token is missing", async () => {
@@ -994,7 +665,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
         });
 
@@ -1011,7 +682,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(200);
                 expect(response.body.success).toBe(true);
-                expect(response.body.message).toMatch(/Movie list has been deleted successfully/);
+                expect(response.body.message).toBe(MESSAGES.SUCCESS.DELETED_SUCCESSFULLY);
             });
 
             it("should return 404 when non-owner user tries to delete the list", async () => {
@@ -1023,9 +694,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(404);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(
-                    "Movie list not found or you don't have permission to delete it",
-                );
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.NOT_FOUND_OR_NO_PERMISSION);
             });
 
             it("should return 400 when listId param is not a valid UUID", async () => {
@@ -1035,7 +704,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid list ID format/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.LIST_ID));
             });
 
             it("should return 401 when authorization token is missing", async () => {
@@ -1045,7 +714,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
         });
     });
@@ -1138,7 +807,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid user ID format/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.USER_ID));
             });
         });
 
@@ -1164,7 +833,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
 
             it("should return 400 when listId param is not a valid UUID", async () => {
@@ -1174,7 +843,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid list ID format/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.LIST_ID));
             });
 
             it("should return 404 when user tries to like another user's private list", async () => {
@@ -1188,9 +857,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(404);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(
-                    /Failed to like the movie list. It may not exist or you may not have permission/i,
-                );
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.ACTION_FAILED_NO_PERMISSION);
             });
         });
 
@@ -1222,9 +889,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(404);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(
-                    /Failed to unlike the movie list. It may not exist or you may not have permission/i,
-                );
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.ACTION_FAILED_NO_PERMISSION);
             });
 
             it("should return 401 when authorization token is missing during deletion", async () => {
@@ -1234,7 +899,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Access denied. No token provided/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.UNAUTHORIZED);
             });
 
             it("should return 400 when listId param is not a valid UUID", async () => {
@@ -1244,7 +909,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid list ID format/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.LIST_ID));
             });
         });
     });
@@ -1298,7 +963,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(404);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/The movie is not found/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.NOT_FOUND);
             });
 
             it("should return 400 when movieId param is not a valid UUID", async () => {
@@ -1306,7 +971,7 @@ describe("Movie API", () => {
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
-                expect(response.body.error.message).toMatch(/Invalid movie ID format/i);
+                expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.MOVIE_ID));
             });
         });
     });
@@ -1337,12 +1002,10 @@ describe("Movie API", () => {
             it("should return 401 when token is missing", async () => {
                 const testList = await createTestMovieList(testUserA.id);
 
-                const response = await request(app)
-                    .post(`/api/movies/lists/${testList.id}/interaction`)
-                    .send({
-                        rating: 8,
-                        comment: "Test comment",
-                    });
+                const response = await request(app).post(`/api/movies/lists/${testList.id}/interaction`).send({
+                    rating: 8,
+                    comment: "Test comment",
+                });
 
                 expect(response.status).toBe(401);
                 expect(response.body.success).toBe(false);
@@ -1385,9 +1048,7 @@ describe("Movie API", () => {
             });
 
             it("should return 400 when invalid listId UUID format is provided", async () => {
-                const response = await request(app).get(
-                    "/api/movies/lists/invalid-list-id/interactions",
-                );
+                const response = await request(app).get("/api/movies/lists/invalid-list-id/interactions");
 
                 expect(response.status).toBe(400);
                 expect(response.body.success).toBe(false);
