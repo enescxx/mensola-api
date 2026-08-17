@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyToken } from "@/middlewares/auth.middleware";
-import { toggleBookmarkHandler, getUserBookmarksHandler } from "@/controllers/bookmark.controller";
+import { toggleBookmarkHandler, getUserBookmarksHandler } from "@/controllers/v1/bookmark.controller";
 
 const router = Router();
 

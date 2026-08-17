@@ -29,7 +29,7 @@ import {
     likeMovie,
     unlikeMovie,
     createMovieInteraction,
-} from "@/controllers/movie.controller";
+} from "@/controllers/v1/movie.controller";
 
 // Middlewares
 import { verifyToken, extractUser } from "@/middlewares/auth.middleware";

@@ -9,7 +9,7 @@ import {
     forgotPassword,
     verifyResetCode,
     resetPassword,
-} from "@/controllers/auth.controller";
+} from "@/controllers/v1/auth.controller";
 
 // Middlewares & Validations
 import { validate } from "@/middlewares/validate.middleware";

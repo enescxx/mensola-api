@@ -11,7 +11,7 @@ import {
     unlikePlaylist,
     addTrackToPlaylist,
     removeTrackFromPlaylist,
-} from "@/controllers/playlist.controller";
+} from "@/controllers/v1/playlist.controller";
 
 import { extractUser, verifyToken } from "@/middlewares/auth.middleware";
 import { validate } from "@/middlewares/validate.middleware";

@@ -1,0 +1,21 @@
+import authRoutes from "./auth.routes";
+import userRoutes from "./user.routes";
+import movieRoutes from "./movie.routes";
+import bookmarkRoutes from "./bookmark.routes";
+import trackRoutes from "./track.routes";
+import playlistRoutes from "./playlist.routes";
+import albumRoutes from "./album.routes";
+
+import { Router } from "express";
+
+const v1Router = Router();
+
+v1Router.use("/auth", authRoutes);
+v1Router.use("/users", userRoutes);
+v1Router.use("/movies", movieRoutes);
+v1Router.use("/bookmarks", bookmarkRoutes);
+v1Router.use("/tracks", trackRoutes);
+v1Router.use("/playlists", playlistRoutes);
+v1Router.use("/albums", albumRoutes);
+
+export default v1Router;

@@ -7,7 +7,7 @@ import {
     unlikeTrackHandler,
     getTrackInteractionsList,
     createTrackInteraction,
-} from "@/controllers/track.controller";
+} from "@/controllers/v1/track.controller";
 
 import { extractUser, verifyToken } from "@/middlewares/auth.middleware";
 import { validate } from "@/middlewares/validate.middleware";

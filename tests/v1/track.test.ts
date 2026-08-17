@@ -3,8 +3,8 @@ import app from "@/app";
 import pool from "@/config/db";
 
 import { IUser } from "@/types/user.types";
-import { createTestUser } from "./helpers/auth.helper";
-import { createTestTrack, createTestArtist, createTestTrackArtist, createTestInteraction } from "./helpers/db.helper";
+import { createTestUser } from "../helpers/auth.helper";
+import { createTestTrack, createTestArtist, createTestTrackArtist, createTestInteraction } from "../helpers/db.helper";
 import { ITrack } from "@/types/music.types";
 
 describe("Track API", () => {
@@ -18,7 +18,7 @@ describe("Track API", () => {
         ({ user: testUserB, token: testUserBToken } = await createTestUser());
     });
 
-    describe("GET /api/tracks/likes", () => {
+    describe("GET /v1/tracks/likes", () => {
         let testTrack1: ITrack;
         let testTrack2: ITrack;
         let testTrack3: ITrack;
@@ -48,7 +48,7 @@ describe("Track API", () => {
 
         it("should return the current user's liked tracks when no userId is provided", async () => {
             const response = await request(app)
-                .get("/api/tracks/likes")
+                .get("/v1/tracks/likes")
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -67,7 +67,7 @@ describe("Track API", () => {
         });
 
         it("should return another user's liked tracks when userId is provided", async () => {
-            const response = await request(app).get(`/api/tracks/likes?userId=${testUserB.id}`);
+            const response = await request(app).get(`/v1/tracks/likes?userId=${testUserB.id}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -79,7 +79,7 @@ describe("Track API", () => {
         });
 
         it("should return 400 if userId is invalid format", async () => {
-            const response = await request(app).get("/api/tracks/likes?userId=invalid-uuid");
+            const response = await request(app).get("/v1/tracks/likes?userId=invalid-uuid");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
@@ -87,7 +87,7 @@ describe("Track API", () => {
 
         it("should paginate the results correctly", async () => {
             const response = await request(app)
-                .get("/api/tracks/likes?limit=1")
+                .get("/v1/tracks/likes?limit=1")
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -99,7 +99,7 @@ describe("Track API", () => {
         });
     });
 
-    describe("GET /api/tracks/:trackId", () => {
+    describe("GET /v1/tracks/:trackId", () => {
         let testTrack: ITrack;
 
         beforeEach(async () => {
@@ -112,7 +112,7 @@ describe("Track API", () => {
         });
 
         it("should return track details including artist and counts", async () => {
-            const response = await request(app).get(`/api/tracks/${testTrack.id}`);
+            const response = await request(app).get(`/v1/tracks/${testTrack.id}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -126,7 +126,7 @@ describe("Track API", () => {
 
         it("should return current user interactions if token is provided", async () => {
             const response = await request(app)
-                .get(`/api/tracks/${testTrack.id}`)
+                .get(`/v1/tracks/${testTrack.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -138,14 +138,14 @@ describe("Track API", () => {
 
         it("should return 404 if track does not exist", async () => {
             const fakeId = "00000000-0000-0000-0000-000000000000";
-            const response = await request(app).get(`/api/tracks/${fakeId}`);
+            const response = await request(app).get(`/v1/tracks/${fakeId}`);
 
             expect(response.status).toBe(404);
             expect(response.body.success).toBe(false);
         });
     });
 
-    describe("POST /api/tracks/:trackId/like", () => {
+    describe("POST /v1/tracks/:trackId/like", () => {
         let testTrack: ITrack;
 
         beforeEach(async () => {
@@ -154,7 +154,7 @@ describe("Track API", () => {
 
         it("should allow a user to like a track", async () => {
             const response = await request(app)
-                .post(`/api/tracks/${testTrack.id}/like`)
+                .post(`/v1/tracks/${testTrack.id}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -163,21 +163,21 @@ describe("Track API", () => {
         });
 
         it("should return 401 if unauthenticated", async () => {
-            const response = await request(app).post(`/api/tracks/${testTrack.id}/like`);
+            const response = await request(app).post(`/v1/tracks/${testTrack.id}/like`);
             expect(response.status).toBe(401);
         });
 
         it("should return 404 if track does not exist", async () => {
             const fakeId = "00000000-0000-0000-0000-000000000000";
             const response = await request(app)
-                .post(`/api/tracks/${fakeId}/like`)
+                .post(`/v1/tracks/${fakeId}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(404);
         });
     });
 
-    describe("DELETE /api/tracks/:trackId/like", () => {
+    describe("DELETE /v1/tracks/:trackId/like", () => {
         let testTrack: ITrack;
 
         beforeEach(async () => {
@@ -187,7 +187,7 @@ describe("Track API", () => {
 
         it("should allow a user to unlike a track", async () => {
             const response = await request(app)
-                .delete(`/api/tracks/${testTrack.id}/like`)
+                .delete(`/v1/tracks/${testTrack.id}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -196,13 +196,13 @@ describe("Track API", () => {
         });
 
         it("should return 401 if unauthenticated", async () => {
-            const response = await request(app).delete(`/api/tracks/${testTrack.id}/like`);
+            const response = await request(app).delete(`/v1/tracks/${testTrack.id}/like`);
             expect(response.status).toBe(401);
         });
 
         it("should handle unliking a track that isn't liked", async () => {
             const response = await request(app)
-                .delete(`/api/tracks/${testTrack.id}/like`)
+                .delete(`/v1/tracks/${testTrack.id}/like`)
                 .set("Authorization", `Bearer ${testUserBToken}`);
 
             expect(response.status).toBe(200);
@@ -211,7 +211,7 @@ describe("Track API", () => {
         });
     });
 
-    describe("GET /api/tracks/:trackId/interactions", () => {
+    describe("GET /v1/tracks/:trackId/interactions", () => {
         let testTrack: ITrack;
 
         beforeEach(async () => {
@@ -236,7 +236,7 @@ describe("Track API", () => {
         });
 
         it("should return a list of interactions with comments for a track", async () => {
-            const response = await request(app).get(`/api/tracks/${testTrack.id}/interactions`);
+            const response = await request(app).get(`/v1/tracks/${testTrack.id}/interactions`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -254,7 +254,7 @@ describe("Track API", () => {
 
         it("should return empty items array for a track with no interactions", async () => {
             const emptyTrack = await createTestTrack({ title: "Empty Interactions Track" });
-            const response = await request(app).get(`/api/tracks/${emptyTrack.id}/interactions`);
+            const response = await request(app).get(`/v1/tracks/${emptyTrack.id}/interactions`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -262,7 +262,7 @@ describe("Track API", () => {
         });
     });
 
-    describe("POST /api/tracks/:trackId/interactions", () => {
+    describe("POST /v1/tracks/:trackId/interactions", () => {
         let testTrack: ITrack;
 
         beforeEach(async () => {
@@ -271,7 +271,7 @@ describe("Track API", () => {
 
         it("should create a new interaction with rating and comment", async () => {
             const response = await request(app)
-                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .post(`/v1/tracks/${testTrack.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: 5,
@@ -289,7 +289,7 @@ describe("Track API", () => {
         it("should update an existing interaction", async () => {
             // First create an interaction
             await request(app)
-                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .post(`/v1/tracks/${testTrack.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: 4,
@@ -298,7 +298,7 @@ describe("Track API", () => {
 
             // Update the interaction
             const updateResponse = await request(app)
-                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .post(`/v1/tracks/${testTrack.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: 5,
@@ -316,7 +316,7 @@ describe("Track API", () => {
         it("should delete comment when passing empty string", async () => {
             // First create an interaction with comment
             await request(app)
-                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .post(`/v1/tracks/${testTrack.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: 4,
@@ -325,7 +325,7 @@ describe("Track API", () => {
 
             // Update with empty comment
             const updateResponse = await request(app)
-                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .post(`/v1/tracks/${testTrack.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: 4,
@@ -341,7 +341,7 @@ describe("Track API", () => {
         it("should clean up empty interaction when removing all values", async () => {
             // First create an interaction
             const createRes = await request(app)
-                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .post(`/v1/tracks/${testTrack.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: 4,
@@ -352,7 +352,7 @@ describe("Track API", () => {
 
             // Remove rating and comment
             const updateResponse = await request(app)
-                .post(`/api/tracks/${testTrack.id}/interactions`)
+                .post(`/v1/tracks/${testTrack.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: null,
@@ -369,7 +369,7 @@ describe("Track API", () => {
         });
 
         it("should return 401 if unauthenticated", async () => {
-            const response = await request(app).post(`/api/tracks/${testTrack.id}/interactions`).send({ rating: 5 });
+            const response = await request(app).post(`/v1/tracks/${testTrack.id}/interactions`).send({ rating: 5 });
 
             expect(response.status).toBe(401);
         });
@@ -377,7 +377,7 @@ describe("Track API", () => {
         it("should return 404 if track does not exist", async () => {
             const fakeId = "00000000-0000-0000-0000-000000000000";
             const response = await request(app)
-                .post(`/api/tracks/${fakeId}/interactions`)
+                .post(`/v1/tracks/${fakeId}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({ rating: 5 });
 

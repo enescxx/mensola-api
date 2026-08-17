@@ -3,7 +3,7 @@ import app from "@/app";
 import crypto from "crypto";
 
 import { IUser } from "@/types/user.types";
-import { createTestUser } from "./helpers/auth.helper";
+import { createTestUser } from "../helpers/auth.helper";
 import {
     createTestPlaylist,
     createTestInteraction,
@@ -12,7 +12,7 @@ import {
     createTestTrackArtist,
     addTestTrackToPlaylist,
     createTestBookmark,
-} from "./helpers/db.helper";
+} from "../helpers/db.helper";
 import { IPlaylist } from "@/types/music.types";
 
 describe("Playlist API", () => {
@@ -26,7 +26,7 @@ describe("Playlist API", () => {
         ({ user: testUserB, token: testUserBToken } = await createTestUser());
     });
 
-    describe("GET /api/playlists", () => {
+    describe("GET /v1/playlists", () => {
         let testUserAPlaylist1: IPlaylist;
         let testUserAPlaylist2: IPlaylist;
         let testUserBPrivatePlaylist: IPlaylist;
@@ -50,7 +50,7 @@ describe("Playlist API", () => {
         });
 
         it("should return the current user's playlists including private ones when no userId is provided", async () => {
-            const response = await request(app).get("/api/playlists").set("Authorization", `Bearer ${testUserAToken}`);
+            const response = await request(app).get("/v1/playlists").set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -64,7 +64,7 @@ describe("Playlist API", () => {
 
         it("should return only public playlists when querying another user", async () => {
             const response = await request(app)
-                .get(`/api/playlists?userId=${testUserB.id}`)
+                .get(`/v1/playlists?userId=${testUserB.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -74,7 +74,7 @@ describe("Playlist API", () => {
         });
 
         it("should return only public playlists if no auth token is provided for another user", async () => {
-            const response = await request(app).get(`/api/playlists?userId=${testUserA.id}`);
+            const response = await request(app).get(`/v1/playlists?userId=${testUserA.id}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -83,7 +83,7 @@ describe("Playlist API", () => {
         });
 
         it("should return 400 if userId is invalid format", async () => {
-            const response = await request(app).get("/api/playlists?userId=invalid-uuid");
+            const response = await request(app).get("/v1/playlists?userId=invalid-uuid");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
@@ -91,7 +91,7 @@ describe("Playlist API", () => {
 
         it("should paginate the results correctly", async () => {
             const response = await request(app)
-                .get("/api/playlists?limit=1")
+                .get("/v1/playlists?limit=1")
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -108,7 +108,7 @@ describe("Playlist API", () => {
             await addTestTrackToPlaylist(testUserAPlaylist1.id, track.id, testUserA.id);
 
             const response = await request(app)
-                .get(`/api/playlists?trackId=${track.id}`)
+                .get(`/v1/playlists?trackId=${track.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -122,7 +122,7 @@ describe("Playlist API", () => {
         });
     });
 
-    describe("GET /api/playlists/likes", () => {
+    describe("GET /v1/playlists/likes", () => {
         let testUserAPlaylist1: IPlaylist;
         let testUserBPublicPlaylist: IPlaylist;
 
@@ -154,7 +154,7 @@ describe("Playlist API", () => {
 
         it("should return the public playlists liked by the current user", async () => {
             const response = await request(app)
-                .get("/api/playlists/likes")
+                .get("/v1/playlists/likes")
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -167,7 +167,7 @@ describe("Playlist API", () => {
         });
 
         it("should return public liked playlists of another user", async () => {
-            const response = await request(app).get(`/api/playlists/likes?userId=${testUserA.id}`);
+            const response = await request(app).get(`/v1/playlists/likes?userId=${testUserA.id}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -176,7 +176,7 @@ describe("Playlist API", () => {
         });
     });
 
-    describe("GET /api/playlists/:playlistId/items", () => {
+    describe("GET /v1/playlists/:playlistId/items", () => {
         let publicPlaylist: IPlaylist;
         let privatePlaylist: IPlaylist;
         let track1: any;
@@ -211,7 +211,7 @@ describe("Playlist API", () => {
         });
 
         it("should return items of a public playlist", async () => {
-            const response = await request(app).get(`/api/playlists/${publicPlaylist.id}/items`);
+            const response = await request(app).get(`/v1/playlists/${publicPlaylist.id}/items`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -226,7 +226,7 @@ describe("Playlist API", () => {
 
         it("should correctly populate isLiked when authenticated user has liked a track", async () => {
             const response = await request(app)
-                .get(`/api/playlists/${publicPlaylist.id}/items`)
+                .get(`/v1/playlists/${publicPlaylist.id}/items`)
                 .set("Authorization", `Bearer ${testUserBToken}`);
 
             expect(response.status).toBe(200);
@@ -241,7 +241,7 @@ describe("Playlist API", () => {
 
         it("should allow playlist owner to view items of their private playlist", async () => {
             const response = await request(app)
-                .get(`/api/playlists/${privatePlaylist.id}/items`)
+                .get(`/v1/playlists/${privatePlaylist.id}/items`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -252,7 +252,7 @@ describe("Playlist API", () => {
 
         it("should return 404 when non-owner tries to view items of a private playlist", async () => {
             const response = await request(app)
-                .get(`/api/playlists/${privatePlaylist.id}/items`)
+                .get(`/v1/playlists/${privatePlaylist.id}/items`)
                 .set("Authorization", `Bearer ${testUserBToken}`);
 
             expect(response.status).toBe(404);
@@ -262,7 +262,7 @@ describe("Playlist API", () => {
         it("should return empty array for playlist with no items", async () => {
             const emptyPlaylist = await createTestPlaylist(testUserA.id, { title: "Empty Playlist" });
 
-            const response = await request(app).get(`/api/playlists/${emptyPlaylist.id}/items`);
+            const response = await request(app).get(`/v1/playlists/${emptyPlaylist.id}/items`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -271,7 +271,7 @@ describe("Playlist API", () => {
         });
 
         it("should paginate playlist items correctly", async () => {
-            const response = await request(app).get(`/api/playlists/${publicPlaylist.id}/items?limit=1&page=1`);
+            const response = await request(app).get(`/v1/playlists/${publicPlaylist.id}/items?limit=1&page=1`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -281,21 +281,21 @@ describe("Playlist API", () => {
 
         it("should return 404 for non-existent playlist ID", async () => {
             const fakeId = crypto.randomUUID();
-            const response = await request(app).get(`/api/playlists/${fakeId}/items`);
+            const response = await request(app).get(`/v1/playlists/${fakeId}/items`);
 
             expect(response.status).toBe(404);
             expect(response.body.success).toBe(false);
         });
 
         it("should return 400 for invalid playlist ID format", async () => {
-            const response = await request(app).get("/api/playlists/invalid-uuid/items");
+            const response = await request(app).get("/v1/playlists/invalid-uuid/items");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
         });
     });
 
-    describe("GET /api/playlists/:playlistId", () => {
+    describe("GET /v1/playlists/:playlistId", () => {
         let publicPlaylist: IPlaylist;
         let privatePlaylist: IPlaylist;
         let track1: any;
@@ -320,7 +320,7 @@ describe("Playlist API", () => {
 
         it("should return details of a public playlist with user interaction context", async () => {
             const response = await request(app)
-                .get(`/api/playlists/${publicPlaylist.id}`)
+                .get(`/v1/playlists/${publicPlaylist.id}`)
                 .set("Authorization", `Bearer ${testUserBToken}`);
 
             expect(response.status).toBe(200);
@@ -338,7 +338,7 @@ describe("Playlist API", () => {
 
         it("should allow creator to view details of their private playlist", async () => {
             const response = await request(app)
-                .get(`/api/playlists/${privatePlaylist.id}`)
+                .get(`/v1/playlists/${privatePlaylist.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -348,7 +348,7 @@ describe("Playlist API", () => {
 
         it("should return 404 when non-owner tries to view details of a private playlist", async () => {
             const response = await request(app)
-                .get(`/api/playlists/${privatePlaylist.id}`)
+                .get(`/v1/playlists/${privatePlaylist.id}`)
                 .set("Authorization", `Bearer ${testUserBToken}`);
 
             expect(response.status).toBe(404);
@@ -357,21 +357,21 @@ describe("Playlist API", () => {
 
         it("should return 404 for non-existent playlist ID", async () => {
             const fakeId = crypto.randomUUID();
-            const response = await request(app).get(`/api/playlists/${fakeId}`);
+            const response = await request(app).get(`/v1/playlists/${fakeId}`);
 
             expect(response.status).toBe(404);
             expect(response.body.success).toBe(false);
         });
 
         it("should return 400 for invalid playlist ID format", async () => {
-            const response = await request(app).get("/api/playlists/invalid-uuid");
+            const response = await request(app).get("/v1/playlists/invalid-uuid");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
         });
     });
 
-    describe("GET /api/playlists/:playlistId/interactions", () => {
+    describe("GET /v1/playlists/:playlistId/interactions", () => {
         let publicPlaylist: IPlaylist;
 
         beforeEach(async () => {
@@ -390,7 +390,7 @@ describe("Playlist API", () => {
             });
 
             const response = await request(app)
-                .get(`/api/playlists/${publicPlaylist.id}/interactions`)
+                .get(`/v1/playlists/${publicPlaylist.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -415,7 +415,7 @@ describe("Playlist API", () => {
                 isLiked: true,
             });
 
-            const response = await request(app).get(`/api/playlists/${publicPlaylist.id}/interactions`);
+            const response = await request(app).get(`/v1/playlists/${publicPlaylist.id}/interactions`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -432,7 +432,7 @@ describe("Playlist API", () => {
                 comment: "Second comment",
             });
 
-            const response = await request(app).get(`/api/playlists/${publicPlaylist.id}/interactions`);
+            const response = await request(app).get(`/v1/playlists/${publicPlaylist.id}/interactions`);
 
             expect(response.status).toBe(200);
             const items = response.body.data.items;
@@ -452,7 +452,7 @@ describe("Playlist API", () => {
                 comment: "Comment B",
             });
 
-            const response = await request(app).get(`/api/playlists/${publicPlaylist.id}/interactions?limit=1&page=1`);
+            const response = await request(app).get(`/v1/playlists/${publicPlaylist.id}/interactions?limit=1&page=1`);
 
             expect(response.status).toBe(200);
             expect(response.body.data.items).toHaveLength(1);
@@ -460,14 +460,14 @@ describe("Playlist API", () => {
         });
 
         it("should return 400 for invalid playlist ID format", async () => {
-            const response = await request(app).get("/api/playlists/invalid-uuid/interactions");
+            const response = await request(app).get("/v1/playlists/invalid-uuid/interactions");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
         });
     });
 
-    describe("POST /api/playlists/:playlistId/interactions", () => {
+    describe("POST /v1/playlists/:playlistId/interactions", () => {
         let publicPlaylist: IPlaylist;
 
         beforeEach(async () => {
@@ -479,7 +479,7 @@ describe("Playlist API", () => {
 
         it("should create a new interaction (rating, comment, isLiked) for a playlist", async () => {
             const response = await request(app)
-                .post(`/api/playlists/${publicPlaylist.id}/interactions`)
+                .post(`/v1/playlists/${publicPlaylist.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: 9,
@@ -497,7 +497,7 @@ describe("Playlist API", () => {
 
         it("should update an existing interaction on consecutive request", async () => {
             await request(app)
-                .post(`/api/playlists/${publicPlaylist.id}/interactions`)
+                .post(`/v1/playlists/${publicPlaylist.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: 7,
@@ -506,7 +506,7 @@ describe("Playlist API", () => {
                 });
 
             const updateResponse = await request(app)
-                .post(`/api/playlists/${publicPlaylist.id}/interactions`)
+                .post(`/v1/playlists/${publicPlaylist.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: 10,
@@ -522,7 +522,7 @@ describe("Playlist API", () => {
         });
 
         it("should return 401 when unauthorized", async () => {
-            const response = await request(app).post(`/api/playlists/${publicPlaylist.id}/interactions`).send({
+            const response = await request(app).post(`/v1/playlists/${publicPlaylist.id}/interactions`).send({
                 comment: "Unauthorized comment",
             });
 
@@ -533,7 +533,7 @@ describe("Playlist API", () => {
         it("should return 404 for non-existent playlist ID", async () => {
             const nonExistentId = "00000000-0000-0000-0000-000000000000";
             const response = await request(app)
-                .post(`/api/playlists/${nonExistentId}/interactions`)
+                .post(`/v1/playlists/${nonExistentId}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     comment: "No playlist test",
@@ -544,7 +544,7 @@ describe("Playlist API", () => {
         });
     });
 
-    describe("POST /api/playlists/:playlistId/like", () => {
+    describe("POST /v1/playlists/:playlistId/like", () => {
         let publicPlaylist: IPlaylist;
 
         beforeEach(async () => {
@@ -556,7 +556,7 @@ describe("Playlist API", () => {
 
         it("should like a playlist successfully", async () => {
             const response = await request(app)
-                .post(`/api/playlists/${publicPlaylist.id}/like`)
+                .post(`/v1/playlists/${publicPlaylist.id}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -567,11 +567,11 @@ describe("Playlist API", () => {
 
         it("should be idempotent when liking an already liked playlist", async () => {
             await request(app)
-                .post(`/api/playlists/${publicPlaylist.id}/like`)
+                .post(`/v1/playlists/${publicPlaylist.id}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             const secondResponse = await request(app)
-                .post(`/api/playlists/${publicPlaylist.id}/like`)
+                .post(`/v1/playlists/${publicPlaylist.id}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(secondResponse.status).toBe(200);
@@ -580,7 +580,7 @@ describe("Playlist API", () => {
         });
 
         it("should return 401 when unauthorized", async () => {
-            const response = await request(app).post(`/api/playlists/${publicPlaylist.id}/like`);
+            const response = await request(app).post(`/v1/playlists/${publicPlaylist.id}/like`);
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);
@@ -589,7 +589,7 @@ describe("Playlist API", () => {
         it("should return 404 for non-existent playlist ID", async () => {
             const nonExistentId = "00000000-0000-0000-0000-000000000000";
             const response = await request(app)
-                .post(`/api/playlists/${nonExistentId}/like`)
+                .post(`/v1/playlists/${nonExistentId}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(404);
@@ -597,7 +597,7 @@ describe("Playlist API", () => {
         });
     });
 
-    describe("DELETE /api/playlists/:playlistId/like", () => {
+    describe("DELETE /v1/playlists/:playlistId/like", () => {
         let publicPlaylist: IPlaylist;
 
         beforeEach(async () => {
@@ -609,11 +609,11 @@ describe("Playlist API", () => {
 
         it("should unlike a liked playlist successfully", async () => {
             await request(app)
-                .post(`/api/playlists/${publicPlaylist.id}/like`)
+                .post(`/v1/playlists/${publicPlaylist.id}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             const response = await request(app)
-                .delete(`/api/playlists/${publicPlaylist.id}/like`)
+                .delete(`/v1/playlists/${publicPlaylist.id}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -624,7 +624,7 @@ describe("Playlist API", () => {
 
         it("should succeed when unliking a playlist that was not previously liked", async () => {
             const response = await request(app)
-                .delete(`/api/playlists/${publicPlaylist.id}/like`)
+                .delete(`/v1/playlists/${publicPlaylist.id}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -633,7 +633,7 @@ describe("Playlist API", () => {
         });
 
         it("should return 401 when unauthorized", async () => {
-            const response = await request(app).delete(`/api/playlists/${publicPlaylist.id}/like`);
+            const response = await request(app).delete(`/v1/playlists/${publicPlaylist.id}/like`);
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);
@@ -642,7 +642,7 @@ describe("Playlist API", () => {
         it("should return 404 for non-existent playlist ID", async () => {
             const nonExistentId = "00000000-0000-0000-0000-000000000000";
             const response = await request(app)
-                .delete(`/api/playlists/${nonExistentId}/like`)
+                .delete(`/v1/playlists/${nonExistentId}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(404);
@@ -650,7 +650,7 @@ describe("Playlist API", () => {
         });
     });
 
-    describe("POST /api/playlists/:playlistId/items/:trackId", () => {
+    describe("POST /v1/playlists/:playlistId/items/:trackId", () => {
         let testPlaylist: IPlaylist;
         let testTrack: any;
 
@@ -664,7 +664,7 @@ describe("Playlist API", () => {
 
         it("should add a track to the playlist successfully", async () => {
             const response = await request(app)
-                .post(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`)
+                .post(`/v1/playlists/${testPlaylist.id}/items/${testTrack.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(201);
@@ -676,11 +676,11 @@ describe("Playlist API", () => {
 
         it("should return 404 if track is already in the playlist", async () => {
             await request(app)
-                .post(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`)
+                .post(`/v1/playlists/${testPlaylist.id}/items/${testTrack.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             const response = await request(app)
-                .post(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`)
+                .post(`/v1/playlists/${testPlaylist.id}/items/${testTrack.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(404);
@@ -689,7 +689,7 @@ describe("Playlist API", () => {
 
         it("should return 404 if a user tries to add a track to another user's playlist without permission", async () => {
             const response = await request(app)
-                .post(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`)
+                .post(`/v1/playlists/${testPlaylist.id}/items/${testTrack.id}`)
                 .set("Authorization", `Bearer ${testUserBToken}`);
 
             expect(response.status).toBe(404);
@@ -699,7 +699,7 @@ describe("Playlist API", () => {
         it("should return 404 for non-existent playlist ID", async () => {
             const nonExistentId = "00000000-0000-0000-0000-000000000000";
             const response = await request(app)
-                .post(`/api/playlists/${nonExistentId}/items/${testTrack.id}`)
+                .post(`/v1/playlists/${nonExistentId}/items/${testTrack.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(404);
@@ -707,7 +707,7 @@ describe("Playlist API", () => {
         });
 
         it("should return 401 when unauthorized", async () => {
-            const response = await request(app).post(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`);
+            const response = await request(app).post(`/v1/playlists/${testPlaylist.id}/items/${testTrack.id}`);
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);
@@ -715,7 +715,7 @@ describe("Playlist API", () => {
 
         it("should return 400 for invalid ID format", async () => {
             const response = await request(app)
-                .post(`/api/playlists/invalid-id/items/${testTrack.id}`)
+                .post(`/v1/playlists/invalid-id/items/${testTrack.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(400);
@@ -723,7 +723,7 @@ describe("Playlist API", () => {
         });
     });
 
-    describe("DELETE /api/playlists/:playlistId/items/:trackId", () => {
+    describe("DELETE /v1/playlists/:playlistId/items/:trackId", () => {
         let testPlaylist: IPlaylist;
         let testTrack: any;
 
@@ -740,7 +740,7 @@ describe("Playlist API", () => {
 
         it("should remove a track from the playlist successfully", async () => {
             const response = await request(app)
-                .delete(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`)
+                .delete(`/v1/playlists/${testPlaylist.id}/items/${testTrack.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -748,7 +748,7 @@ describe("Playlist API", () => {
 
             // Verify item is removed
             const itemsResponse = await request(app)
-                .get(`/api/playlists/${testPlaylist.id}/items`)
+                .get(`/v1/playlists/${testPlaylist.id}/items`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
             expect(itemsResponse.body.data.items).toHaveLength(0);
         });
@@ -756,7 +756,7 @@ describe("Playlist API", () => {
         it("should return 404 if track is not in the playlist", async () => {
             const newTrack = await createTestTrack({ title: "Other Track" });
             const response = await request(app)
-                .delete(`/api/playlists/${testPlaylist.id}/items/${newTrack.id}`)
+                .delete(`/v1/playlists/${testPlaylist.id}/items/${newTrack.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(404);
@@ -765,7 +765,7 @@ describe("Playlist API", () => {
 
         it("should return 404 if a user tries to remove a track from another user's playlist without permission", async () => {
             const response = await request(app)
-                .delete(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`)
+                .delete(`/v1/playlists/${testPlaylist.id}/items/${testTrack.id}`)
                 .set("Authorization", `Bearer ${testUserBToken}`);
 
             expect(response.status).toBe(404);
@@ -773,7 +773,7 @@ describe("Playlist API", () => {
         });
 
         it("should return 401 when unauthorized", async () => {
-            const response = await request(app).delete(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`);
+            const response = await request(app).delete(`/v1/playlists/${testPlaylist.id}/items/${testTrack.id}`);
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);
@@ -781,7 +781,7 @@ describe("Playlist API", () => {
 
         it("should return 400 for invalid ID format", async () => {
             const response = await request(app)
-                .delete(`/api/playlists/invalid-id/items/${testTrack.id}`)
+                .delete(`/v1/playlists/invalid-id/items/${testTrack.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(400);

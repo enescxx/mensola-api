@@ -9,7 +9,7 @@ import {
     getUserFollowing,
     followUser,
     unfollowUser,
-} from "@/controllers/user.controller";
+} from "@/controllers/v1/user.controller";
 
 // Middlewares
 import { verifyToken, extractUser } from "@/middlewares/auth.middleware";

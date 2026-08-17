@@ -2,8 +2,8 @@ import request from "supertest";
 import app from "@/app";
 
 import { IUser } from "@/types/user.types";
-import { createTestUser } from "./helpers/auth.helper";
-import { createTestAlbum, createTestInteraction, createTestTrack } from "./helpers/db.helper";
+import { createTestUser } from "../helpers/auth.helper";
+import { createTestAlbum, createTestInteraction, createTestTrack } from "../helpers/db.helper";
 import { IAlbum } from "@/types/music.types";
 
 describe("Album API", () => {
@@ -16,7 +16,7 @@ describe("Album API", () => {
         ({ user: testUserB } = await createTestUser());
     });
 
-    describe("GET /api/albums/likes", () => {
+    describe("GET /v1/albums/likes", () => {
         let album1: IAlbum;
         let album2: IAlbum;
 
@@ -33,7 +33,7 @@ describe("Album API", () => {
 
         it("should return the albums liked by the current user", async () => {
             const response = await request(app)
-                .get("/api/albums/likes")
+                .get("/v1/albums/likes")
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -45,7 +45,7 @@ describe("Album API", () => {
         });
 
         it("should return liked albums of another user", async () => {
-            const response = await request(app).get(`/api/albums/likes?userId=${testUserB.id}`);
+            const response = await request(app).get(`/v1/albums/likes?userId=${testUserB.id}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -58,7 +58,7 @@ describe("Album API", () => {
             // User A liking Album 1 is already handled. Let's test a new user.
             const { user: testUserC } = await createTestUser();
 
-            const response = await request(app).get(`/api/albums/likes?userId=${testUserC.id}`);
+            const response = await request(app).get(`/v1/albums/likes?userId=${testUserC.id}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -66,7 +66,7 @@ describe("Album API", () => {
         });
     });
 
-    describe("GET /api/albums/:albumId", () => {
+    describe("GET /v1/albums/:albumId", () => {
         let testAlbum: IAlbum;
 
         beforeEach(async () => {
@@ -81,7 +81,7 @@ describe("Album API", () => {
 
         it("should return album details with user interaction context", async () => {
             const response = await request(app)
-                .get(`/api/albums/${testAlbum.id}`)
+                .get(`/v1/albums/${testAlbum.id}`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -98,21 +98,21 @@ describe("Album API", () => {
 
         it("should return 404 for non-existent album ID", async () => {
             const nonExistentId = "00000000-0000-0000-0000-000000000000";
-            const response = await request(app).get(`/api/albums/${nonExistentId}`);
+            const response = await request(app).get(`/v1/albums/${nonExistentId}`);
 
             expect(response.status).toBe(404);
             expect(response.body.success).toBe(false);
         });
 
         it("should return 400 for invalid album ID format", async () => {
-            const response = await request(app).get("/api/albums/invalid-id");
+            const response = await request(app).get("/v1/albums/invalid-id");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
         });
     });
 
-    describe("GET /api/albums/:albumId/tracks", () => {
+    describe("GET /v1/albums/:albumId/tracks", () => {
         let testAlbum: IAlbum;
         let track1: any;
         let track2: any;
@@ -125,7 +125,7 @@ describe("Album API", () => {
 
         it("should return tracks belonging to the album", async () => {
             const response = await request(app)
-                .get(`/api/albums/${testAlbum.id}/tracks`)
+                .get(`/v1/albums/${testAlbum.id}/tracks`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -137,21 +137,21 @@ describe("Album API", () => {
 
         it("should return 404 for non-existent album ID", async () => {
             const nonExistentId = "00000000-0000-0000-0000-000000000000";
-            const response = await request(app).get(`/api/albums/${nonExistentId}/tracks`);
+            const response = await request(app).get(`/v1/albums/${nonExistentId}/tracks`);
 
             expect(response.status).toBe(404);
             expect(response.body.success).toBe(false);
         });
 
         it("should return 400 for invalid album ID format", async () => {
-            const response = await request(app).get("/api/albums/invalid-id/tracks");
+            const response = await request(app).get("/v1/albums/invalid-id/tracks");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
         });
     });
 
-    describe("POST /api/albums/:albumId/like", () => {
+    describe("POST /v1/albums/:albumId/like", () => {
         let testAlbum: IAlbum;
 
         beforeEach(async () => {
@@ -160,7 +160,7 @@ describe("Album API", () => {
 
         it("should like an album successfully", async () => {
             const response = await request(app)
-                .post(`/api/albums/${testAlbum.id}/like`)
+                .post(`/v1/albums/${testAlbum.id}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -170,7 +170,7 @@ describe("Album API", () => {
         });
 
         it("should return 401 when unauthorized", async () => {
-            const response = await request(app).post(`/api/albums/${testAlbum.id}/like`);
+            const response = await request(app).post(`/v1/albums/${testAlbum.id}/like`);
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);
@@ -179,7 +179,7 @@ describe("Album API", () => {
         it("should return 404 for non-existent album ID", async () => {
             const nonExistentId = "00000000-0000-0000-0000-000000000000";
             const response = await request(app)
-                .post(`/api/albums/${nonExistentId}/like`)
+                .post(`/v1/albums/${nonExistentId}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(404);
@@ -187,7 +187,7 @@ describe("Album API", () => {
         });
     });
 
-    describe("DELETE /api/albums/:albumId/like", () => {
+    describe("DELETE /v1/albums/:albumId/like", () => {
         let testAlbum: IAlbum;
 
         beforeEach(async () => {
@@ -197,7 +197,7 @@ describe("Album API", () => {
 
         it("should unlike an album successfully", async () => {
             const response = await request(app)
-                .delete(`/api/albums/${testAlbum.id}/like`)
+                .delete(`/v1/albums/${testAlbum.id}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -207,7 +207,7 @@ describe("Album API", () => {
         });
 
         it("should return 401 when unauthorized", async () => {
-            const response = await request(app).delete(`/api/albums/${testAlbum.id}/like`);
+            const response = await request(app).delete(`/v1/albums/${testAlbum.id}/like`);
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);
@@ -216,7 +216,7 @@ describe("Album API", () => {
         it("should return 404 for non-existent album ID", async () => {
             const nonExistentId = "00000000-0000-0000-0000-000000000000";
             const response = await request(app)
-                .delete(`/api/albums/${nonExistentId}/like`)
+                .delete(`/v1/albums/${nonExistentId}/like`)
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(404);
@@ -224,7 +224,7 @@ describe("Album API", () => {
         });
     });
 
-    describe("GET /api/albums/:albumId/interactions", () => {
+    describe("GET /v1/albums/:albumId/interactions", () => {
         let testAlbum: IAlbum;
 
         beforeEach(async () => {
@@ -238,7 +238,7 @@ describe("Album API", () => {
         });
 
         it("should return interactions with comments for an album", async () => {
-            const response = await request(app).get(`/api/albums/${testAlbum.id}/interactions`);
+            const response = await request(app).get(`/v1/albums/${testAlbum.id}/interactions`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -248,14 +248,14 @@ describe("Album API", () => {
         });
 
         it("should return 400 for invalid album ID format", async () => {
-            const response = await request(app).get("/api/albums/invalid-id/interactions");
+            const response = await request(app).get("/v1/albums/invalid-id/interactions");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
         });
     });
 
-    describe("POST /api/albums/:albumId/interactions", () => {
+    describe("POST /v1/albums/:albumId/interactions", () => {
         let testAlbum: IAlbum;
 
         beforeEach(async () => {
@@ -264,7 +264,7 @@ describe("Album API", () => {
 
         it("should create a new interaction (rating, comment, isLiked) for an album", async () => {
             const response = await request(app)
-                .post(`/api/albums/${testAlbum.id}/interactions`)
+                .post(`/v1/albums/${testAlbum.id}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     rating: 9,
@@ -282,7 +282,7 @@ describe("Album API", () => {
 
         it("should return 401 when unauthorized", async () => {
             const response = await request(app)
-                .post(`/api/albums/${testAlbum.id}/interactions`)
+                .post(`/v1/albums/${testAlbum.id}/interactions`)
                 .send({ comment: "Unauthorized comment" });
 
             expect(response.status).toBe(401);
@@ -292,7 +292,7 @@ describe("Album API", () => {
         it("should return 404 for non-existent album ID", async () => {
             const nonExistentId = "00000000-0000-0000-0000-000000000000";
             const response = await request(app)
-                .post(`/api/albums/${nonExistentId}/interactions`)
+                .post(`/v1/albums/${nonExistentId}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({ comment: "Test comment" });
 

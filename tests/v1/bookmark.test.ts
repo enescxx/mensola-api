@@ -3,8 +3,8 @@ import app from "@/app";
 import crypto from "crypto";
 
 import { IUser } from "@/types/user.types";
-import { createTestUser } from "./helpers/auth.helper";
-import { createTestMovieList, createTestBookmark } from "./helpers/db.helper";
+import { createTestUser } from "../helpers/auth.helper";
+import { createTestMovieList, createTestBookmark } from "../helpers/db.helper";
 
 describe("Bookmark API", () => {
     let testUserA: Pick<IUser, "id" | "email" | "username"> & { password: string };
@@ -18,12 +18,12 @@ describe("Bookmark API", () => {
     });
 
     /* ==========================================================================
-       POST /api/bookmarks/toggle
+       POST /v1/bookmarks/toggle
        ========================================================================== */
-    describe("POST /api/bookmarks/toggle", () => {
+    describe("POST /v1/bookmarks/toggle", () => {
         it("should save movie list to bookmarks when not previously saved", async () => {
             const response = await request(app)
-                .post("/api/bookmarks/toggle")
+                .post("/v1/bookmarks/toggle")
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     targetId: testListId,
@@ -39,7 +39,7 @@ describe("Bookmark API", () => {
             await createTestBookmark(testUserA.id, testListId, "movieList");
 
             const response = await request(app)
-                .post("/api/bookmarks/toggle")
+                .post("/v1/bookmarks/toggle")
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     targetId: testListId,
@@ -55,7 +55,7 @@ describe("Bookmark API", () => {
             const mockPlaylistId = crypto.randomUUID();
 
             const response = await request(app)
-                .post("/api/bookmarks/toggle")
+                .post("/v1/bookmarks/toggle")
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     targetId: mockPlaylistId,
@@ -68,7 +68,7 @@ describe("Bookmark API", () => {
         });
 
         it("should return 401 when token is missing", async () => {
-            const response = await request(app).post("/api/bookmarks/toggle").send({
+            const response = await request(app).post("/v1/bookmarks/toggle").send({
                 targetId: testListId,
                 targetType: "movieList",
             });
@@ -79,7 +79,7 @@ describe("Bookmark API", () => {
 
         it("should return 400 when required fields are missing", async () => {
             const response = await request(app)
-                .post("/api/bookmarks/toggle")
+                .post("/v1/bookmarks/toggle")
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     targetType: "movieList",
@@ -91,7 +91,7 @@ describe("Bookmark API", () => {
 
         it("should return 400 when invalid targetType is provided", async () => {
             const response = await request(app)
-                .post("/api/bookmarks/toggle")
+                .post("/v1/bookmarks/toggle")
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({
                     targetId: testListId,
@@ -104,13 +104,13 @@ describe("Bookmark API", () => {
     });
 
     /* ==========================================================================
-       GET /api/bookmarks
+       GET /v1/bookmarks
        ========================================================================== */
-    describe("GET /api/bookmarks", () => {
+    describe("GET /v1/bookmarks", () => {
         it("should return list of bookmarks for authenticated user", async () => {
             await createTestBookmark(testUserA.id, testListId, "movieList");
 
-            const response = await request(app).get("/api/bookmarks").set("Authorization", `Bearer ${testUserAToken}`);
+            const response = await request(app).get("/v1/bookmarks").set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -126,7 +126,7 @@ describe("Bookmark API", () => {
             await createTestBookmark(testUserA.id, playlistId, "playlist");
 
             const response = await request(app)
-                .get("/api/bookmarks?targetType=movieList")
+                .get("/v1/bookmarks?targetType=movieList")
                 .set("Authorization", `Bearer ${testUserAToken}`);
 
             expect(response.status).toBe(200);
@@ -136,7 +136,7 @@ describe("Bookmark API", () => {
         });
 
         it("should return 401 when token is missing", async () => {
-            const response = await request(app).get("/api/bookmarks");
+            const response = await request(app).get("/v1/bookmarks");
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);

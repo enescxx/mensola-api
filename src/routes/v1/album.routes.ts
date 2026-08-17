@@ -8,7 +8,7 @@ import {
     unlikeAlbum,
     getAlbumInteractionsList,
     createAlbumInteraction,
-} from "@/controllers/album.controller";
+} from "@/controllers/v1/album.controller";
 
 import { extractUser, verifyToken } from "@/middlewares/auth.middleware";
 import { validate } from "@/middlewares/validate.middleware";
