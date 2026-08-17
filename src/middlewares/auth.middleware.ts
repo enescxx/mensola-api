@@ -9,19 +9,19 @@ const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
     const token = authHeader && authHeader.split(" ")[1];
 
     if (!token) {
-        return next(new ApiError("Access denied. No token provided.", 401));
+        return next(new ApiError("UNAUTHORIZED", 401));
     }
 
     try {
         const secret = process.env.JWT_SECRET;
         if (!secret) {
-            throw new ApiError("JWT_SECRET is not defined in environment variables", 500);
+            throw new ApiError("INTERNAL_SERVER_ERROR", 500);
         }
 
         const decoded = jwt.verify(token, secret) as { id: UserId };
 
         if (!decoded.id) {
-            throw new ApiError("Invalid or expired token.", 403);
+            throw new ApiError("INVALID_TOKEN", 403);
         }
 
         req.user = { id: decoded.id };
@@ -45,7 +45,7 @@ const extractUser = (req: Request, res: Response, next: NextFunction) => {
     try {
         const secret = process.env.JWT_SECRET;
         if (!secret) {
-            throw new ApiError("JWT_SECRET is not defined in environment variables", 500);
+            throw new ApiError("INTERNAL_SERVER_ERROR", 500);
         }
 
         const decoded = jwt.verify(token, secret) as { id: UserId };

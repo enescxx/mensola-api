@@ -179,7 +179,7 @@ export const createList = async (dto: CreateMovieListDto): Promise<IMovieList> =
     const movieList = result.rows[0];
 
     if (!movieList) {
-        throw new ApiError("Failed to create movie list.", 500);
+        throw new ApiError("ACTION_FAILED_NO_PERMISSION", 500);
     }
 
     return movieList;
@@ -288,7 +288,7 @@ export const updateList = async (dto: UpdateMovieListDto): Promise<IMovieList> =
     const updatedList = result.rows[0];
 
     if (!updatedList) {
-        throw new ApiError("Movie list not found or you don't have permission to update it.", 404);
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 
     return updatedList;
@@ -308,7 +308,7 @@ export const deleteList = async (dto: DeleteListDto): Promise<void> => {
     const deletedList = result.rows[0];
 
     if (!deletedList) {
-        throw new ApiError("Movie list not found or you don't have permission to delete it.", 404);
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 };
 
@@ -326,7 +326,7 @@ export const getListById = async (dto: GetListByIdDto): Promise<GetListByIdRespo
     const movieList = result.rows[0];
 
     if (!movieList) {
-        throw new ApiError("Movie list not found or you don't have permission to access it.", 404);
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 
     return movieList;
@@ -350,11 +350,11 @@ export const getListItems = async (dto: GetListItemsDto): Promise<GetListItemsRe
     ]);
 
     if (accessResult.rows.length === 0) {
-        throw new ApiError("Movie list not found.", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
 
     if (!accessResult.rows[0].hasAccess) {
-        throw new ApiError("Movie list not found or you don't have permission to access it.", 404);
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 
     const result = await pool.query<MovieSummary>(movieQueries.lists.items.getMovies, [
@@ -393,10 +393,7 @@ export const addItemToList = async (dto: MovieListItemDto): Promise<IMovieListIt
     const addedItem = result.rows[0];
 
     if (!addedItem) {
-        throw new ApiError(
-            "Movie list not found, movie already exists in the list, or you don't have permission to modify it.",
-            404,
-        );
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 
     return addedItem;
@@ -416,7 +413,7 @@ export const removeItemFromList = async (dto: MovieListItemDto): Promise<void> =
     const removedItems = result.rows;
 
     if (removedItems.length === 0) {
-        throw new ApiError("Movie not found in the list or you don't have permission to modify it.", 404);
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 };
 
@@ -432,7 +429,7 @@ export const likeList = async (dto: LikeMovieListDto): Promise<LikeMovieListResp
     const result = await pool.query<LikeMovieListResponse>(movieQueries.lists.likes.add, [userId, listId]);
 
     if (result.rowCount === 0) {
-        throw new ApiError("Failed to like the movie list. It may not exist or you may not have permission.", 404);
+        throw new ApiError("ACTION_FAILED_NO_PERMISSION", 404);
     }
 
     return result.rows[0];
@@ -450,7 +447,7 @@ export const unlikeList = async (dto: UnlikeMovieListDto): Promise<UnlikeMovieLi
     const result = await pool.query<UnlikeMovieListResponse>(movieQueries.lists.likes.remove, [userId, listId]);
 
     if (result.rowCount === 0) {
-        throw new ApiError("Failed to unlike the movie list. It may not exist or you may not have permission.", 404);
+        throw new ApiError("ACTION_FAILED_NO_PERMISSION", 404);
     }
 
     return result.rows[0];
@@ -468,7 +465,7 @@ export const likeMovie = async (dto: LikeMovieDto): Promise<LikeMovieResponse> =
     const result = await pool.query<LikeMovieResponse>(movieQueries.movies.likes.add, [userId, movieId]);
 
     if (result.rowCount === 0) {
-        throw new ApiError("Failed to like the movie. It may not exist or you may not have permission.", 404);
+        throw new ApiError("ACTION_FAILED_NO_PERMISSION", 404);
     }
 
     return result.rows[0];
@@ -486,7 +483,7 @@ export const unlikeMovie = async (dto: UnlikeMovieDto): Promise<UnlikeMovieRespo
     const result = await pool.query<UnlikeMovieResponse>(movieQueries.movies.likes.remove, [userId, movieId]);
 
     if (result.rowCount === 0) {
-        throw new ApiError("Failed to unlike the movie. It may not exist or you may not have permission.", 404);
+        throw new ApiError("ACTION_FAILED_NO_PERMISSION", 404);
     }
 
     return result.rows[0];

@@ -26,7 +26,7 @@ export const toggleBookmark = async (dto: ToggleBookmarkDto): Promise<{ isSaved:
     const { userId, targetId, targetType } = dto;
 
     if (!["playlist", "album", "movieList"].includes(targetType)) {
-        throw new ApiError("Invalid targetType. Must be playlist, album, or movieList.", 400);
+        throw new ApiError("INVALID_TARGET_TYPE", 400);
     }
 
     const checkResult = await pool.query(bookmarkQueries.exists, [userId, targetId, targetType]);

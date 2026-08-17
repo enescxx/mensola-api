@@ -1,3 +1,4 @@
+import { MESSAGES } from "@/constants/messages";
 import rateLimit from "express-rate-limit";
 
 export const authLimiter = rateLimit({
@@ -9,7 +10,7 @@ export const authLimiter = rateLimit({
         success: false,
         error: {
             code: 429,
-            message: "Too many authentication attempts. Please try again after 15 minutes.",
+            message: MESSAGES.ERRORS.TOO_MANY_AUTH_ATTEMPTS,
         },
     },
 });
@@ -23,7 +24,7 @@ export const forgotPasswordLimiter = rateLimit({
         success: false,
         error: {
             code: 429,
-            message: "Too many password reset requests. Please wait 15 minutes before trying again.",
+            message: MESSAGES.ERRORS.TOO_MANY_RESET_REQUESTS,
         },
     },
 });

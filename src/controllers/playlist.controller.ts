@@ -16,7 +16,8 @@ import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetUserPlaylistsDto, GetLikedPlaylistsDto, UpsertPlaylistInteractionDto } from "@/types/playlist";
 import { ApiError } from "@/utils/error";
-import { PaginationQueries, PlaylistId, TrackId } from "@/types/common";
+import { PaginationQueries, PlaylistId, TrackId, UserId } from "@/types/common";
+import { MESSAGES } from "@/constants/messages";
 
 /**
  * Retrieves a paginated list of playlists for a target user (or current user).
@@ -31,10 +32,7 @@ export const getUserPlaylistsList = async (
 ) => {
     try {
         const currentUserId = req.user?.id;
-        const userId = req.query.userId || currentUserId;
-        if (!userId) {
-            throw new ApiError("User ID is required.", 400);
-        }
+        const userId = (req.query.userId || currentUserId) as UserId;
 
         const trackId = req.query.trackId;
         const page = Number(req.query.page) || 1;
@@ -66,10 +64,7 @@ export const getLikedPlaylistsList = async (
 ) => {
     try {
         const currentUserId = req.user?.id;
-        const userId = req.query.userId || currentUserId;
-        if (!userId) {
-            throw new ApiError("User ID is required.", 400);
-        }
+        const userId = (req.query.userId || currentUserId) as UserId;
 
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
@@ -106,18 +101,13 @@ export const getPlaylistItemsList = async (
 
         const items = await getPlaylistItems({ playlistId, currentUserId, limit, page });
 
-        return sendResponse(
-            res,
-            200,
-            {
-                items,
-                page,
-                limit,
-                totalItems: items.length,
-                hasMore: items.length === limit,
-            },
-            "Playlist items retrieved successfully.",
-        );
+        return sendResponse(res, 200, {
+            items,
+            page,
+            limit,
+            totalItems: items.length,
+            hasMore: items.length === limit,
+        });
     } catch (error) {
         next(error);
     }
@@ -141,7 +131,7 @@ export const addTrackToPlaylist = async (
         const userId = req.user!.id;
 
         const addedItem = await addTrackToPlaylistService({ playlistId, trackId, userId });
-        return sendResponse(res, 201, addedItem, "Track has been added to the playlist successfully.");
+        return sendResponse(res, 201, addedItem);
     } catch (error) {
         next(error);
     }
@@ -165,7 +155,7 @@ export const removeTrackFromPlaylist = async (
         const userId = req.user!.id;
 
         await removeTrackFromPlaylistService({ playlistId, trackId, userId });
-        return sendResponse(res, 200, null, "Track has been removed from the playlist successfully.");
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.REMOVED_FROM_LIST);
     } catch (error) {
         next(error);
     }
@@ -188,7 +178,7 @@ export const getPlaylistById = async (
 
         const playlist = await getPlaylistDetails({ playlistId, currentUserId });
 
-        return sendResponse(res, 200, playlist, "Playlist details retrieved successfully.");
+        return sendResponse(res, 200, playlist);
     } catch (error) {
         next(error);
     }
@@ -212,12 +202,7 @@ export const getPlaylistInteractionsList = async (
 
         const interactions = await getPlaylistInteractions({ playlistId, limit, page });
 
-        return sendResponse(
-            res,
-            200,
-            { items: interactions, page, limit, hasMore: interactions.length === limit },
-            "Playlist interactions retrieved successfully.",
-        );
+        return sendResponse(res, 200, { items: interactions, page, limit, hasMore: interactions.length === limit });
     } catch (error) {
         next(error);
     }
@@ -247,7 +232,7 @@ export const createPlaylistInteraction = async (
             isLiked,
         });
 
-        return sendResponse(res, 200, result, "Playlist interaction saved successfully.");
+        return sendResponse(res, 200, result, MESSAGES.SUCCESS.INTERACTION_SAVED);
     } catch (error) {
         next(error);
     }
@@ -270,7 +255,7 @@ export const likePlaylist = async (
 
         const result = await likePlaylistService({ userId, playlistId });
 
-        return sendResponse(res, 200, result, "Playlist liked successfully.");
+        return sendResponse(res, 200, result);
     } catch (error) {
         next(error);
     }
@@ -293,7 +278,7 @@ export const unlikePlaylist = async (
 
         const result = await unlikePlaylistService({ userId, playlistId });
 
-        return sendResponse(res, 200, result, "Playlist unliked successfully.");
+        return sendResponse(res, 200, result);
     } catch (error) {
         next(error);
     }

@@ -8,6 +8,7 @@ import { ApiError } from "@/utils/error";
 import { TypedRequest, TypedRequestBody, TypedRequestQuery } from "@/types/express";
 import { ProfileUpdateDto } from "@/types/user";
 import { UserId } from "@/types/common";
+import { MESSAGES } from "@/constants/messages";
 
 /**
  * Query parameters contract for paginated list requests
@@ -63,7 +64,7 @@ const updateProfile = async (
             updateData: req.body,
         });
 
-        return sendResponse(res, 200, { user: updatedFields }, "Profile updated successfully.");
+        return sendResponse(res, 200, { user: updatedFields }, MESSAGES.SUCCESS.PROFILE_UPDATED);
     } catch (error) {
         next(error);
     }
@@ -75,9 +76,7 @@ const updateProfile = async (
 const getUserFollowers = async (req: TypedRequestQuery<PaginationQuery>, res: Response, next: NextFunction) => {
     try {
         const targetUserId: UserId = (req.query.userId || req.user?.id) as UserId;
-        if (!targetUserId) {
-            throw new ApiError("Target user ID is required.", 400);
-        }
+
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 20;
         const viewerId = req.user?.id;
@@ -105,10 +104,7 @@ const getUserFollowers = async (req: TypedRequestQuery<PaginationQuery>, res: Re
  */
 const getUserFollowing = async (req: TypedRequestQuery<PaginationQuery>, res: Response, next: NextFunction) => {
     try {
-        const targetUserId = req.query.userId || req.user?.id;
-        if (!targetUserId) {
-            throw new ApiError("Target user ID is required.", 400);
-        }
+        const targetUserId = (req.query.userId || req.user?.id) as UserId;
 
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 20;
@@ -142,7 +138,7 @@ const followUser = async (req: TypedRequest<{ userId: UserId }>, res: Response, 
 
         await follow({ followerId: currentUserId, followingId: targetUserId });
 
-        return sendResponse(res, 201, null, "User followed successfully.");
+        return sendResponse(res, 201, null, MESSAGES.SUCCESS.USER_FOLLOWED);
     } catch (error) {
         next(error);
     }
@@ -158,7 +154,7 @@ const unfollowUser = async (req: TypedRequest<{ userId: UserId }>, res: Response
 
         await unfollow({ followerId: currentUserId, followingId: targetUserId });
 
-        return sendResponse(res, 200, null, "User unfollowed successfully.");
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.USER_UNFOLLOWED);
     } catch (error) {
         next(error);
     }

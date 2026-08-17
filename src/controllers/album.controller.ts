@@ -30,7 +30,7 @@ export const getLikedAlbumsList = async (
         const currentUserId = req.user?.id;
         const userId = req.query.userId || currentUserId;
         if (!userId) {
-            throw new ApiError("User ID is required.", 400);
+            throw new ApiError("INVALID_USER_ID", 400);
         }
 
         const page = Number(req.query.page) || 1;
@@ -62,7 +62,7 @@ export const getAlbumDetails = async (req: TypedRequest<{ albumId: AlbumId }>, r
 
         const album = await getAlbumById({ albumId, currentUserId });
 
-        return sendResponse(res, 200, album, "Album details retrieved successfully.");
+        return sendResponse(res, 200, album);
     } catch (error) {
         next(error);
     }
@@ -87,18 +87,13 @@ export const getAlbumTracksList = async (
 
         const tracks = await getAlbumTracks({ albumId, currentUserId, limit, page });
 
-        return sendResponse(
-            res,
-            200,
-            {
-                items: tracks,
-                page,
-                limit,
-                totalItems: tracks.length,
-                hasMore: tracks.length === limit,
-            },
-            "Album tracks retrieved successfully.",
-        );
+        return sendResponse(res, 200, {
+            items: tracks,
+            page,
+            limit,
+            totalItems: tracks.length,
+            hasMore: tracks.length === limit,
+        });
     } catch (error) {
         next(error);
     }
@@ -117,7 +112,7 @@ export const likeAlbum = async (req: TypedRequest<{ albumId: AlbumId }>, res: Re
 
         const result = await likeAlbumService({ userId, albumId });
 
-        return sendResponse(res, 200, result, "Album liked successfully.");
+        return sendResponse(res, 200, result);
     } catch (error) {
         next(error);
     }
@@ -136,7 +131,7 @@ export const unlikeAlbum = async (req: TypedRequest<{ albumId: AlbumId }>, res: 
 
         const result = await unlikeAlbumService({ userId, albumId });
 
-        return sendResponse(res, 200, result, "Album unliked successfully.");
+        return sendResponse(res, 200, result);
     } catch (error) {
         next(error);
     }
@@ -160,12 +155,7 @@ export const getAlbumInteractionsList = async (
 
         const interactions = await getAlbumInteractions({ albumId, limit, page });
 
-        return sendResponse(
-            res,
-            200,
-            { items: interactions, page, limit, hasMore: interactions.length === limit },
-            "Album interactions retrieved successfully.",
-        );
+        return sendResponse(res, 200, { items: interactions, page, limit, hasMore: interactions.length === limit });
     } catch (error) {
         next(error);
     }
@@ -195,7 +185,7 @@ export const createAlbumInteraction = async (
             isLiked,
         });
 
-        return sendResponse(res, 200, result, "Album interaction saved successfully.");
+        return sendResponse(res, 200, result);
     } catch (error) {
         next(error);
     }

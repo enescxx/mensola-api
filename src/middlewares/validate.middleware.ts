@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z, ZodIssue, ZodSchema } from "zod";
+import { MESSAGES } from "../constants/messages/tr";
 
 /**
  * Express Request Validation Middleware
@@ -27,7 +28,7 @@ export const validate = (schema: ZodSchema) => {
             }));
 
             // Use the first validation issue message as the primary error message
-            const firstErrorMessage = errorDetails[0]?.message || "Validation failed.";
+            const firstErrorMessage = errorDetails[0]?.message || MESSAGES.ERRORS.VALIDATION_FAILED;
 
             res.status(400).json({
                 success: false,

@@ -21,6 +21,7 @@ import {
     UpdatePasswordDto,
 } from "@/types/auth";
 import { TypedRequestBody } from "@/types/express";
+import { MESSAGES } from "@/constants/messages";
 
 /**
  * Handles user registration
@@ -28,7 +29,7 @@ import { TypedRequestBody } from "@/types/express";
 const register = async (req: TypedRequestBody<CreateUserDto>, res: Response, next: NextFunction) => {
     try {
         const responseData = await createUser(req.body);
-        return sendResponse(res, 201, responseData, "User registered successfully.");
+        return sendResponse(res, 201, responseData, MESSAGES.SUCCESS.REGISTER_SUCCESS);
     } catch (error: any) {
         next(error);
     }
@@ -40,7 +41,7 @@ const register = async (req: TypedRequestBody<CreateUserDto>, res: Response, nex
 const login = async (req: TypedRequestBody<LoginUserDto>, res: Response, next: NextFunction) => {
     try {
         const responseData = await loginUser(req.body);
-        return sendResponse(res, 200, responseData, "Login successful.");
+        return sendResponse(res, 200, responseData, MESSAGES.SUCCESS.LOGIN_SUCCESS);
     } catch (error) {
         next(error);
     }
@@ -64,7 +65,7 @@ const refresh = async (req: TypedRequestBody<TokenRefreshDto>, res: Response, ne
 const logout = async (req: TypedRequestBody<LogoutDto>, res: Response, next: NextFunction) => {
     try {
         await userLogout(req.body);
-        return sendResponse(res, 200, null, "Logged out successfully.");
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.LOGOUT_SUCCESS);
     } catch (error) {
         next(error);
     }
@@ -76,7 +77,7 @@ const logout = async (req: TypedRequestBody<LogoutDto>, res: Response, next: Nex
 const forgotPassword = async (req: TypedRequestBody<SendResetEmailDto>, res: Response, next: NextFunction) => {
     try {
         await sendResetEmail(req.body);
-        return sendResponse(res, 200, null, "If this email address is registered, a reset code has been sent.");
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.RESET_CODE_SENT);
     } catch (error) {
         next(error);
     }
@@ -100,12 +101,7 @@ const verifyResetCode = async (req: TypedRequestBody<VerifyCodeDto>, res: Respon
 const resetPassword = async (req: TypedRequestBody<UpdatePasswordDto>, res: Response, next: NextFunction) => {
     try {
         await updatePassword(req.body);
-        return sendResponse(
-            res,
-            200,
-            null,
-            "Your password has been successfully updated. Please log in with your new password.",
-        );
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.PASSWORD_UPDATED);
     } catch (error) {
         next(error);
     }

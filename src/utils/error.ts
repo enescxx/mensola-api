@@ -1,27 +1,19 @@
-/**
- * Custom Application Error Class
- *
- * Extends the native JavaScript Error class to include HTTP status codes.
- * Designed to be thrown across services/controllers and caught cleanly by the globalErrorHandler.
- */
+import { MESSAGES } from "@/constants/messages";
+
+type ErrorCode = keyof typeof MESSAGES.ERRORS;
+
 export class ApiError extends Error {
-    /** HTTP status code associated with the error (e.g., 400, 401, 404, 500) */
-    public readonly statusCode: number;
+    public statusCode: number;
+    public code: ErrorCode;
 
-    /**
-     * Creates an instance of ApiError.
-     *
-     * @param message - Human-readable error description.
-     * @param statusCode - HTTP status code (defaults to 400 Bad Request).
-     */
-    constructor(message: string, statusCode: number = 400) {
+    constructor(code: ErrorCode, statusCode = 400, customMessage?: string) {
+        const defaultMessage = MESSAGES.ERRORS[code];
+        const message =
+            typeof defaultMessage === "function" ? customMessage || code : defaultMessage || customMessage || code;
+
         super(message);
+        this.name = "ApiError";
+        this.code = code;
         this.statusCode = statusCode;
-
-        // Restore prototype chain for proper 'instanceof' checks in TypeScript
-        Object.setPrototypeOf(this, new.target.prototype);
-
-        // Omits the ApiError constructor call itself from the stack trace for cleaner logging
-        Error.captureStackTrace(this, this.constructor);
     }
 }

@@ -31,7 +31,7 @@ export const getUserProfile = async (dto: GetUserProfileDto): Promise<GetUserPro
     ]);
 
     if (result.rows.length === 0) {
-        throw new ApiError("Profile not found.", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
 
     const rawData = result.rows[0];
@@ -90,7 +90,7 @@ export const profileUpdate = async (dto: ProfileUpdateDto): Promise<ProfileUpdat
     }
 
     if (fields.length === 0) {
-        throw new ApiError("At least one field must be provided for update.", 400);
+        throw new ApiError("AT_LEAST_ONE_FIELD_REQUIRED", 400);
     }
 
     values.push(dto.userId);
@@ -100,7 +100,7 @@ export const profileUpdate = async (dto: ProfileUpdateDto): Promise<ProfileUpdat
     const result = await pool.query<ProfileUpdateResponse>(query, values);
 
     if (result.rows.length === 0) {
-        throw new ApiError("User not found.", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
 
     return result.rows[0];
@@ -155,7 +155,7 @@ export const getFollowing = async (dto: GetFollowingDto): Promise<GetFollowingRe
  */
 export const follow = async (dto: FollowDto): Promise<boolean> => {
     if (dto.followerId === dto.followingId) {
-        throw new ApiError("You cannot follow yourself.", 400);
+        throw new ApiError("CANNOT_FOLLOW_SELF", 400);
     }
 
     await pool.query(userQueries.actions.follow, [dto.followerId, dto.followingId]);
@@ -172,7 +172,7 @@ export const follow = async (dto: FollowDto): Promise<boolean> => {
  */
 export const unfollow = async (dto: UnfollowDto): Promise<boolean> => {
     if (dto.followerId === dto.followingId) {
-        throw new ApiError("You cannot unfollow yourself.", 400);
+        throw new ApiError("CANNOT_UNFOLLOW_SELF", 400);
     }
 
     await pool.query(userQueries.actions.unfollow, [dto.followerId, dto.followingId]);

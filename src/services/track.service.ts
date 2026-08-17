@@ -38,7 +38,7 @@ export const getLikedTracks = async (dto: GetLikedTracksDto): Promise<GetLikedTr
 export const getTrackById = async (trackId: string, userId?: string) => {
     const result = await pool.query(trackQueries.getById, [trackId, userId || null]);
     if (result.rows.length === 0) {
-        throw new ApiError("Track not found", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
     return result.rows[0];
 };
@@ -54,7 +54,7 @@ export const likeTrack = async (trackId: string, userId: string) => {
     // Check if the track exists
     const trackCheck = await pool.query(`SELECT id FROM "Track" WHERE id = $1`, [trackId]);
     if (trackCheck.rows.length === 0) {
-        throw new ApiError("Track not found", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
 
     const result = await pool.query(trackQueries.likes.add, [userId, trackId]);
@@ -72,7 +72,7 @@ export const unlikeTrack = async (trackId: string, userId: string) => {
     // Check if the track exists
     const trackCheck = await pool.query(`SELECT id FROM "Track" WHERE id = $1`, [trackId]);
     if (trackCheck.rows.length === 0) {
-        throw new ApiError("Track not found", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
 
     const result = await pool.query(trackQueries.likes.remove, [userId, trackId]);
@@ -110,7 +110,7 @@ export const upsertTrackInteraction = async (dto: UpsertTrackInteractionDto) => 
 
         const trackCheck = await client.query(`SELECT id FROM "Track" WHERE id = $1`, [trackId]);
         if (trackCheck.rows.length === 0) {
-            throw new ApiError("Track not found.", 404);
+            throw new ApiError("NOT_FOUND", 404);
         }
 
         const interactionResult = await client.query(trackQueries.interaction.upsert, [

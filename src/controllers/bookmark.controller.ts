@@ -29,7 +29,7 @@ export const toggleBookmarkHandler = async (
 
         const { targetId, targetType } = req.body;
         if (!targetId || !targetType) {
-            throw new ApiError("targetId and targetType are required.", 400);
+            throw new ApiError("INVALID_TARGET_TYPE", 400);
         }
 
         const result = await toggleBookmark({
@@ -38,12 +38,7 @@ export const toggleBookmarkHandler = async (
             targetType,
         });
 
-        return sendResponse(
-            res,
-            200,
-            result,
-            result.isSaved ? "Item saved to bookmarks" : "Item removed from bookmarks",
-        );
+        return sendResponse(res, 200, result);
     } catch (error) {
         next(error);
     }
@@ -69,7 +64,7 @@ export const getUserBookmarksHandler = async (
             limit: limit ? parseInt(limit, 10) : 20,
         });
 
-        return sendResponse(res, 200, bookmarks, "Bookmarks retrieved successfully");
+        return sendResponse(res, 200, bookmarks);
     } catch (error) {
         next(error);
     }

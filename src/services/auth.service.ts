@@ -52,7 +52,7 @@ const loginUser = async (dto: LoginUserDto): Promise<LoginUserResponse> => {
 
     const dbUser = result.rows[0];
     if (!dbUser) {
-        throw new ApiError("Invalid email or password.", 401);
+        throw new ApiError("INVALID_CREDENTIALS", 401);
     }
 
     // Separate password from user object before returning
@@ -60,7 +60,7 @@ const loginUser = async (dto: LoginUserDto): Promise<LoginUserResponse> => {
 
     const isValid = await comparePassword(dto.password, password);
     if (!isValid) {
-        throw new ApiError("Invalid email or password.", 401);
+        throw new ApiError("INVALID_CREDENTIALS", 401);
     }
 
     const accessToken = generateAccessToken(user.id);
@@ -81,14 +81,14 @@ const tokenRefresh = async (dto: TokenRefreshDto): Promise<TokenRefreshResponse>
     try {
         decoded = verifyRefreshToken(dto.refreshToken) as { id: string };
     } catch (error) {
-        throw new ApiError("Invalid or expired refresh token. Please log in again.", 401);
+        throw new ApiError("INVALID_REFRESH_TOKEN", 401);
     }
 
     // Check if session exists in DB
     const result = await pool.query<ISession>(authQueries.session.getByToken, [dto.refreshToken]);
     const session = result.rows[0];
     if (!session) {
-        throw new ApiError("Invalid refresh token. Please log in again.", 401);
+        throw new ApiError("INVALID_REFRESH_TOKEN", 401);
     }
 
     const newAccessToken = generateAccessToken(decoded.id);
@@ -112,7 +112,7 @@ const sendResetEmail = async (dto: SendResetEmailDto): Promise<boolean> => {
     const user = result.rows[0];
 
     if (!user) {
-        throw new ApiError("No account was found registered with this email address.", 404);
+        throw new ApiError("ACCOUNT_NOT_FOUND", 404);
     }
 
     // Generate 6-digit numeric OTP code (cryptographically secure)
@@ -134,7 +134,7 @@ const verifyCode = async (dto: VerifyCodeDto): Promise<VerifyCodeResponse> => {
     const user = result.rows[0];
 
     if (!user) {
-        throw new ApiError("Invalid or expired verification code.", 401);
+        throw new ApiError("INVALID_VERIFICATION_CODE", 401);
     }
 
     // Generate secure random ticket for resetting password
@@ -154,7 +154,7 @@ const updatePassword = async (dto: UpdatePasswordDto): Promise<boolean> => {
     const user = result.rows[0];
 
     if (!user) {
-        throw new ApiError("Invalid session. Please restart the process.", 401);
+        throw new ApiError("INVALID_SESSION", 401);
     }
 
     const hashedNewPassword = await hashPassword(dto.newPassword);

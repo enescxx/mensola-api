@@ -41,6 +41,6 @@ router.post(
 router.post("/:playlistId/like", verifyToken, validate(playlistIdParamSchema), likePlaylist);
 router.delete("/:playlistId/like", verifyToken, validate(playlistIdParamSchema), unlikePlaylist);
 router.get("/:playlistId", extractUser, validate(playlistIdParamSchema), getPlaylistById);
-router.get("/", extractUser, validate(playlistPaginationQuerySchema), getUserPlaylistsList);
+router.get("/", extractUser, validate(playlistPaginationQuerySchema), requiredUserId, getUserPlaylistsList);
 
 export default router;

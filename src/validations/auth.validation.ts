@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { MESSAGES } from "../constants/messages/tr";
+import { emailRule, passwordRule, usernameRule, userIdRule } from "./common.validation";
 
 /**
  * Authentication Request Validation Schemas
@@ -9,61 +11,42 @@ import { z } from "zod";
 
 /** Schema for validating user registration payloads. */
 const registerSchema = z.object({
-    body: z.object({
-        email: z.string({ message: "Email is required." }).email("Please enter a valid email address."),
-
-        username: z
-            .string({ message: "Username is required." })
-            .min(3, "The username must be at least 3 characters long.")
-            .max(20, "The username can be a maximum of 20 characters."),
-
-        password: z
-            .string({ message: "Password is required." })
-            .min(6, "The password must be at least 6 characters long.")
-    })
+    body: z.object({ email: emailRule, username: usernameRule, password: passwordRule }),
 });
 
 /** Schema for validating user login payloads. */
 const loginSchema = z.object({
-    body: z.object({
-        email: z.string({ message: "Email is required." }).email("Please enter a valid email address."),
-
-        password: z
-            .string({ message: "Password is required." })
-            .min(6, "The password must be at least 6 characters long.")
-    })
+    body: z.object({ email: emailRule, password: passwordRule }),
 });
 
 /** Schema for validating token refresh requests. */
 const refreshTokenSchema = z.object({
     body: z.object({
-        refreshToken: z.string({ message: "Refresh token is required." })
-    })
+        refreshToken: z.string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.REFRESH_TOKEN) }),
+    }),
 });
 
 /** Schema for validating password reset email requests. */
 const forgotPasswordSchema = z.object({
-    body: z.object({
-        email: z.string({ message: "Email is required." }).email("Please enter a valid email address.")
-    })
+    body: z.object({ email: emailRule }),
 });
 
 /** Schema for validating password reset OTP verification requests. */
 const verifyResetCodeSchema = z.object({
     body: z.object({
-        email: z.string({ message: "Email is required." }).email("Please enter a valid email address."),
-        code: z.string({ message: "A verification code is required." }).length(6, "The code must be 6 digits long.")
-    })
+        email: emailRule,
+        code: z
+            .string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.VERIFICATION_CODE) })
+            .length(6, "Doğrulama kodu 6 haneli olmalıdır."),
+    }),
 });
 
 /** Schema for validating final password updates using a reset ticket. */
 const resetPasswordSchema = z.object({
     body: z.object({
-        ticket: z.string({ message: "Ticket is required." }),
-        newPassword: z
-            .string({ message: "A new password is required." })
-            .min(6, "The new password must be at least 6 characters long.")
-    })
+        ticket: z.string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.TICKET) }),
+        newPassword: passwordRule,
+    }),
 });
 
 export {
@@ -72,5 +55,5 @@ export {
     refreshTokenSchema,
     forgotPasswordSchema,
     verifyResetCodeSchema,
-    resetPasswordSchema
+    resetPasswordSchema,
 };

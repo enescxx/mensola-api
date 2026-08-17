@@ -51,7 +51,7 @@ export const getAlbumById = async (dto: GetAlbumDetailsDto): Promise<GetAlbumDet
     const album = result.rows[0];
 
     if (!album) {
-        throw new ApiError("Album not found.", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
 
     return album;
@@ -69,7 +69,7 @@ export const getAlbumTracks = async (dto: GetAlbumTracksDto): Promise<GetAlbumTr
 
     const albumExists = await pool.query(albumQueries.tracks.checkExists, [albumId]);
     if (albumExists.rows.length === 0) {
-        throw new ApiError("Album not found.", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
 
     const result = await pool.query<AlbumTrackResponseItem>(albumQueries.tracks.get, [
@@ -93,7 +93,7 @@ export const likeAlbum = async (dto: LikeAlbumDto): Promise<LikeAlbumResponse> =
 
     const albumExists = await pool.query(albumQueries.tracks.checkExists, [albumId]);
     if (albumExists.rows.length === 0) {
-        throw new ApiError("Album not found.", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
 
     const result = await pool.query<LikeAlbumResponse>(albumQueries.likes.add, [userId, albumId]);
@@ -111,7 +111,7 @@ export const unlikeAlbum = async (dto: UnlikeAlbumDto): Promise<UnlikeAlbumRespo
 
     const albumExists = await pool.query(albumQueries.tracks.checkExists, [albumId]);
     if (albumExists.rows.length === 0) {
-        throw new ApiError("Album not found.", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
 
     const result = await pool.query<UnlikeAlbumResponse>(albumQueries.likes.remove, [userId, albumId]);
@@ -149,7 +149,7 @@ export const upsertAlbumInteraction = async (dto: UpsertAlbumInteractionDto) => 
 
         const albumExists = await client.query(albumQueries.tracks.checkExists, [albumId]);
         if (albumExists.rows.length === 0) {
-            throw new ApiError("Album not found.", 404);
+            throw new ApiError("NOT_FOUND", 404);
         }
 
         const interactionResult = await client.query(albumQueries.interaction.upsert, [

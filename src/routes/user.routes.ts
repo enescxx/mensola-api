@@ -8,7 +8,7 @@ import {
     getUserFollowers,
     getUserFollowing,
     followUser,
-    unfollowUser
+    unfollowUser,
 } from "@/controllers/user";
 
 // Middlewares
@@ -17,6 +17,7 @@ import { validate } from "@/middlewares/validate";
 
 // Validations
 import { userListQuerySchema, userIdParamSchema, updateProfileSchema } from "@/validations/user";
+import { requiredUserId } from "@/middlewares/requiredId";
 
 const router = Router();
 
@@ -47,14 +48,14 @@ router.put("/me", verifyToken, validate(updateProfileSchema), updateProfile);
  * @desc    Get paginated followers list for a target user (or current user)
  * @access  Public / Optional Auth (Attaches viewer context if authenticated)
  */
-router.get("/followers", extractUser, validate(userListQuerySchema), getUserFollowers);
+router.get("/followers", extractUser, validate(userListQuerySchema), requiredUserId, getUserFollowers);
 
 /**
  * @route   GET /api/users/following
  * @desc    Get paginated following list for a target user (or current user)
  * @access  Public / Optional Auth (Attaches viewer context if authenticated)
  */
-router.get("/following", extractUser, validate(userListQuerySchema), getUserFollowing);
+router.get("/following", extractUser, validate(userListQuerySchema), requiredUserId, getUserFollowing);
 
 /* ==========================================================================
    Follow & Unfollow Actions

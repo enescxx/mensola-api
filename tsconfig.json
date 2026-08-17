@@ -18,6 +18,7 @@
             "@/validations/*": ["./src/validations/*.validation", "./src/validations/*"],
             "@/middlewares/*": ["./src/middlewares/*.middleware", "./src/middlewares/*"],
             "@/queries/*": ["./src/queries/*.queries", "./src/queries/*"],
+            "@/constants/*": ["./src/constants/*"],
             "@/*": ["./src/*.ts", "./src/*"]
         }
     },

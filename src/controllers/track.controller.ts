@@ -12,6 +12,7 @@ import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express";
 import { GetLikedTracksDto, UpsertTrackInteractionDto } from "@/types/track";
 import { TrackId } from "@/types/common";
+import { MESSAGES } from "@/constants/messages";
 
 /**
  * Retrieves a paginated list of liked tracks for a target user (or current user).
@@ -156,7 +157,7 @@ export const createTrackInteraction = async (
             isLiked,
         });
 
-        return sendResponse(res, 200, result, "Track interaction saved successfully.");
+        return sendResponse(res, 200, result, MESSAGES.SUCCESS.INTERACTION_SAVED);
     } catch (error) {
         next(error);
     }

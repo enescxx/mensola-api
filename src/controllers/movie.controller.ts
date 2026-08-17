@@ -54,6 +54,7 @@ import {
     UnlikeMovieDto,
 } from "@/types/movie";
 import { MovieId, MovieListId, PaginationQueries } from "@/types/common";
+import { MESSAGES } from "@/constants/messages";
 
 /* ==========================================================================
    Movie Library Controllers
@@ -265,7 +266,7 @@ const createMovieList = async (
             creatorId,
         });
 
-        return sendResponse(res, 201, newMovieList, "Movie list created successfully.");
+        return sendResponse(res, 201, newMovieList, MESSAGES.SUCCESS.CREATED_SUCCESSFULLY);
     } catch (error) {
         next(error);
     }
@@ -283,7 +284,7 @@ const markMovieAsWatched = async (req: TypedRequest<{ movieId: MovieId }>, res: 
         const movieId = req.params.movieId;
 
         const watchedMovie = await markAsWatched({ userId, movieId });
-        return sendResponse(res, 201, watchedMovie, "Movie has marked as watched successfully.");
+        return sendResponse(res, 201, watchedMovie);
     } catch (error) {
         next(error);
     }
@@ -304,10 +305,10 @@ const unmarkMovieAsWatched = async (req: TypedRequest<{ movieId: MovieId }>, res
 
         const deletedRecord = await unmarkAsWatched({ userId, movieId });
         if (deletedRecord.length === 0) {
-            throw new ApiError("Movie is not in your watched history.", 404);
+            throw new ApiError("NOT_IN_HISTORY", 404);
         }
 
-        return sendResponse(res, 200, null, "Movie has been removed from watched history successfully.");
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.MOVIE_REMOVED_WATCHED);
     } catch (error) {
         next(error);
     }
@@ -327,7 +328,7 @@ const getMovieById = async (req: TypedRequest<GetMovieDto>, res: Response, next:
 
         const movie = await getMovie({ movieId, currentUserId });
         if (!movie) {
-            throw new ApiError("The movie is not found.", 404);
+            throw new ApiError("NOT_FOUND", 404);
         }
 
         return sendResponse(res, 200, movie);
@@ -349,7 +350,7 @@ const addMovieToWatchlist = async (req: TypedRequest<{ movieId: MovieId }>, res:
         const movieId = req.params.movieId;
 
         const watchlistItem = await addToWatchlist({ userId, movieId });
-        return sendResponse(res, 201, watchlistItem, "Movie has been added to watchlist successfully.");
+        return sendResponse(res, 201, watchlistItem);
     } catch (error) {
         next(error);
     }
@@ -369,10 +370,10 @@ const removeMovieFromWatchlist = async (req: TypedRequest<{ movieId: MovieId }>,
 
         const deletedRecord = await removeFromWatchlist({ userId, movieId });
         if (!deletedRecord || deletedRecord.length === 0) {
-            throw new ApiError("Movie is not in your watchlist.", 404);
+            throw new ApiError("NOT_IN_WATCHLIST", 404);
         }
 
-        return sendResponse(res, 200, null, "Movie has been removed from watchlist successfully.");
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.MOVIE_REMOVED_WATCHED);
     } catch (error) {
         next(error);
     }
@@ -391,7 +392,7 @@ const addMovieToFavorites = async (req: TypedRequest<{ movieId: MovieId }>, res:
         const movieId = req.params.movieId;
 
         const favoriteItem = await addToFavorites({ userId, movieId });
-        return sendResponse(res, 201, favoriteItem, "Movie has been added to favorites successfully.");
+        return sendResponse(res, 201, favoriteItem);
     } catch (error) {
         next(error);
     }
@@ -411,10 +412,10 @@ const removeMovieFromFavorites = async (req: TypedRequest<{ movieId: MovieId }>,
 
         const deletedRecord = await removeFromFavorites({ userId, movieId });
         if (!deletedRecord || deletedRecord.length === 0) {
-            throw new ApiError("Movie is not in your favorites list.", 404);
+            throw new ApiError("NOT_IN_FAVORITES", 404);
         }
 
-        return sendResponse(res, 200, null, "Movie has been removed from favorites successfully.");
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.MOVIE_REMOVED_FAVORITES);
     } catch (error) {
         next(error);
     }
@@ -445,7 +446,7 @@ const updateMovieList = async (
             image,
             isPrivate,
         });
-        return sendResponse(res, 200, updatedList, "Movie list has been updated successfully.");
+        return sendResponse(res, 200, updatedList, MESSAGES.SUCCESS.UPDATED_SUCCESSFULLY);
     } catch (error) {
         next(error);
     }
@@ -464,7 +465,7 @@ const deleteMovieList = async (req: TypedRequest<{ listId: MovieListId }>, res: 
         const listId = req.params.listId;
 
         await deleteList({ listId, userId });
-        return sendResponse(res, 200, null, "Movie list has been deleted successfully.");
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.DELETED_SUCCESSFULLY);
     } catch (error) {
         next(error);
     }
@@ -483,7 +484,7 @@ const getMovieListById = async (req: TypedRequest<{ listId: MovieListId }>, res:
         const listId = req.params.listId;
 
         const movieList = await getListById({ listId, userId });
-        return sendResponse(res, 200, movieList, "Movie list retrieved successfully.");
+        return sendResponse(res, 200, movieList);
     } catch (error) {
         next(error);
     }
@@ -508,12 +509,7 @@ const getMovieListItems = async (
         const limit = Number(req.query.limit) || 18;
 
         const movieItems = await getListItems({ listId, userId, limit, page });
-        return sendResponse(
-            res,
-            200,
-            { items: movieItems, page, limit, hasMore: movieItems.length === limit },
-            "Movie items retrieved successfully.",
-        );
+        return sendResponse(res, 200, { items: movieItems, page, limit, hasMore: movieItems.length === limit });
     } catch (error) {
         next(error);
     }
@@ -536,12 +532,7 @@ const getMovieListInteractions = async (
         const limit = Number(req.query.limit) || 18;
 
         const interactions = await getListInteractions({ listId, limit, page });
-        return sendResponse(
-            res,
-            200,
-            { items: interactions, page, limit, hasMore: interactions.length === limit },
-            "Movie list interactions retrieved successfully.",
-        );
+        return sendResponse(res, 200, { items: interactions, page, limit, hasMore: interactions.length === limit });
     } catch (error) {
         next(error);
     }
@@ -572,7 +563,7 @@ const createMovieListInteraction = async (
             isLiked,
         });
 
-        return sendResponse(res, 200, result, "Movie list interaction saved successfully.");
+        return sendResponse(res, 200, result, MESSAGES.SUCCESS.INTERACTION_SAVED);
     } catch (error) {
         next(error);
     }
@@ -596,7 +587,7 @@ const addMovieToList = async (
         const userId = req.user!.id;
 
         const addedItem = await addItemToList({ listId, movieId, userId });
-        return sendResponse(res, 201, addedItem, "Movie has been added to the list successfully.");
+        return sendResponse(res, 201, addedItem);
     } catch (error) {
         next(error);
     }
@@ -620,7 +611,7 @@ const removeMovieFromList = async (
         const userId = req.user!.id;
 
         await removeItemFromList({ listId, movieId, userId });
-        return sendResponse(res, 200, null, "Movie has been removed from the list successfully.");
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.REMOVED_FROM_LIST);
     } catch (error) {
         next(error);
     }
@@ -640,7 +631,7 @@ const likeMovieList = async (req: TypedRequest<LikeMovieListDto>, res: Response,
         const userId = req.user!.id;
 
         const likeResult = await likeList({ userId, listId });
-        return sendResponse(res, 201, likeResult, "Movie list liked successfully.");
+        return sendResponse(res, 201, likeResult);
     } catch (error) {
         next(error);
     }
@@ -659,7 +650,7 @@ const unlikeMovieList = async (req: TypedRequest<UnlikeMovieListDto>, res: Respo
         const userId = req.user!.id;
 
         const unlikeResult = await unlikeList({ userId, listId });
-        return sendResponse(res, 200, unlikeResult, "Movie list unliked successfully.");
+        return sendResponse(res, 200, unlikeResult);
     } catch (error) {
         next(error);
     }
@@ -679,7 +670,7 @@ const likeMovie = async (req: TypedRequest<Omit<LikeMovieDto, "userId">>, res: R
         const userId = req.user!.id;
 
         const likeResult = await likeMovieService({ userId, movieId });
-        return sendResponse(res, 201, likeResult, "Movie liked successfully.");
+        return sendResponse(res, 201, likeResult);
     } catch (error) {
         next(error);
     }
@@ -698,7 +689,7 @@ const unlikeMovie = async (req: TypedRequest<Omit<UnlikeMovieDto, "userId">>, re
         const userId = req.user!.id;
 
         const unlikeResult = await unlikeMovieService({ userId, movieId });
-        return sendResponse(res, 200, unlikeResult, "Movie unliked successfully.");
+        return sendResponse(res, 200, unlikeResult);
     } catch (error) {
         next(error);
     }
@@ -728,7 +719,7 @@ const createMovieInteraction = async (
             isLiked,
         });
 
-        return sendResponse(res, 200, result, "Movie interaction saved successfully.");
+        return sendResponse(res, 200, result, MESSAGES.SUCCESS.INTERACTION_SAVED);
     } catch (error) {
         next(error);
     }

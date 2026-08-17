@@ -82,11 +82,11 @@ export const getPlaylistItems = async (dto: GetPlaylistItemsDto): Promise<GetPla
     ]);
 
     if (accessResult.rows.length === 0) {
-        throw new ApiError("Playlist not found.", 404);
+        throw new ApiError("NOT_FOUND", 404);
     }
 
     if (!accessResult.rows[0].hasAccess) {
-        throw new ApiError("Playlist not found or access denied.", 404);
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 
     const itemsResult = await pool.query<PlaylistItemResponseItem>(playlistQueries.items.getTracks, [
@@ -113,10 +113,7 @@ export const addTrackToPlaylist = async (dto: AddTrackToPlaylistDto) => {
     const addedItem = result.rows[0];
 
     if (!addedItem) {
-        throw new ApiError(
-            "Playlist not found, track already exists in the playlist, or you don't have permission to modify it.",
-            404,
-        );
+        throw new ApiError("ACTION_FAILED_NO_PERMISSION", 404);
     }
 
     return addedItem;
@@ -135,7 +132,7 @@ export const removeTrackFromPlaylist = async (dto: RemoveTrackFromPlaylistDto): 
     const result = await pool.query(playlistQueries.items.removeTrack, [playlistId, trackId, userId]);
 
     if (result.rows.length === 0) {
-        throw new ApiError("Track not found in the playlist or you don't have permission to modify it.", 404);
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 };
 
@@ -153,7 +150,7 @@ export const getPlaylistDetails = async (dto: GetPlaylistDetailsDto): Promise<Ge
     const playlist = result.rows[0];
 
     if (!playlist) {
-        throw new ApiError("Playlist not found or access denied.", 404);
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 
     return playlist;
@@ -194,7 +191,7 @@ export const upsertPlaylistInteraction = async (dto: UpsertPlaylistInteractionDt
         ]);
 
         if (accessResult.rows.length === 0 || !accessResult.rows[0].hasAccess) {
-            throw new ApiError("Playlist not found or access denied.", 404);
+            throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
         }
 
         const interactionResult = await client.query(playlistQueries.interaction.upsert, [
@@ -243,7 +240,7 @@ export const likePlaylist = async (dto: LikePlaylistDto): Promise<LikePlaylistRe
     ]);
 
     if (accessResult.rows.length === 0 || !accessResult.rows[0].hasAccess) {
-        throw new ApiError("Playlist not found or access denied.", 404);
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 
     const result = await pool.query<LikePlaylistResponse>(playlistQueries.likes.add, [userId, playlistId]);
@@ -265,7 +262,7 @@ export const unlikePlaylist = async (dto: UnlikePlaylistDto): Promise<UnlikePlay
     ]);
 
     if (accessResult.rows.length === 0 || !accessResult.rows[0].hasAccess) {
-        throw new ApiError("Playlist not found or access denied.", 404);
+        throw new ApiError("NOT_FOUND_OR_NO_PERMISSION", 404);
     }
 
     const result = await pool.query<UnlikePlaylistResponse>(playlistQueries.likes.remove, [userId, playlistId]);

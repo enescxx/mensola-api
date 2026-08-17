@@ -1,5 +1,6 @@
-import {Request, Response, NextFunction} from "express";
-import {JsonWebTokenError, TokenExpiredError} from "jsonwebtoken";
+import { MESSAGES } from "@/constants/messages";
+import { Request, Response, NextFunction } from "express";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 
 /**
  * Global Error Handling Middleware
@@ -12,27 +13,27 @@ export const globalErrorHandler = (err: any, req: Request, res: Response, next: 
     // Default to custom statusCode/message or fallback to 500 Internal Server Error
     let statusCode = err.statusCode || 500;
     let message = err.message || "Internal Server Error";
-    
+
     if (err instanceof JsonWebTokenError || err instanceof TokenExpiredError) {
         return res.status(403).json({
             success: false,
             error: {
-                message: "Invalid or expired token."
-            }
+                message: MESSAGES.ERRORS.INVALID_TOKEN,
+            },
         });
     }
 
     // Handle PostgreSQL unique constraint violation (e.g., duplicate email/username)
     if (err.code === "23505") {
         statusCode = 400;
-        message = "This email or username is already in use.";
+        message = MESSAGES.ERRORS.EMAIL_USERNAME_IN_USE;
     }
 
     return res.status(statusCode).json({
         success: false,
         error: {
             code: statusCode,
-            message
-        }
+            message,
+        },
     });
 };
