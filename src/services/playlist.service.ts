@@ -1,5 +1,5 @@
 import pool from "@/config/db";
-import { playlistQueries } from "@/queries/playlist";
+import { playlistQueries } from "@/queries/playlist.queries";
 import {
     GetUserPlaylistsDto,
     GetUserPlaylistsResponse,
@@ -20,7 +20,7 @@ import {
     UnlikePlaylistResponse,
     AddTrackToPlaylistDto,
     RemoveTrackFromPlaylistDto,
-} from "@/types/playlist";
+} from "@/types/playlist.types";
 import { ApiError } from "@/utils/error";
 import { upsertInteractionComment } from "@/utils/interaction";
 

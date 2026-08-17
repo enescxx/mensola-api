@@ -2,7 +2,7 @@ import request from "supertest";
 import app from "@/app";
 import pool from "@/config/db";
 
-import { IUser } from "@/types/user";
+import { IUser } from "@/types/user.types";
 import { createTestUser } from "./helpers/auth.helper";
 import { createTestTrack, createTestArtist, createTestTrackArtist, createTestInteraction } from "./helpers/db.helper";
 import { ITrack } from "@/types/music.types";
@@ -55,7 +55,7 @@ describe("Track API", () => {
             expect(response.body.success).toBe(true);
             expect(response.body.data.items).toHaveLength(2);
             expect(response.body.data.totalItems).toBe(2);
-            
+
             const titles = response.body.data.items.map((t: any) => t.title);
             expect(titles).toContain("Track 1");
             expect(titles).toContain("Track 2");
@@ -67,21 +67,19 @@ describe("Track API", () => {
         });
 
         it("should return another user's liked tracks when userId is provided", async () => {
-            const response = await request(app)
-                .get(`/api/tracks/likes?userId=${testUserB.id}`);
+            const response = await request(app).get(`/api/tracks/likes?userId=${testUserB.id}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
             expect(response.body.data.items).toHaveLength(1);
             expect(response.body.data.items[0].title).toBe("Track 3");
-            
+
             // track 3 has no artists, so it should be an empty array
             expect(response.body.data.items[0].artists).toEqual([]);
         });
 
         it("should return 400 if userId is invalid format", async () => {
-            const response = await request(app)
-                .get("/api/tracks/likes?userId=invalid-uuid");
+            const response = await request(app).get("/api/tracks/likes?userId=invalid-uuid");
 
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
@@ -223,14 +221,17 @@ describe("Track API", () => {
             const intA = await createTestInteraction(testUserA.id, testTrack.id, { rating: 4, targetType: "track" });
             await pool.query(
                 `INSERT INTO "Comment" (id, "userId", "interactionId", "content", "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW())`,
-                [testUserA.id, intA.id, "Great track!"]
+                [testUserA.id, intA.id, "Great track!"],
             );
 
             // User B adds a comment
-            const intB = await createTestInteraction(testUserB.id, testTrack.id, { isLiked: true, targetType: "track" });
+            const intB = await createTestInteraction(testUserB.id, testTrack.id, {
+                isLiked: true,
+                targetType: "track",
+            });
             await pool.query(
                 `INSERT INTO "Comment" (id, "userId", "interactionId", "content", "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW() - interval '1 hour')`,
-                [testUserB.id, intB.id, "Awesome!"]
+                [testUserB.id, intB.id, "Awesome!"],
             );
         });
 
@@ -240,7 +241,7 @@ describe("Track API", () => {
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
             expect(response.body.data.items).toHaveLength(2);
-            
+
             // Should be ordered by createdAt DESC by default in the query
             expect(response.body.data.items[0].user.id).toBe(testUserA.id);
             expect(response.body.data.items[0].comment.content).toBe("Great track!");
@@ -346,7 +347,7 @@ describe("Track API", () => {
                     rating: 4,
                     comment: "Good track",
                 });
-            
+
             const interactionId = createRes.body.data.id;
 
             // Remove rating and comment
@@ -368,10 +369,8 @@ describe("Track API", () => {
         });
 
         it("should return 401 if unauthenticated", async () => {
-            const response = await request(app)
-                .post(`/api/tracks/${testTrack.id}/interactions`)
-                .send({ rating: 5 });
-            
+            const response = await request(app).post(`/api/tracks/${testTrack.id}/interactions`).send({ rating: 5 });
+
             expect(response.status).toBe(401);
         });
 
@@ -381,7 +380,7 @@ describe("Track API", () => {
                 .post(`/api/tracks/${fakeId}/interactions`)
                 .set("Authorization", `Bearer ${testUserAToken}`)
                 .send({ rating: 5 });
-            
+
             expect(response.status).toBe(404);
         });
     });

@@ -1,5 +1,5 @@
-import { IUser, UserSummary } from "@/types/user";
-import { IInteraction, IComment } from "@/types/interaction";
+import { IUser, UserSummary } from "@/types/user.types";
+import { IInteraction, IComment } from "@/types/interaction.types";
 import {
     UserId,
     CommentId,
@@ -9,7 +9,7 @@ import {
     MovieListId,
     WatchedMovieId,
     PaginationQueries,
-} from "@/types/common";
+} from "@/types/common.types";
 
 // ==========================================
 // Core Entities & Relational Models

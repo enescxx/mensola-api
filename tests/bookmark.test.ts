@@ -2,7 +2,7 @@ import request from "supertest";
 import app from "@/app";
 import crypto from "crypto";
 
-import { IUser } from "@/types/user";
+import { IUser } from "@/types/user.types";
 import { createTestUser } from "./helpers/auth.helper";
 import { createTestMovieList, createTestBookmark } from "./helpers/db.helper";
 

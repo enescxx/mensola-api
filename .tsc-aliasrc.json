@@ -1,0 +1,17 @@
+{
+    "resolveFullExtention": true,
+    "fileExtensions": {
+        "inputGlob": "{ts,tsx,js,jsx,types.ts,controller.ts,service.ts,routes.ts,validation.ts,middleware.ts,queries.ts}",
+        "outputCheck": [
+            "types.ts",
+            "controller.ts",
+            "service.ts",
+            "routes.ts",
+            "validation.ts",
+            "middleware.ts",
+            "queries.ts",
+            "js",
+            "json"
+        ]
+    }
+}

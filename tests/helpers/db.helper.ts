@@ -1,6 +1,6 @@
 import pool from "@/config/db";
 import crypto from "crypto";
-import { IMovieList, MovieListType } from "@/types/movie";
+import { IMovieList, MovieListType } from "@/types/movie.types";
 
 /**
  * Creates a mock movie directly in the database for testing.
@@ -163,7 +163,9 @@ export const createTestBookmark = async (
     return result.rows[0];
 };
 
-export const createTestTrack = async (options: { title?: string; duration?: number; spotifyId?: string; albumId?: string } = {}) => {
+export const createTestTrack = async (
+    options: { title?: string; duration?: number; spotifyId?: string; albumId?: string } = {},
+) => {
     const {
         title = "Test Track",
         duration = 200,

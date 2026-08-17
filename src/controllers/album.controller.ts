@@ -10,10 +10,10 @@ import {
     upsertAlbumInteraction,
 } from "@/services/album.service";
 import { sendResponse } from "@/utils/response";
-import { TypedRequest, TypedRequestQuery } from "@/types/express";
+import { TypedRequest, TypedRequestQuery } from "@/types/express.types";
 import { GetLikedAlbumsDto, UpsertAlbumInteractionDto } from "@/types/album.types";
 import { ApiError } from "@/utils/error";
-import { AlbumId, PaginationQueries } from "@/types/common";
+import { AlbumId, PaginationQueries } from "@/types/common.types";
 
 /**
  * Retrieves a paginated list of albums liked by a target user (or current user).

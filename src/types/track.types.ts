@@ -1,6 +1,6 @@
-import { ArtistSummary, ITrack } from "@/types/music";
-import { PaginationQueries, TrackId, UserId } from "@/types/common";
-import { CurrentUserInteraction, InteractionItemResponse } from "@/types/interaction";
+import { ArtistSummary, ITrack } from "@/types/music.types";
+import { PaginationQueries, TrackId, UserId } from "@/types/common.types";
+import { CurrentUserInteraction, InteractionItemResponse } from "@/types/interaction.types";
 
 // ==========================================
 // DTOs & Payloads

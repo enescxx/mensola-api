@@ -1,5 +1,5 @@
 import pool from "@/config/db";
-import { movieQueries } from "@/queries/movie";
+import { movieQueries } from "@/queries/movie.queries";
 import { ApiError } from "@/utils/error";
 
 // Types & Interfaces
@@ -49,7 +49,7 @@ import {
     LikeMovieResponse,
     UnlikeMovieDto,
     UnlikeMovieResponse,
-} from "@/types/movie";
+} from "@/types/movie.types";
 import { upsertInteractionComment } from "@/utils/interaction";
 
 /**

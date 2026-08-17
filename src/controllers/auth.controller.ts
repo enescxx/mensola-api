@@ -9,7 +9,7 @@ import {
     sendResetEmail,
     verifyCode,
     updatePassword,
-} from "@/services/auth";
+} from "@/services/auth.service";
 
 import {
     CreateUserDto,
@@ -19,8 +19,8 @@ import {
     SendResetEmailDto,
     VerifyCodeDto,
     UpdatePasswordDto,
-} from "@/types/auth";
-import { TypedRequestBody } from "@/types/express";
+} from "@/types/auth.types";
+import { TypedRequestBody } from "@/types/express.types";
 import { MESSAGES } from "@/constants/messages";
 
 /**

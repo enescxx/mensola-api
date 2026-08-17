@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z, ZodIssue, ZodSchema } from "zod";
-import { MESSAGES } from "../constants/messages/tr";
+import { MESSAGES } from "@/constants/messages";
 
 /**
  * Express Request Validation Middleware

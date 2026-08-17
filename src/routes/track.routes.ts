@@ -7,17 +7,17 @@ import {
     unlikeTrackHandler,
     getTrackInteractionsList,
     createTrackInteraction,
-} from "@/controllers/track";
+} from "@/controllers/track.controller";
 
-import { extractUser, verifyToken } from "@/middlewares/auth";
-import { validate } from "@/middlewares/validate";
+import { extractUser, verifyToken } from "@/middlewares/auth.middleware";
+import { validate } from "@/middlewares/validate.middleware";
 
 import {
     trackPaginationQuerySchema,
     trackParamSchema,
     createTrackInteractionSchema,
 } from "@/validations/track.validation";
-import { requiredUserId } from "@/middlewares/requiredId";
+import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
 const router = Router();
 

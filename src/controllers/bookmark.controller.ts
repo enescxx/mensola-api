@@ -1,9 +1,9 @@
 import { Response, NextFunction } from "express";
-import { TypedRequestQuery, TypedRequestBody } from "@/types/express";
+import { TypedRequestQuery, TypedRequestBody } from "@/types/express.types";
 import { toggleBookmark, getUserBookmarks, BookmarkTargetType } from "@/services/bookmark.service";
 import { sendResponse } from "@/utils/response";
 import { ApiError } from "@/utils/error";
-import { MovieListId, PlaylistId, UserId } from "@/types/common";
+import { MovieListId, PlaylistId, UserId } from "@/types/common.types";
 
 interface ToggleBookmarkBody {
     targetId: string;

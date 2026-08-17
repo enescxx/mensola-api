@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "@/app";
 
-import { IUser } from "@/types/user";
+import { IUser } from "@/types/user.types";
 import { createTestUser } from "./helpers/auth.helper";
 import { createTestAlbum, createTestInteraction, createTestTrack } from "./helpers/db.helper";
 import { IAlbum } from "@/types/music.types";
@@ -26,7 +26,7 @@ describe("Album API", () => {
 
             // User A likes Album 1
             await createTestInteraction(testUserA.id, album1.id, { targetType: "album", isLiked: true });
-            
+
             // User B likes Album 2
             await createTestInteraction(testUserB.id, album2.id, { targetType: "album", isLiked: true });
         });
@@ -38,15 +38,14 @@ describe("Album API", () => {
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
-            
+
             expect(response.body.data.items).toHaveLength(1);
             expect(response.body.data.items[0].title).toBe("Album 1");
             expect(response.body.data.items[0].isLiked).toBe(true);
         });
 
         it("should return liked albums of another user", async () => {
-            const response = await request(app)
-                .get(`/api/albums/likes?userId=${testUserB.id}`);
+            const response = await request(app).get(`/api/albums/likes?userId=${testUserB.id}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
@@ -58,9 +57,8 @@ describe("Album API", () => {
         it("should return empty array if the user hasn't liked any albums", async () => {
             // User A liking Album 1 is already handled. Let's test a new user.
             const { user: testUserC } = await createTestUser();
-            
-            const response = await request(app)
-                .get(`/api/albums/likes?userId=${testUserC.id}`);
+
+            const response = await request(app).get(`/api/albums/likes?userId=${testUserC.id}`);
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);

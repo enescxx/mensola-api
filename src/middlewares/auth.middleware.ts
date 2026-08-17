@@ -1,4 +1,4 @@
-import { UserId } from "@/types/common";
+import { UserId } from "@/types/common.types";
 import { ApiError } from "@/utils/error";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";

@@ -7,11 +7,11 @@ import {
     unlikeTrack,
     getTrackInteractions,
     upsertTrackInteraction,
-} from "@/services/track";
+} from "@/services/track.service";
 import { sendResponse } from "@/utils/response";
-import { TypedRequest, TypedRequestQuery } from "@/types/express";
-import { GetLikedTracksDto, UpsertTrackInteractionDto } from "@/types/track";
-import { TrackId } from "@/types/common";
+import { TypedRequest, TypedRequestQuery } from "@/types/express.types";
+import { GetLikedTracksDto, UpsertTrackInteractionDto } from "@/types/track.types";
+import { TrackId } from "@/types/common.types";
 import { MESSAGES } from "@/constants/messages";
 
 /**

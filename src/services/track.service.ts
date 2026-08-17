@@ -1,5 +1,5 @@
 import pool from "@/config/db";
-import { trackQueries } from "@/queries/track";
+import { trackQueries } from "@/queries/track.queries";
 import {
     GetLikedTracksDto,
     GetLikedTracksResponse,

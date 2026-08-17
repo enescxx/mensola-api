@@ -29,14 +29,14 @@ import {
     unlikeMovie as unlikeMovieService,
     upsertMovieInteraction,
     UpsertMovieInteractionDto,
-} from "@/services/movie";
+} from "@/services/movie.service";
 
 // Utilities
 import { sendResponse } from "@/utils/response";
 import { ApiError } from "@/utils/error";
 
 // Types
-import { TypedRequestBody, TypedRequestQuery, TypedRequest } from "@/types/express";
+import { TypedRequestBody, TypedRequestQuery, TypedRequest } from "@/types/express.types";
 import {
     GetFavoritesDto,
     GetWatchlistDto,
@@ -52,8 +52,8 @@ import {
     UnlikeMovieListDto,
     LikeMovieDto,
     UnlikeMovieDto,
-} from "@/types/movie";
-import { MovieId, MovieListId, PaginationQueries } from "@/types/common";
+} from "@/types/movie.types";
+import { MovieId, MovieListId, PaginationQueries } from "@/types/common.types";
 import { MESSAGES } from "@/constants/messages";
 
 /* ==========================================================================

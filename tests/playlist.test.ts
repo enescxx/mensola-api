@@ -2,7 +2,7 @@ import request from "supertest";
 import app from "@/app";
 import crypto from "crypto";
 
-import { IUser } from "@/types/user";
+import { IUser } from "@/types/user.types";
 import { createTestUser } from "./helpers/auth.helper";
 import {
     createTestPlaylist,
@@ -13,7 +13,7 @@ import {
     addTestTrackToPlaylist,
     createTestBookmark,
 } from "./helpers/db.helper";
-import { IPlaylist } from "@/types/music";
+import { IPlaylist } from "@/types/music.types";
 
 describe("Playlist API", () => {
     let testUserA: Pick<IUser, "id" | "email" | "username"> & { password: string };
@@ -452,9 +452,7 @@ describe("Playlist API", () => {
                 comment: "Comment B",
             });
 
-            const response = await request(app).get(
-                `/api/playlists/${publicPlaylist.id}/interactions?limit=1&page=1`,
-            );
+            const response = await request(app).get(`/api/playlists/${publicPlaylist.id}/interactions?limit=1&page=1`);
 
             expect(response.status).toBe(200);
             expect(response.body.data.items).toHaveLength(1);
@@ -524,11 +522,9 @@ describe("Playlist API", () => {
         });
 
         it("should return 401 when unauthorized", async () => {
-            const response = await request(app)
-                .post(`/api/playlists/${publicPlaylist.id}/interactions`)
-                .send({
-                    comment: "Unauthorized comment",
-                });
+            const response = await request(app).post(`/api/playlists/${publicPlaylist.id}/interactions`).send({
+                comment: "Unauthorized comment",
+            });
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);
@@ -711,13 +707,12 @@ describe("Playlist API", () => {
         });
 
         it("should return 401 when unauthorized", async () => {
-            const response = await request(app)
-                .post(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`);
+            const response = await request(app).post(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`);
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);
         });
-        
+
         it("should return 400 for invalid ID format", async () => {
             const response = await request(app)
                 .post(`/api/playlists/invalid-id/items/${testTrack.id}`)
@@ -778,8 +773,7 @@ describe("Playlist API", () => {
         });
 
         it("should return 401 when unauthorized", async () => {
-            const response = await request(app)
-                .delete(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`);
+            const response = await request(app).delete(`/api/playlists/${testPlaylist.id}/items/${testTrack.id}`);
 
             expect(response.status).toBe(401);
             expect(response.body.success).toBe(false);
@@ -795,5 +789,3 @@ describe("Playlist API", () => {
         });
     });
 });
-
-

@@ -1,13 +1,12 @@
 import { Response, NextFunction, Request } from "express";
 
-import { getUserProfile, profileUpdate, getFollowers, getFollowing, follow, unfollow } from "@/services/user";
+import { getUserProfile, profileUpdate, getFollowers, getFollowing, follow, unfollow } from "@/services/user.service";
 
 import { sendResponse } from "@/utils/response";
-import { ApiError } from "@/utils/error";
 
-import { TypedRequest, TypedRequestBody, TypedRequestQuery } from "@/types/express";
-import { ProfileUpdateDto } from "@/types/user";
-import { UserId } from "@/types/common";
+import { TypedRequest, TypedRequestBody, TypedRequestQuery } from "@/types/express.types";
+import { ProfileUpdateDto } from "@/types/user.types";
+import { UserId } from "@/types/common.types";
 import { MESSAGES } from "@/constants/messages";
 
 /**

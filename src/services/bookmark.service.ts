@@ -1,6 +1,6 @@
 import pool from "@/config/db";
 import { bookmarkQueries } from "@/queries/bookmark.queries";
-import { MovieListId, PlaylistId, UserId } from "@/types/common";
+import { MovieListId, PlaylistId, UserId } from "@/types/common.types";
 import { ApiError } from "@/utils/error";
 
 export type BookmarkTargetType = "playlist" | "movieList";

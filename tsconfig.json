@@ -9,17 +9,7 @@
         "strict": true,
         "skipLibCheck": true,
         "paths": {
-            "@/types/*": ["./src/types/*.types", "./src/types/*"],
-            "@/utils/*": ["./src/utils/*"],
-            "@/config/*": ["./src/config/*"],
-            "@/controllers/*": ["./src/controllers/*.controller", "./src/controllers/*"],
-            "@/services/*": ["./src/services/*.service", "./src/services/*"],
-            "@/routes/*": ["./src/routes/*.routes", "./src/routes/*"],
-            "@/validations/*": ["./src/validations/*.validation", "./src/validations/*"],
-            "@/middlewares/*": ["./src/middlewares/*.middleware", "./src/middlewares/*"],
-            "@/queries/*": ["./src/queries/*.queries", "./src/queries/*"],
-            "@/constants/*": ["./src/constants/*"],
-            "@/*": ["./src/*.ts", "./src/*"]
+            "@/*": ["./src/*"]
         }
     },
     "include": ["src/**/*", "tests/**/*"],

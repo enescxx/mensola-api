@@ -9,15 +9,15 @@ import {
     getUserFollowing,
     followUser,
     unfollowUser,
-} from "@/controllers/user";
+} from "@/controllers/user.controller";
 
 // Middlewares
-import { verifyToken, extractUser } from "@/middlewares/auth";
-import { validate } from "@/middlewares/validate";
+import { verifyToken, extractUser } from "@/middlewares/auth.middleware";
+import { validate } from "@/middlewares/validate.middleware";
 
 // Validations
-import { userListQuerySchema, userIdParamSchema, updateProfileSchema } from "@/validations/user";
-import { requiredUserId } from "@/middlewares/requiredId";
+import { userListQuerySchema, userIdParamSchema, updateProfileSchema } from "@/validations/user.validation";
+import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
 const router = Router();
 

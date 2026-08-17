@@ -1,4 +1,4 @@
-import { UserId } from "@/types/common";
+import { UserId } from "@/types/common.types";
 
 declare global {
     namespace Express {

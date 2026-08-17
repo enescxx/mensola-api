@@ -1,0 +1,8 @@
+services:
+    app:
+        build:
+            context: .
+            target: development
+        volumes:
+            - ./src:/usr/src/app/src
+        command: npm run dev

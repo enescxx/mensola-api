@@ -9,7 +9,7 @@ import {
     LoginUserResponse,
     TokenRefreshResponse,
     VerifyCodeResponse,
-} from "@/types/auth";
+} from "@/types/auth.types";
 import { ApiResponse } from "@/types/api";
 
 /**

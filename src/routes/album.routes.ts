@@ -10,15 +10,15 @@ import {
     createAlbumInteraction,
 } from "@/controllers/album.controller";
 
-import { extractUser, verifyToken } from "@/middlewares/auth";
-import { validate } from "@/middlewares/validate";
+import { extractUser, verifyToken } from "@/middlewares/auth.middleware";
+import { validate } from "@/middlewares/validate.middleware";
 
 import {
     albumPaginationQuerySchema,
     albumIdParamSchema,
     createAlbumInteractionSchema,
 } from "@/validations/album.validation";
-import { requiredUserId } from "@/middlewares/requiredId";
+import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
 const router = Router();
 

@@ -2,8 +2,8 @@ import request from "supertest";
 import { MESSAGES } from "@/constants/messages";
 import app from "@/app";
 
-import { IUser } from "@/types/user";
-import { IMovie, IMovieList } from "@/types/movie";
+import { IUser } from "@/types/user.types";
+import { IMovie, IMovieList } from "@/types/movie.types";
 
 import { createTestUser } from "./helpers/auth.helper";
 import {

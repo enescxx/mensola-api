@@ -1,10 +1,18 @@
 import { Router } from "express";
 
 // Controllers
-import { register, login, refresh, logout, forgotPassword, verifyResetCode, resetPassword } from "@/controllers/auth";
+import {
+    register,
+    login,
+    refresh,
+    logout,
+    forgotPassword,
+    verifyResetCode,
+    resetPassword,
+} from "@/controllers/auth.controller";
 
 // Middlewares & Validations
-import { validate } from "@/middlewares/validate";
+import { validate } from "@/middlewares/validate.middleware";
 import {
     registerSchema,
     loginSchema,
@@ -12,8 +20,8 @@ import {
     forgotPasswordSchema,
     verifyResetCodeSchema,
     resetPasswordSchema,
-} from "@/validations/auth";
-import { authLimiter, forgotPasswordLimiter } from "@/middlewares/rateLimit";
+} from "@/validations/auth.validation";
+import { authLimiter, forgotPasswordLimiter } from "@/middlewares/rateLimit.middleware";
 
 const router = Router();
 

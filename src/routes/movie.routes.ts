@@ -29,11 +29,11 @@ import {
     likeMovie,
     unlikeMovie,
     createMovieInteraction,
-} from "@/controllers/movie";
+} from "@/controllers/movie.controller";
 
 // Middlewares
-import { verifyToken, extractUser } from "@/middlewares/auth";
-import { validate } from "@/middlewares/validate";
+import { verifyToken, extractUser } from "@/middlewares/auth.middleware";
+import { validate } from "@/middlewares/validate.middleware";
 
 // Validation
 import {
@@ -44,8 +44,8 @@ import {
     listIdParamSchema,
     listAndMovieParamsSchema,
     createMovieInteractionSchema,
-} from "@/validations/movie";
-import { requiredUserId } from "@/middlewares/requiredId";
+} from "@/validations/movie.validation";
+import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
 const router = Router();
 

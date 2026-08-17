@@ -1,6 +1,6 @@
-import { ArtistSummary, IAlbum } from "@/types/music";
-import { AlbumId, ArtistId, PaginationQueries, SpotifyTrackId, TrackId, UserId } from "@/types/common";
-import { CurrentUserInteraction, InteractionItemResponse } from "./interaction.types";
+import { ArtistSummary, IAlbum } from "@/types/music.types";
+import { AlbumId, ArtistId, PaginationQueries, SpotifyTrackId, TrackId, UserId } from "@/types/common.types";
+import { CurrentUserInteraction, InteractionItemResponse } from "@/types/interaction.types";
 
 // ==========================================
 // DTOs & Payloads

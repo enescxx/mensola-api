@@ -29,6 +29,7 @@ if (require.main === module) {
             await runMigrations(pool);
             process.exit(0);
         } catch (error) {
+            console.log("Migration failed: ", error);
             process.exit(1);
         } finally {
             await pool.end();

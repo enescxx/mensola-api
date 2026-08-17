@@ -11,12 +11,11 @@ import {
     upsertPlaylistInteraction,
     likePlaylist as likePlaylistService,
     unlikePlaylist as unlikePlaylistService,
-} from "@/services/playlist";
+} from "@/services/playlist.service";
 import { sendResponse } from "@/utils/response";
-import { TypedRequest, TypedRequestQuery } from "@/types/express";
-import { GetUserPlaylistsDto, GetLikedPlaylistsDto, UpsertPlaylistInteractionDto } from "@/types/playlist";
-import { ApiError } from "@/utils/error";
-import { PaginationQueries, PlaylistId, TrackId, UserId } from "@/types/common";
+import { TypedRequest, TypedRequestQuery } from "@/types/express.types";
+import { GetUserPlaylistsDto, GetLikedPlaylistsDto, UpsertPlaylistInteractionDto } from "@/types/playlist.types";
+import { PaginationQueries, PlaylistId, TrackId, UserId } from "@/types/common.types";
 import { MESSAGES } from "@/constants/messages";
 
 /**

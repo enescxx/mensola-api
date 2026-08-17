@@ -1,5 +1,14 @@
-import { AlbumId, CommentId, InteractionId, MovieId, MovieListId, PlaylistId, TrackId, UserId } from "@/types/common";
-import { UserSummary } from "@/types/user";
+import {
+    AlbumId,
+    CommentId,
+    InteractionId,
+    MovieId,
+    MovieListId,
+    PlaylistId,
+    TrackId,
+    UserId,
+} from "@/types/common.types";
+import { UserSummary } from "@/types/user.types";
 
 // ==========================================
 // Core Entities & Action Models

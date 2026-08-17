@@ -6,7 +6,7 @@ import { sendPasswordResetEmail } from "@/utils/email";
 import { hashPassword, comparePassword } from "@/utils/hash";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "@/utils/jwt";
 
-import { authQueries } from "@/queries/auth";
+import { authQueries } from "@/queries/auth.queries";
 
 import {
     CreateUserDto,
@@ -20,8 +20,8 @@ import {
     LoginUserResponse,
     TokenRefreshResponse,
     VerifyCodeResponse,
-} from "@/types/auth";
-import { IUser, ISession } from "@/types/user";
+} from "@/types/auth.types";
+import { IUser, ISession } from "@/types/user.types";
 
 /*
  * Register a new user, hashes their password, and creates an initial session

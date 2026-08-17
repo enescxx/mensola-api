@@ -11,18 +11,18 @@ import {
     unlikePlaylist,
     addTrackToPlaylist,
     removeTrackFromPlaylist,
-} from "@/controllers/playlist";
+} from "@/controllers/playlist.controller";
 
-import { extractUser, verifyToken } from "@/middlewares/auth";
-import { validate } from "@/middlewares/validate";
+import { extractUser, verifyToken } from "@/middlewares/auth.middleware";
+import { validate } from "@/middlewares/validate.middleware";
 
 import {
     playlistPaginationQuerySchema,
     playlistIdParamSchema,
     createPlaylistInteractionSchema,
     addTrackToPlaylistSchema,
-} from "@/validations/playlist";
-import { requiredUserId } from "@/middlewares/requiredId";
+} from "@/validations/playlist.validation";
+import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
 const router = Router();
 

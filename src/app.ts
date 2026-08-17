@@ -1,14 +1,14 @@
 import express, { Request, Response } from "express";
 
-import authRoutes from "@/routes/auth";
-import userRoutes from "@/routes/user";
-import movieRoutes from "@/routes/movie";
-import bookmarkRoutes from "@/routes/bookmark";
-import trackRoutes from "@/routes/track";
+import authRoutes from "@/routes/auth.routes";
+import userRoutes from "@/routes/user.routes";
+import movieRoutes from "@/routes/movie.routes";
+import bookmarkRoutes from "@/routes/bookmark.routes";
+import trackRoutes from "@/routes/track.routes";
 import playlistRoutes from "@/routes/playlist.routes";
 import albumRoutes from "@/routes/album.routes";
 
-import { globalErrorHandler } from "@/middlewares/error";
+import { globalErrorHandler } from "@/middlewares/error.middleware";
 
 const app = express();
 

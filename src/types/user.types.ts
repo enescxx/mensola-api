@@ -1,6 +1,6 @@
-import { IMovie } from "@/types/movie";
-import { ITrack } from "@/types/music";
-import { SessionId, UserId } from "@/types/common";
+import { IMovie } from "@/types/movie.types";
+import { ITrack } from "@/types/music.types";
+import { SessionId, UserId } from "@/types/common.types";
 
 // ==========================================
 // Core Models

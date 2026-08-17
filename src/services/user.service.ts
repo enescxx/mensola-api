@@ -1,6 +1,6 @@
 import pool from "@/config/db";
 import { ApiError } from "@/utils/error";
-import { userQueries } from "@/queries/user";
+import { userQueries } from "@/queries/user.queries";
 import {
     GetUserProfileDto,
     GetUserProfileResponse,
@@ -14,7 +14,7 @@ import {
     GetFollowingResponse,
     FollowDto,
     UnfollowDto,
-} from "@/types/user";
+} from "@/types/user.types";
 
 /**
  * Retrieves full user profile information along with statistics and mutual relationship details.

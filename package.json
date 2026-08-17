@@ -3,15 +3,17 @@
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
-        "build": "tsc",
-        "start": "npm run migrate && node dist/index.js",
-        "dev": "npm run migrate && tsx watch src/index.ts",
+        "build": "tsc && tsc-alias -p tsconfig.json",
+        "start": "npm run migrate:prod && node dist/index.js",
+        "dev": "npm run migrate:dev && tsx watch src/index.ts",
         "test": "jest --detectOpenHandles --runInBand",
-        "docker:dev": "docker compose up --build",
-        "docker:dev:down": "docker compose down",
+        "docker:dev": "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up --build",
+        "docker:dev:down": "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml down",
         "docker:test": "docker compose -f docker-compose.test.yaml up --build --abort-on-container-exit",
         "docker:test:down": "docker compose -f docker-compose.test.yaml down -v",
-        "migrate": "tsx src/scripts/migrate.ts"
+        "docker:prod": "docker compose up  --build --remove-orphans",
+        "migrate:dev": "tsx src/scripts/migrate.ts",
+        "migrate:prod": "node dist/scripts/migrate.js"
     },
     "keywords": [],
     "author": "",
@@ -39,6 +41,7 @@
         "jest": "^30.4.2",
         "supertest": "^7.2.2",
         "ts-jest": "^29.4.11",
+        "tsc-alias": "^1.9.2",
         "tsx": "^4.23.1",
         "typescript": "^5.9.3"
     }
