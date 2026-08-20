@@ -15,7 +15,7 @@ export type InteractionId = Brand<string, "InteractionId">;
 export type MovieId = Brand<string, "MovieId">;
 export type MovieListId = Brand<string, "MovieListId">;
 export type WatchedMovieId = Brand<string, "WatchedMovieId">;
-export type TmdbId = Brand<string, "TmdbId">;
+export type TmdbId = Brand<number, "TmdbId">;
 
 // --- Music Domain Identifiers ---
 export type TrackId = Brand<string, "TrackId">;

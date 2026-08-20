@@ -14,12 +14,12 @@ CREATE TABLE IF NOT EXISTS "User" (
 
 CREATE TABLE IF NOT EXISTS "Movie" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "tmdbId" VARCHAR(255) UNIQUE NOT NULL,
+    "tmdbId" INTEGER UNIQUE NOT NULL,
     "title" VARCHAR(255) NOT NULL,
     "poster" VARCHAR(500) NOT NULL, 
     "releaseDate" DATE NULL, 
     "rating" DECIMAL(3,1) NULL,
-    "genres" VARCHAR(100)[] NULL, 
+    "genres" INTEGER[] NULL, 
     "duration" INTEGER NULL, 
     "createdAt" TIMESTAMP DEFAULT NOW()
 );

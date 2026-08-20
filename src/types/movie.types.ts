@@ -19,7 +19,7 @@ export interface IMovie {
     id: MovieId;
     tmdbId: TmdbId;
     title: string;
-    poster: string;
+    poster: URL | string;
     releaseDate?: Date | string;
     rating?: number;
     genres?: string[];

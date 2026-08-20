@@ -5,6 +5,7 @@ import bookmarkRoutes from "./bookmark.routes";
 import trackRoutes from "./track.routes";
 import playlistRoutes from "./playlist.routes";
 import albumRoutes from "./album.routes";
+import tmdbRoutes from "./tmdb.routes";
 
 import { Router } from "express";
 
@@ -17,5 +18,6 @@ v1Router.use("/bookmarks", bookmarkRoutes);
 v1Router.use("/tracks", trackRoutes);
 v1Router.use("/playlists", playlistRoutes);
 v1Router.use("/albums", albumRoutes);
+v1Router.use("/tmdb", tmdbRoutes);
 
 export default v1Router;
