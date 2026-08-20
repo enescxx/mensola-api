@@ -47,7 +47,7 @@ export const getUserProfile = async (dto: GetUserProfileDto): Promise<GetUserPro
         likedPlaylistsCount: Number(rawData.likedPlaylistsCount || 0),
         likedMovieListsCount: Number(rawData.likedMovieListsCount || 0),
         likedAlbumsCount: Number(rawData.likedAlbumsCount || 0),
-        followerCount: Number(rawData.followerCount || 0),
+        followersCount: Number(rawData.followersCount || 0),
         followingCount: Number(rawData.followingCount || 0),
     };
 

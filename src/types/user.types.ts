@@ -43,7 +43,7 @@ export interface IStats {
     likedPlaylistsCount: number;
     likedMovieListsCount: number;
     likedAlbumsCount: number;
-    followerCount: number;
+    followersCount: number;
     followingCount: number;
     favoriteTracks?: ITrack[];
     favoriteMovies?: IMovie[];

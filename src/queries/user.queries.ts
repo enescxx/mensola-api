@@ -38,7 +38,7 @@ export const userQueries = {
                 COALESCE(stats.total_liked_movie_lists, 0) AS "likedMovieListsCount",
                 COALESCE(stats.total_liked_albums, 0) AS "likedAlbumsCount",
                 
-                COALESCE(follow_stats.follower_count, 0) AS "followerCount",
+                COALESCE(follow_stats.follower_count, 0) AS "followersCount",
                 COALESCE(follow_stats.following_count, 0) AS "followingCount",
         
                 CASE 

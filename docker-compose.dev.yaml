@@ -6,3 +6,6 @@ services:
         volumes:
             - ./src:/usr/src/app/src
         command: npm run dev
+    db:
+        ports:
+            - "4361:5432"
