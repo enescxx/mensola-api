@@ -35,6 +35,6 @@ export const tmdbService = {
         const hasMore = searchData.page < searchData.total_pages;
         const totalResults = searchData.total_results;
 
-        return { items: movies, hasMore, totalResults };
+        return { items: movies, page, hasMore, totalResults };
     },
 };
