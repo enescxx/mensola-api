@@ -1,6 +1,6 @@
 import { mapGenreIdsToNames } from "@/constants/tmdb";
 import { IMovie } from "@/types/movie.types";
-import { ITmdbMovie, SearchMovieResult } from "@/types/tmdb.types";
+import { ITmdbMovie, SearchMovieResult, TrendMoviesResult } from "@/types/tmdb.types";
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_TOKEN = process.env.TMDB_ACCESS_TOKEN;
@@ -34,6 +34,32 @@ export const tmdbService = {
 
         const hasMore = searchData.page < searchData.total_pages;
         const totalResults = searchData.total_results;
+
+        return { items: movies, page, hasMore, totalResults };
+    },
+
+    getTrendMovies: async (page: number) => {
+        const res = await fetch(`${TMDB_BASE_URL}/trending/movie/day?language=tr-TR&page=${page}`, {
+            headers: { Authorization: `Bearer ${TMDB_TOKEN}`, accept: "application/json" },
+        });
+
+        const trendMovieData = (await res.json()) as TrendMoviesResult;
+
+        const movies: Omit<IMovie, "id">[] = trendMovieData.results.map((item: ITmdbMovie) => {
+            const movie: Omit<IMovie, "id"> = {
+                tmdbId: item.id,
+                title: item.original_title,
+                poster: getTmdbImage(item.poster_path),
+                releaseDate: item.release_date,
+                rating: item.vote_average,
+                genres: mapGenreIdsToNames(item.genre_ids),
+            };
+
+            return movie;
+        });
+
+        const hasMore = trendMovieData.page < trendMovieData.total_pages;
+        const totalResults = trendMovieData.total_results;
 
         return { items: movies, page, hasMore, totalResults };
     },

@@ -17,3 +17,9 @@ export type SearchMovieResult = {
     total_pages: number;
     total_results: number;
 };
+export type TrendMoviesResult = {
+    page: number;
+    results: ITmdbMovie[];
+    total_pages: number;
+    total_results: number;
+};
