@@ -23,3 +23,19 @@ export const spotifySearchTrack = async (
         next(error);
     }
 };
+
+export const spotifyGetNewAlbums = async (
+    req: TypedRequestQuery<Partial<PaginationQueries>>,
+    res: Response,
+    next: NextFunction,
+) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 9;
+
+    try {
+        const spotifyResponse = await spotifyService.getNewAlbums(page, limit);
+        return sendResponse(res, 200, spotifyResponse);
+    } catch (error) {
+        next(error);
+    }
+};

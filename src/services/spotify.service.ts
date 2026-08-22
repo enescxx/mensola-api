@@ -1,5 +1,5 @@
 import { IAlbum, IArtist, ITrack } from "@/types/music.types";
-import { SearchTrackResult } from "@/types/spotify.types";
+import { GetNewAlbumsResult, SearchTrackResult } from "@/types/spotify.types";
 
 let spotifyAccessToken = "";
 let tokenExpiresAt = 0;
@@ -89,5 +89,47 @@ export const spotifyService = {
         const totalResults = searchDataTracks.total;
 
         return { items: tracks, page, limit, hasMore, totalResults };
+    },
+
+    getNewAlbums: async (page: number, limit: number) => {
+        const offset = (page - 1) * limit;
+        const token = await getAccessToken();
+
+        const res = await fetch(
+            `https://api.spotify.com/v1/search?q=tag:new&type=album&market=TR&limit=${limit}&offset=${offset}`,
+            { headers: { Authorization: `Bearer ${token}` } },
+        );
+
+        const spotifyData = await res.json();
+        const newAlbums = spotifyData.albums as GetNewAlbumsResult;
+
+        const albums: Omit<IAlbum, "id">[] = newAlbums.items.map((item) => {
+            let artists: Omit<IArtist, "id">[] | undefined;
+            if (item.artists) {
+                artists = item.artists.map((itemArtist) => {
+                    const artist: Omit<IArtist, "id"> = {
+                        spotifyId: itemArtist.id,
+                        name: itemArtist.name,
+                    };
+
+                    return artist;
+                });
+            }
+
+            const album: Omit<IAlbum, "id"> & { artists?: Omit<IArtist, "id">[] } = {
+                spotifyId: item.id,
+                title: item.name,
+                image: getAlbumCover(item.images),
+                songCount: item.total_tracks,
+                artists: artists,
+            };
+
+            return album;
+        });
+
+        const hasMore = offset + albums.length < newAlbums.total;
+        const totalResults = newAlbums.total;
+
+        return { items: albums, page, limit, hasMore, totalResults };
     },
 };

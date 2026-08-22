@@ -26,3 +26,8 @@ export type SearchTrackResult = {
     total: number;
     limit?: number;
 };
+export type GetNewAlbumsResult = {
+    items: ISpotifyAlbum[];
+    total: number;
+    limit?: number;
+};
