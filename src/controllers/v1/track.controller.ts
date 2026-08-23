@@ -7,12 +7,14 @@ import {
     unlikeTrack,
     getTrackInteractions,
     upsertTrackInteraction,
+    findOrFetchSpotifyTrack,
 } from "@/services/track.service";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express.types";
 import { GetLikedTracksDto, UpsertTrackInteractionDto } from "@/types/track.types";
-import { TrackId } from "@/types/common.types";
+import { SpotifyId, TrackId } from "@/types/common.types";
 import { MESSAGES } from "@/constants/messages";
+import { ApiError } from "@/utils/error";
 
 /**
  * Retrieves a paginated list of liked tracks for a target user (or current user).
@@ -158,6 +160,26 @@ export const createTrackInteraction = async (
         });
 
         return sendResponse(res, 200, result, MESSAGES.SUCCESS.INTERACTION_SAVED);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getOrFetchSpotifyTrack = async (
+    req: TypedRequest<{ spotifyId?: SpotifyId }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    const spotifyId = req.params.spotifyId;
+    const userId = req.user?.id;
+
+    if (!spotifyId) {
+        return next(new ApiError("NOT_FOUND"));
+    }
+
+    try {
+        const result = await findOrFetchSpotifyTrack(spotifyId, userId);
+        return sendResponse(res, 200, result);
     } catch (error) {
         next(error);
     }

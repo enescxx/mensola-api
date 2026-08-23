@@ -95,6 +95,22 @@ export const trackQueries = {
         ) user_int ON true
         WHERE t.id = $1::uuid;
     `,
+
+    checkExists: `
+        SELECT *
+        FROM "Track" t
+        WHERE t."spotifyId" = $1`,
+
+    insertTrack: `
+        INSERT INTO "Track" ("spotifyId", "title", "duration", "image", "albumId", "createdAt")
+        VALUES ($1, $2, $3, $4, $5, NOW())
+        RETURNING id`,
+
+    insertTrackArtist: `
+        INSERT INTO "TrackArtist" ("trackId", "artistId")
+        VALUES ($1, $2)
+        RETURNING *`,
+
     likes: {
         get: `
             SELECT 

@@ -1,5 +1,6 @@
+import { SpotifyId } from "@/types/common.types";
 import { IAlbum, IArtist, ITrack } from "@/types/music.types";
-import { GetNewAlbumsResult, SearchTrackResult } from "@/types/spotify.types";
+import { GetNewAlbumsResult, ISpotifyArtist, ISpotifyTrack, SearchTrackResult } from "@/types/spotify.types";
 
 let spotifyAccessToken = "";
 let tokenExpiresAt = 0;
@@ -131,5 +132,60 @@ export const spotifyService = {
         const totalResults = newAlbums.total;
 
         return { items: albums, page, limit, hasMore, totalResults };
+    },
+
+    getTrackBySpotifyId: async (spotifyId: SpotifyId) => {
+        const token = await getAccessToken();
+
+        const res = await fetch(`https://api.spotify.com/v1/tracks/${spotifyId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const spotifyData = (await res.json()) as ISpotifyTrack;
+
+        let album: (Omit<IAlbum, "id"> & { artists?: Omit<IArtist, "id">[] }) | undefined;
+        if (spotifyData.album) {
+            album = {
+                spotifyId: spotifyData.album.id,
+                title: spotifyData.album.name,
+                image: getAlbumCover(spotifyData.album?.images),
+                releaseDate: spotifyData.album.release_date,
+                songCount: spotifyData.album.total_tracks,
+                artists: spotifyData.album.artists?.map((itemArtist: ISpotifyArtist) => {
+                    const artist: Omit<IArtist, "id"> = {
+                        spotifyId: itemArtist.id,
+                        name: itemArtist.name,
+                    };
+
+                    return artist;
+                }),
+            };
+        }
+
+        let artists: Omit<IArtist, "id">[] | undefined;
+        if (spotifyData.artists) {
+            artists = spotifyData.artists.map((itemArtist: ISpotifyArtist) => {
+                const artist: Omit<IArtist, "id"> = {
+                    spotifyId: itemArtist.id,
+                    name: itemArtist.name,
+                };
+
+                return artist;
+            });
+        }
+
+        const track: Omit<ITrack, "id"> & {
+            album?: Omit<IAlbum, "id"> & { artists?: Omit<IArtist, "id">[] };
+            artists?: Omit<IArtist, "id">[];
+        } = {
+            spotifyId: spotifyData.id,
+            title: spotifyData.name,
+            duration: spotifyData.duration_ms,
+            image: getAlbumCover(spotifyData.album?.images),
+            album: album,
+            artists: artists,
+        };
+
+        return track;
     },
 };

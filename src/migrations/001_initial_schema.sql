@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS "Artist" (
     "spotifyId" VARCHAR(255) UNIQUE NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "image" VARCHAR(500) NULL,
-    "followers" INTEGER NULL
+    "createdAt" TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS "Album" (

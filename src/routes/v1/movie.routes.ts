@@ -89,7 +89,7 @@ router.delete("/lists/:listId", verifyToken, validate(listIdParamSchema), delete
    ========================================================================== */
 
 // TMDB Movies
-router.get("/by_tmdb/:tmdbId", extractUser, validate(tmdbIdParamSchema), getOrFetchTmdbMovie);
+router.get("/by-tmdb/:tmdbId", extractUser, validate(tmdbIdParamSchema), getOrFetchTmdbMovie);
 
 // Watched Status
 router.post("/:movieId/watched", verifyToken, validate(movieIdParamSchema), markMovieAsWatched);

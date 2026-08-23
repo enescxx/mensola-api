@@ -153,6 +153,22 @@ export const albumQueries = {
         ) user_int ON true
         WHERE al.id = $1::uuid;
     `,
+
+    checkExists: `
+        SELECT *
+        FROM "Album" a
+        WHERE a."spotifyId" = $1`,
+
+    insertAlbum: `
+        INSERT INTO "Album" ("spotifyId", title, image, "releaseDate", "songCount", "createdAt")
+        VALUES ($1, $2, $3, $4, $5, NOW())
+        RETURNING id`,
+
+    insertAlbumArtist: `
+        INSERT INTO "AlbumArtist" ("albumId", "artistId")
+        VALUES ($1, $2)
+        RETURNING *`,
+
     tracks: {
         checkExists: `
             SELECT id FROM "Album" WHERE id = $1::uuid;
