@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS "Movie" (
     "poster" VARCHAR(500) NOT NULL, 
     "releaseDate" DATE NULL, 
     "rating" DECIMAL(3,1) NULL,
-    "genres" INTEGER[] NULL, 
+    "genres" TEXT[] NULL, 
     "duration" INTEGER NULL, 
     "createdAt" TIMESTAMP DEFAULT NOW()
 );

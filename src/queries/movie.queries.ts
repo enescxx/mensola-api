@@ -454,6 +454,16 @@ export const movieQueries = {
                            
             WHERE m.id = $1;`,
 
+        checkExists: `
+            SELECT * 
+            FROM "Movie" m 
+            WHERE m."tmdbId" = $1`,
+
+        insertMovie: `
+            INSERT INTO "Movie" ("tmdbId", title, poster, "releaseDate", rating, genres, duration, "createdAt")
+            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+            RETURNING id;`,
+
         /**
          * Watchlist management (System MovieList where listType = 'watchlist')
          */

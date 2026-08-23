@@ -29,6 +29,7 @@ import {
     likeMovie,
     unlikeMovie,
     createMovieInteraction,
+    getOrFetchTmdbMovie,
 } from "@/controllers/v1/movie.controller";
 
 // Middlewares
@@ -44,6 +45,7 @@ import {
     listIdParamSchema,
     listAndMovieParamsSchema,
     createMovieInteractionSchema,
+    tmdbIdParamSchema,
 } from "@/validations/movie.validation";
 import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
@@ -83,8 +85,11 @@ router.patch("/lists/:listId", verifyToken, validate(updateMovieListSchema), upd
 router.delete("/lists/:listId", verifyToken, validate(listIdParamSchema), deleteMovieList);
 
 /* ==========================================================================
-   3. Single Movie Interactions & Specific Actions
+   4. Single Movie Interactions & Specific Actions
    ========================================================================== */
+
+// TMDB Movies
+router.get("/by_tmdb/:tmdbId", extractUser, validate(tmdbIdParamSchema), getOrFetchTmdbMovie);
 
 // Watched Status
 router.post("/:movieId/watched", verifyToken, validate(movieIdParamSchema), markMovieAsWatched);

@@ -9,6 +9,8 @@ export interface ITmdbMovie {
     vote_average: number;
     vote_count: number;
     genre_ids: number[];
+    genres?: { id: number; name: string }[];
+    runtime?: number;
 }
 
 export type SearchMovieResult = {

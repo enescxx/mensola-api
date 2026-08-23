@@ -37,6 +37,10 @@ export const movieIdParamSchema = z.object({
     params: z.object({ movieId: movieIdRule }),
 });
 
+export const tmdbIdParamSchema = z.object({
+    params: z.object({ tmdbId: z.coerce.number() }),
+});
+
 /**
  * Validation schema for endpoints that require a valid `listId` parameter.
  */
