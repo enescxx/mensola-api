@@ -49,8 +49,10 @@ import {
     LikeMovieResponse,
     UnlikeMovieDto,
     UnlikeMovieResponse,
+    FindOrFetchFromTmdbDto,
 } from "@/types/movie.types";
 import { upsertInteractionComment } from "@/utils/interaction";
+import { tmdbService } from "./tmdb.service";
 
 /**
  * Retrieves a paginated list of favorite movies for a given user.
@@ -536,4 +538,35 @@ export const upsertMovieInteraction = async (dto: UpsertMovieInteractionDto) => 
     } finally {
         client.release();
     }
+};
+
+export const findOrFetchFromTmdb = async (dto: FindOrFetchFromTmdbDto): Promise<GetMovieResponse> => {
+    const { tmdbId, userId } = dto;
+
+    const checkResult = await pool.query(movieQueries.movies.checkExists, [tmdbId]);
+
+    let movieId: number;
+
+    if (checkResult.rows.length > 0) {
+        movieId = checkResult.rows[0].id;
+    } else {
+        const tmdbMovie = await tmdbService.getMovieByTmdbId(tmdbId);
+
+        const values = [
+            tmdbMovie.tmdbId,
+            tmdbMovie.title,
+            tmdbMovie.poster,
+            tmdbMovie.releaseDate,
+            tmdbMovie.rating,
+            tmdbMovie.genres,
+            tmdbMovie.duration,
+        ];
+
+        const insertResult = await pool.query(movieQueries.movies.insertMovie, values);
+        movieId = insertResult.rows[0].id;
+    }
+
+    const finalResult = await pool.query<GetMovieResponse>(movieQueries.movies.getById, [movieId, userId]);
+
+    return finalResult.rows[0];
 };

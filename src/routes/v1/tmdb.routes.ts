@@ -9,6 +9,6 @@ import { searchMovieSchema, pageQuerySchema } from "@/validations/tmdb.validatio
 const router = Router();
 
 router.get("/search/movie", verifyToken, validate(searchMovieSchema), tmdbSearchMovie);
-router.get("/trends/movie", verifyToken, validate(pageQuerySchema), tmdbTrendMovies);
+router.get("/trending/movie", verifyToken, validate(pageQuerySchema), tmdbTrendMovies);
 
 export default router;

@@ -29,6 +29,7 @@ import {
     unlikeMovie as unlikeMovieService,
     upsertMovieInteraction,
     UpsertMovieInteractionDto,
+    findOrFetchFromTmdb,
 } from "@/services/movie.service";
 
 // Utilities
@@ -53,7 +54,7 @@ import {
     LikeMovieDto,
     UnlikeMovieDto,
 } from "@/types/movie.types";
-import { MovieId, MovieListId, PaginationQueries } from "@/types/common.types";
+import { MovieId, MovieListId, PaginationQueries, TmdbId } from "@/types/common.types";
 import { MESSAGES } from "@/constants/messages";
 
 /* ==========================================================================
@@ -725,6 +726,23 @@ const createMovieInteraction = async (
     }
 };
 
+const getOrFetchTmdbMovie = async (req: TypedRequest<{ tmdbId?: TmdbId }>, res: Response, next: NextFunction) => {
+    console.log("================================");
+    const tmdbId = req.params.tmdbId;
+    const userId = req.user?.id;
+
+    if (!tmdbId) {
+        return next(new ApiError("NOT_FOUND"));
+    }
+
+    try {
+        const result = await findOrFetchFromTmdb({ tmdbId, userId });
+        return sendResponse(res, 200, result);
+    } catch (error) {
+        next(error);
+    }
+};
+
 /* ==========================================================================
    Exports
    ========================================================================== */
@@ -757,4 +775,5 @@ export {
     likeMovie,
     unlikeMovie,
     createMovieInteraction,
+    getOrFetchTmdbMovie,
 };

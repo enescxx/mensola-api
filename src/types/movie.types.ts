@@ -82,6 +82,7 @@ export type GetListItemsDto = GetListByIdDto & PaginationQueries;
 export type MovieListItemDto = { listId: MovieListId; movieId: MovieId; userId: UserId };
 export type LikeMovieDto = UserMovieActionDto;
 export type UnlikeMovieDto = UserMovieActionDto;
+export type FindOrFetchFromTmdbDto = { tmdbId: TmdbId; userId?: UserId };
 
 // ==========================================
 // API Responses & Nested Projections
