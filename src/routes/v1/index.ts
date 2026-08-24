@@ -7,6 +7,7 @@ import playlistRoutes from "./playlist.routes";
 import albumRoutes from "./album.routes";
 import tmdbRoutes from "./tmdb.routes";
 import spotifyRoutes from "./spotify.routes";
+import storageRoutes from "./storage.routes";
 
 import { Router } from "express";
 
@@ -21,5 +22,6 @@ v1Router.use("/playlists", playlistRoutes);
 v1Router.use("/albums", albumRoutes);
 v1Router.use("/tmdb", tmdbRoutes);
 v1Router.use("/spotify", spotifyRoutes);
+v1Router.use("/storage", storageRoutes);
 
 export default v1Router;
