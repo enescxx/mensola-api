@@ -1,3 +1,4 @@
+import "multer";
 import { UserId } from "@/types/common.types";
 
 declare global {
