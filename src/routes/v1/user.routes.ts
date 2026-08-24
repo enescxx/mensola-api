@@ -33,11 +33,11 @@ const router = Router();
 router.get("/me", verifyToken, getMe);
 
 /**
- * @route   PUT /api/users/me
+ * @route   PATCH /api/users/me
  * @desc    Update authenticated user's profile fields (fullname, bio, avatar)
  * @access  Private (Requires valid Access Token)
  */
-router.put("/me", verifyToken, validate(updateProfileSchema), updateProfile);
+router.patch("/me", verifyToken, validate(updateProfileSchema), updateProfile);
 
 /* ==========================================================================
    Social Connections & Graph Routes (Followers / Following)

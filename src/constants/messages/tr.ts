@@ -64,6 +64,10 @@ export const MESSAGES = {
         NOT_IN_HISTORY: "Film izleme geçmişinizde bulunmuyor.",
         NOT_IN_WATCHLIST: "Film izleme listenizde bulunmuyor.",
         NOT_IN_FAVORITES: "Film favori listenizde bulunmuyor.",
+
+        IMAGE_UPLOAD_ERROR: "Görsel yüklenmedi.",
+        INVALID_FILE_TYPE: "Sadece görsel dosyaları yüklenebilir.",
+        PROFILE_UPDATE_ERROR: "Profil bilgileri güncellenirken bir hata oluştu.",
     },
 
     SUCCESS: {

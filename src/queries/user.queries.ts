@@ -22,6 +22,7 @@ export const userQueries = {
             SELECT 
                 u.id,
                 u.username,
+                u.avatar,
                 u.fullname,
                 u.bio,
                 COALESCE(movie_lists.count, 0) AS "movieListCount",
@@ -232,6 +233,8 @@ export const userQueries = {
             WHERE "id" = $${userIdPlaceholderIndex}
             RETURNING id, username, fullname, bio, avatar;
         `,
+
+        getAvatarById: `SELECT avatar FROM "User" WHERE id = $1`,
     },
 
     /**

@@ -15,6 +15,7 @@ import {
     FollowDto,
     UnfollowDto,
 } from "@/types/user.types";
+import { deleteFileFromR2 } from "./storage.service";
 
 /**
  * Retrieves full user profile information along with statistics and mutual relationship details.
@@ -69,6 +70,27 @@ export const getUserProfile = async (dto: GetUserProfileDto): Promise<GetUserPro
  * @throws ApiError (404) if the target user is not found
  */
 export const profileUpdate = async (dto: ProfileUpdateDto): Promise<ProfileUpdateResponse> => {
+    if (dto.updateData.avatar !== undefined) {
+        const currentUserResult = await pool.query<{ avatar: string | null }>(userQueries.profile.getAvatarById, [
+            dto.userId,
+        ]);
+
+        if (currentUserResult.rows.length === 0) {
+            throw new ApiError("NOT_FOUND", 404);
+        }
+
+        const oldAvatarUrl = currentUserResult.rows[0].avatar;
+        const newAvatarUrl = dto.updateData.avatar;
+
+        if (oldAvatarUrl && oldAvatarUrl !== newAvatarUrl) {
+            try {
+                await deleteFileFromR2(oldAvatarUrl);
+            } catch (err) {
+                throw new ApiError("PROFILE_UPDATE_ERROR", 401);
+            }
+        }
+    }
+
     const fields: string[] = [];
     const values: any[] = [];
     let placeholderIndex = 1;
@@ -96,7 +118,6 @@ export const profileUpdate = async (dto: ProfileUpdateDto): Promise<ProfileUpdat
     values.push(dto.userId);
 
     const query = userQueries.profile.update(fields, placeholderIndex);
-
     const result = await pool.query<ProfileUpdateResponse>(query, values);
 
     if (result.rows.length === 0) {

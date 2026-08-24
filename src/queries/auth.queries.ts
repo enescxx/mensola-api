@@ -8,7 +8,7 @@ export const authQueries = {
             VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW()) 
             RETURNING id, email, username;`,
         findByEmail: `
-            SELECT id, email, username, password
+            SELECT id, email, fullname, username, avatar, password
             FROM "User" WHERE email = $1`,
         findIdByEmail: `SELECT id FROM "User" WHERE email = $1`,
         // Retrieves user ID if a valid password reset ticket exists and hasn't expired
