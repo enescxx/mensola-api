@@ -85,7 +85,7 @@ export const userQueries = {
                             'poster', user_favs.poster,
                             'rating', user_favs.rating,
                             'isLiked', user_favs.is_liked,
-                            'hasComment', user_favs.has_comment
+                            'hasReview', user_favs.has_comment
                         ) ORDER BY user_favs.added_at DESC
                     ) AS movies
                 FROM (

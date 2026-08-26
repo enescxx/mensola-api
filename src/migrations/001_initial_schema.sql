@@ -191,3 +191,13 @@ CREATE TABLE IF NOT EXISTS "Bookmark" (
     "createdAt" TIMESTAMP DEFAULT NOW(),
     UNIQUE("userId", "targetId", "targetType")
 );
+
+
+CREATE TABLE IF NOT EXISTS "Waitlist" (
+    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "firstName" VARCHAR(255),
+    "email" VARCHAR(255) UNIQUE NOT NULL,
+    "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    "status" VARCHAR(50) DEFAULT 'pending' CHECK ("status" IN ('pending', 'invited', 'active')),
+    "platform" VARCHAR(50) DEFAULT 'android' CHECK ("platform" IN ('android', 'ios'))
+);
