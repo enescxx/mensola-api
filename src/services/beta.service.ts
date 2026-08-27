@@ -1,6 +1,6 @@
 import pool from "@/config/db";
 import { betaQueries } from "@/queries/beta.queries";
-import { ApiError } from "@/utils/error";
+import { sendBetaWaitlistEmail } from "@/utils/email";
 
 export const betaService = {
     applyBeta: async (email: string, platform: "android" | "ios", firstname?: string) => {
@@ -11,7 +11,8 @@ export const betaService = {
         if (result.rows.length > 0) {
             const token = process.env.TELEGRAM_BOT_TOKEN;
             const chatId = process.env.TELEGRAM_CHAT_ID;
-            await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+
+            fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -19,7 +20,9 @@ export const betaService = {
                     text: text,
                     parse_mode: "Markdown",
                 }),
-            });
+            }).catch((e) => console.error("Telegram notification failed", e));
+
+            sendBetaWaitlistEmail(email).catch((e) => console.error("Beta email failed", e));
         }
     },
 };
