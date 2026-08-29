@@ -219,7 +219,13 @@ export const userQueries = {
             ) mutual_follows ON u.id = mutual_follows.target_user_id
         
         
-            WHERE u.id = $1;`,
+            WHERE u.id = $1 AND u."deletedAt" IS NULL;`,
+
+        softDelete: `
+            UPDATE "User"
+            SET "deletedAt" = NOW(), "updatedAt" = NOW()
+            WHERE id = $1;
+        `,
 
         /**
          * Generates a dynamic UPDATE query for modifying user profile fields.
@@ -235,6 +241,27 @@ export const userQueries = {
         `,
 
         getAvatarById: `SELECT avatar FROM "User" WHERE id = $1`,
+        getUsernameAndChangedAt: `
+            SELECT username, "usernameChangedAt", "subscriptionTier"
+            FROM "User"
+            WHERE id = $1
+        `,
+        existsByUsername: `
+            SELECT 1
+            FROM "User"
+            WHERE username = $1 AND id != $2
+        `,
+        checkUsername: `
+            SELECT EXISTS (
+                SELECT 1 FROM "User" WHERE username = $1
+            ) AS "isTaken"
+        `,
+        updateUsername: `
+            UPDATE "User"
+            SET username = $1, "usernameChangedAt" = NOW()
+            WHERE id = $2
+            RETURNING id, username, "usernameChangedAt"
+        `,
     },
 
     /**
@@ -326,5 +353,55 @@ export const userQueries = {
         unfollow: `
             DELETE FROM "Follow"
             WHERE "followerId" = $1 AND "followingId" = $2;`,
+    },
+
+    emailChange: {
+        getVerification: `
+            SELECT "newEmail", "code", "expiresAt"
+            FROM "EmailChangeVerification"
+            WHERE "userId" = $1;
+        `,
+        upsertVerification: `
+            INSERT INTO "EmailChangeVerification" ("userId", "newEmail", "code", "expiresAt")
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT ("userId") DO UPDATE
+            SET "newEmail" = EXCLUDED."newEmail",
+                "code" = EXCLUDED."code",
+                "expiresAt" = EXCLUDED."expiresAt",
+                "createdAt" = NOW();
+        `,
+        deleteVerification: `
+            DELETE FROM "EmailChangeVerification"
+            WHERE "userId" = $1;
+        `,
+        updateEmail: `
+            UPDATE "User"
+            SET email = $1, "updatedAt" = NOW()
+            WHERE id = $2
+            RETURNING id, email, username;
+        `,
+        getPasswordHash: `
+            SELECT password FROM "User" WHERE id = $1;
+        `,
+        existsByEmail: `
+            SELECT 1 FROM "User" WHERE email = $1;
+        `,
+    },
+
+    password: {
+        update: `
+            UPDATE "User"
+            SET password = $1, "updatedAt" = NOW()
+            WHERE id = $2;
+        `,
+    },
+
+    privacy: {
+        update: `
+            UPDATE "User"
+            SET "isPrivate" = $1, "updatedAt" = NOW()
+            WHERE id = $2
+            RETURNING id, email, username, "isPrivate";
+        `,
     },
 };

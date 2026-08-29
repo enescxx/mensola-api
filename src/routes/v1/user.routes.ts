@@ -9,6 +9,13 @@ import {
     getUserFollowing,
     followUser,
     unfollowUser,
+    changeUsername,
+    verifyUsername,
+    requestEmailChangeController,
+    verifyEmailChangeController,
+    changePasswordController,
+    updatePrivacyController,
+    deleteMeController,
 } from "@/controllers/v1/user.controller";
 
 // Middlewares
@@ -16,10 +23,21 @@ import { verifyToken, extractUser } from "@/middlewares/auth.middleware";
 import { validate } from "@/middlewares/validate.middleware";
 
 // Validations
-import { userListQuerySchema, userIdParamSchema, updateProfileSchema } from "@/validations/user.validation";
+import { userListQuerySchema, userIdParamSchema, updateProfileSchema, updateUsernameSchema, checkUsernameQuerySchema, requestEmailChangeSchema, verifyEmailChangeSchema, changePasswordSchema, updatePrivacySchema } from "@/validations/user.validation";
 import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
 const router = Router();
+
+/* ==========================================================================
+   Public General User Routes
+   ========================================================================== */
+
+/**
+ * @route   GET /api/users/check-username
+ * @desc    Check if a username is available (unauthenticated)
+ * @access  Public
+ */
+router.get("/check-username", validate(checkUsernameQuerySchema), verifyUsername);
 
 /* ==========================================================================
    Current User Profile Routes (/me)
@@ -38,6 +56,48 @@ router.get("/me", verifyToken, getMe);
  * @access  Private (Requires valid Access Token)
  */
 router.patch("/me", verifyToken, validate(updateProfileSchema), updateProfile);
+
+/**
+ * @route   DELETE /api/users/me
+ * @desc    Soft delete the authenticated user's account
+ * @access  Private (Requires valid Access Token)
+ */
+router.delete("/me", verifyToken, deleteMeController);
+
+/**
+ * @route   PATCH /api/users/username
+ * @desc    Update authenticated user's username (with 30-day rate limit)
+ * @access  Private (Requires valid Access Token)
+ */
+router.patch("/username", verifyToken, validate(updateUsernameSchema), changeUsername);
+
+/**
+ * @route   POST /api/users/email/request
+ * @desc    Request verification code to change email
+ * @access  Private (Requires valid Access Token)
+ */
+router.post("/email/request", verifyToken, validate(requestEmailChangeSchema), requestEmailChangeController);
+
+/**
+ * @route   POST /api/users/email/verify
+ * @desc    Verify verification code and complete email change
+ * @access  Private (Requires valid Access Token)
+ */
+router.post("/email/verify", verifyToken, validate(verifyEmailChangeSchema), verifyEmailChangeController);
+
+/**
+ * @route   PATCH /api/users/password
+ * @desc    Change authenticated user's password and refresh sessions
+ * @access  Private (Requires valid Access Token)
+ */
+router.patch("/password", verifyToken, validate(changePasswordSchema), changePasswordController);
+
+/**
+ * @route   PATCH /api/users/privacy
+ * @desc    Update profile privacy status for authenticated user
+ * @access  Private (Requires valid Access Token)
+ */
+router.patch("/privacy", verifyToken, validate(updatePrivacySchema), updatePrivacyController);
 
 /* ==========================================================================
    Social Connections & Graph Routes (Followers / Following)

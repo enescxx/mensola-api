@@ -1,6 +1,6 @@
 import { Response, NextFunction, Request } from "express";
 
-import { getUserProfile, profileUpdate, getFollowers, getFollowing, follow, unfollow } from "@/services/user.service";
+import { getUserProfile, profileUpdate, getFollowers, getFollowing, follow, unfollow, updateUsername, checkUsernameAvailability, requestEmailChange, verifyEmailChange, changePassword, updateProfilePrivacy, softDeleteAccount } from "@/services/user.service";
 
 import { sendResponse } from "@/utils/response";
 
@@ -159,4 +159,154 @@ const unfollowUser = async (req: TypedRequest<{ userId: UserId }>, res: Response
     }
 };
 
-export { getMe, getUserById, updateProfile, getUserFollowers, getUserFollowing, followUser, unfollowUser };
+/**
+ * Updates the username for the authenticated user.
+ */
+const changeUsername = async (
+    req: TypedRequestBody<{ username: string }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const { username } = req.body;
+        const updatedFields = await updateUsername({
+            userId,
+            username,
+        });
+
+        return sendResponse(res, 200, { user: updatedFields }, MESSAGES.SUCCESS.USERNAME_UPDATED);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Checks if a username is available in the database.
+ */
+const verifyUsername = async (
+    req: TypedRequestQuery<{ username: string }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const { username } = req.query;
+        const availability = await checkUsernameAvailability(username);
+        return sendResponse(res, 200, availability, MESSAGES.SUCCESS.RETRIEVED_SUCCESSFULLY);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Request verification code to change email.
+ */
+const requestEmailChangeController = async (
+    req: TypedRequestBody<{ email: string; password?: string }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const { email, password } = req.body;
+
+        await requestEmailChange({
+            userId,
+            email,
+            password,
+        });
+
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.EMAIL_CHANGE_CODE_SENT);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Verifies code and completes email update.
+ */
+const verifyEmailChangeController = async (
+    req: TypedRequestBody<{ email: string; code: string }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const { email, code } = req.body;
+
+        const updatedFields = await verifyEmailChange({
+            userId,
+            email,
+            code,
+        });
+
+        return sendResponse(res, 200, { user: updatedFields }, MESSAGES.SUCCESS.EMAIL_UPDATED);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Changes authenticated user's password, invalidates other sessions, and returns new tokens.
+ */
+const changePasswordController = async (
+    req: TypedRequestBody<{ currentPassword?: string; newPassword?: string }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const { currentPassword, newPassword } = req.body;
+
+        const tokens = await changePassword({
+            userId,
+            currentPassword,
+            newPassword,
+        });
+
+        return sendResponse(res, 200, tokens, MESSAGES.SUCCESS.PASSWORD_CHANGED);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Updates profile privacy settings for authenticated user.
+ */
+const updatePrivacyController = async (
+    req: TypedRequestBody<{ isPrivate: boolean }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+        const { isPrivate } = req.body;
+
+        const updatedFields = await updateProfilePrivacy(userId, isPrivate);
+
+        return sendResponse(res, 200, { user: updatedFields }, MESSAGES.SUCCESS.PRIVACY_UPDATED);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Soft deletes the authenticated user's account and revokes all active sessions.
+ */
+const deleteMeController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.user!.id;
+
+        await softDeleteAccount(userId);
+
+        return sendResponse(res, 200, null, MESSAGES.SUCCESS.ACCOUNT_DELETED);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { getMe, getUserById, updateProfile, getUserFollowers, getUserFollowing, followUser, unfollowUser, changeUsername, verifyUsername, requestEmailChangeController, verifyEmailChangeController, changePasswordController, updatePrivacyController, deleteMeController };

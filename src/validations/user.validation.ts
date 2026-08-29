@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { limitQueryRule, pageQueryRule, userIdRule } from "./common.validation";
+import { limitQueryRule, pageQueryRule, userIdRule, usernameRule, emailRule, passwordRule } from "./common.validation";
 import { MESSAGES } from "../constants/messages/tr";
 
 /**
@@ -35,4 +35,65 @@ export const updateProfileSchema = z.object({
         .refine((data) => Object.keys(data).length > 0, {
             message: MESSAGES.ERRORS.AT_LEAST_ONE_FIELD_REQUIRED,
         }),
+});
+
+/**
+ * Update Username Body Schema
+ */
+export const updateUsernameSchema = z.object({
+    body: z.object({
+        username: usernameRule,
+    }),
+});
+
+/**
+ * Check Username Query Schema
+ */
+export const checkUsernameQuerySchema = z.object({
+    query: z.object({
+        username: usernameRule,
+    }),
+});
+
+/**
+ * Request Email Change Body Schema
+ */
+export const requestEmailChangeSchema = z.object({
+    body: z.object({
+        email: emailRule,
+        password: passwordRule,
+    }),
+});
+
+/**
+ * Verify Email Change Body Schema
+ */
+export const verifyEmailChangeSchema = z.object({
+    body: z.object({
+        email: emailRule,
+        code: z
+            .string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.VERIFICATION_CODE) })
+            .length(6, MESSAGES.ERRORS.MIN_LENGTH(MESSAGES.FIELDS.VERIFICATION_CODE, 6)),
+    }),
+});
+
+/**
+ * Change Password Body Schema
+ */
+export const changePasswordSchema = z.object({
+    body: z.object({
+        currentPassword: passwordRule,
+        newPassword: passwordRule,
+    }),
+});
+
+/**
+ * Update Profile Privacy Body Schema
+ */
+export const updatePrivacySchema = z.object({
+    body: z.object({
+        isPrivate: z.boolean({
+            message: "isPrivate değeri boolean olmalıdır.",
+        }),
+    }),
 });
