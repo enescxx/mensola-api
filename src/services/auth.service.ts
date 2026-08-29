@@ -63,6 +63,10 @@ const loginUser = async (dto: LoginUserDto): Promise<LoginUserResponse> => {
         throw new ApiError("INVALID_CREDENTIALS", 401);
     }
 
+    if (dbUser.deletedAt) {
+        throw new ApiError("ACCOUNT_SOFT_DELETED", 401);
+    }
+
     const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
 
@@ -170,4 +174,38 @@ const updatePassword = async (dto: UpdatePasswordDto): Promise<boolean> => {
     return true;
 };
 
-export { createUser, loginUser, tokenRefresh, userLogout, sendResetEmail, verifyCode, updatePassword };
+/**
+ * Reactivates a soft-deleted user account and logs them in
+ */
+const reactivateUser = async (dto: LoginUserDto): Promise<LoginUserResponse> => {
+    // 1. Fetch user by email
+    const result = await pool.query<IUser & { password: string }>(authQueries.user.findByEmail, [dto.email]);
+    const dbUser = result.rows[0];
+    if (!dbUser) {
+        throw new ApiError("INVALID_CREDENTIALS", 401);
+    }
+
+    // 2. Verify password
+    const isValid = await comparePassword(dto.password, dbUser.password);
+    if (!isValid) {
+        throw new ApiError("INVALID_CREDENTIALS", 401);
+    }
+
+    // 3. Reactivate if soft-deleted
+    if (dbUser.deletedAt) {
+        await pool.query(authQueries.user.reactivate, [dbUser.id]);
+        dbUser.deletedAt = null;
+    }
+
+    // 4. Generate tokens
+    const { password, ...user } = dbUser;
+    const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+
+    // 5. Create new session
+    await pool.query(authQueries.session.create, [user.id, refreshToken]);
+
+    return { user, accessToken, refreshToken };
+};
+
+export { createUser, loginUser, tokenRefresh, userLogout, sendResetEmail, verifyCode, updatePassword, reactivateUser };

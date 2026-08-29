@@ -16,6 +16,7 @@ export interface IUser {
     avatar?: string;
     resetToken?: string;
     resetTokenExpires?: Date | string;
+    deletedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
 }
@@ -88,3 +89,26 @@ export type GetFollowingResponse = GetFollowingResponseItem[];
 // ==========================================
 
 export type UserSummary = Pick<IUser, "id" | "username" | "fullname" | "avatar">;
+
+export interface RequestEmailChangeDto {
+    userId: string;
+    email: string;
+    password?: string;
+}
+
+export interface VerifyEmailChangeDto {
+    userId: string;
+    email: string;
+    code: string;
+}
+
+export interface ChangePasswordDto {
+    userId: string;
+    currentPassword?: string;
+    newPassword?: string;
+}
+
+export interface ChangePasswordResponse {
+    accessToken: string;
+    refreshToken: string;
+}

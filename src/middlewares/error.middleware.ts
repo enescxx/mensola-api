@@ -32,7 +32,7 @@ export const globalErrorHandler = (err: any, req: Request, res: Response, next: 
     return res.status(statusCode).json({
         success: false,
         error: {
-            code: statusCode,
+            code: err.code || statusCode,
             message,
         },
     });

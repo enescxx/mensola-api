@@ -235,4 +235,66 @@ describe("Auth Endpoints", () => {
             expect(body.success).toBe(true);
         });
     });
+
+    describe("POST /v1/auth/reactivate", () => {
+        const reactivateUserEmail = "reactivate_test@mensola.com";
+        const reactivateUserPassword = "password123";
+        let reactivateUserId: string;
+
+        beforeAll(async () => {
+            const registerRes = await request(app).post("/v1/auth/register").send({
+                email: reactivateUserEmail,
+                username: "reactivatetest",
+                password: reactivateUserPassword,
+            });
+            reactivateUserId = registerRes.body.data.user.id;
+
+            // Soft-delete the user
+            await pool.query('UPDATE "User" SET "deletedAt" = NOW() WHERE id = $1', [reactivateUserId]);
+        });
+
+        afterAll(async () => {
+            await pool.query('DELETE FROM "User" WHERE id = $1', [reactivateUserId]);
+        });
+
+        it("should return ACCOUNT_SOFT_DELETED on login if account is soft-deleted", async () => {
+            const response = await request(app).post("/v1/auth/login").send({
+                email: reactivateUserEmail,
+                password: reactivateUserPassword,
+            });
+
+            expect(response.status).toBe(401);
+            expect(response.body.success).toBe(false);
+            expect(response.body.error.code).toBe("ACCOUNT_SOFT_DELETED");
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.ACCOUNT_SOFT_DELETED);
+        });
+
+        it("should fail to reactivate with invalid credentials", async () => {
+            const response = await request(app).post("/v1/auth/reactivate").send({
+                email: reactivateUserEmail,
+                password: "wrongpassword",
+            });
+
+            expect(response.status).toBe(401);
+            expect(response.body.success).toBe(false);
+            expect(response.body.error.message).toBe(MESSAGES.ERRORS.INVALID_CREDENTIALS);
+        });
+
+        it("should reactivate the user successfully with correct credentials and return tokens", async () => {
+            const response = await request(app).post("/v1/auth/reactivate").send({
+                email: reactivateUserEmail,
+                password: reactivateUserPassword,
+            });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.message).toBe(MESSAGES.SUCCESS.ACCOUNT_REACTIVATED);
+            expect(response.body.data).toHaveProperty("accessToken");
+            expect(response.body.data).toHaveProperty("refreshToken");
+
+            // Verify deletedAt is set to null in DB
+            const dbCheck = await pool.query('SELECT "deletedAt" FROM "User" WHERE id = $1', [reactivateUserId]);
+            expect(dbCheck.rows[0].deletedAt).toBeNull();
+        });
+    });
 });

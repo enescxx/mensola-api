@@ -9,6 +9,7 @@ import {
     sendResetEmail,
     verifyCode,
     updatePassword,
+    reactivateUser,
 } from "@/services/auth.service";
 
 import {
@@ -107,4 +108,16 @@ const resetPassword = async (req: TypedRequestBody<UpdatePasswordDto>, res: Resp
     }
 };
 
-export { register, login, refresh, logout, forgotPassword, verifyResetCode, resetPassword };
+/**
+ * Reactivates a soft-deleted user account and logs them in
+ */
+const reactivate = async (req: TypedRequestBody<LoginUserDto>, res: Response, next: NextFunction) => {
+    try {
+        const responseData = await reactivateUser(req.body);
+        return sendResponse(res, 200, responseData, MESSAGES.SUCCESS.ACCOUNT_REACTIVATED);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { register, login, refresh, logout, forgotPassword, verifyResetCode, resetPassword, reactivate };

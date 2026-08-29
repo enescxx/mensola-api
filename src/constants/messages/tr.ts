@@ -48,6 +48,7 @@ export const MESSAGES = {
         INVALID_CREDENTIALS: "E-posta veya şifre hatalı.",
         EMAIL_USERNAME_IN_USE: "Bu e-posta veya kullanıcı adı zaten kullanımda.",
         ACCOUNT_NOT_FOUND: "Bu e-posta adresiyle kayıtlı bir hesap bulunamadı.",
+        ACCOUNT_SOFT_DELETED: "Hesabınız silinme sürecindedir.",
         INVALID_VERIFICATION_CODE: "Geçersiz veya süresi dolmuş doğrulama kodu.",
         INVALID_SESSION: "Geçersiz oturum. Lütfen işlemi yeniden başlatın.",
         TOO_MANY_AUTH_ATTEMPTS: "Çok fazla giriş denemesi yaptınız. Lütfen 15 dakika sonra tekrar deneyin.",
@@ -68,6 +69,10 @@ export const MESSAGES = {
         IMAGE_UPLOAD_ERROR: "Görsel yüklenmedi.",
         INVALID_FILE_TYPE: "Sadece görsel dosyaları yüklenebilir.",
         PROFILE_UPDATE_ERROR: "Profil bilgileri güncellenirken bir hata oluştu.",
+        USERNAME_CHANGE_LIMIT: (days: number) => `Kullanıcı adınızı 14 günde bir değiştirebilirsiniz. Kalan gün: ${days}`,
+        USERNAME_ALREADY_TAKEN: "Bu kullanıcı adı zaten alınmış.",
+        EMAIL_ALREADY_TAKEN: "Bu e-posta adresi zaten kullanımda.",
+        INCORRECT_PASSWORD: "Mevcut şifreniz hatalı.",
     },
 
     SUCCESS: {
@@ -77,6 +82,13 @@ export const MESSAGES = {
         RESET_CODE_SENT: "Eğer bu e-posta adresi sistemde kayıtlıysa, şifre sıfırlama kodu gönderilmiştir.",
         PASSWORD_UPDATED: "Şifreniz başarıyla güncellendi. Yeni şifrenizle giriş yapabilirsiniz.",
         PROFILE_UPDATED: "Profiliniz başarıyla güncellendi.",
+        USERNAME_UPDATED: "Kullanıcı adınız başarıyla güncellendi.",
+        EMAIL_CHANGE_CODE_SENT: "E-posta adresinize doğrulama kodu gönderildi.",
+        EMAIL_UPDATED: "E-posta adresiniz başarıyla güncellendi.",
+        PASSWORD_CHANGED: "Şifreniz başarıyla değiştirildi.",
+        PRIVACY_UPDATED: "Profil gizlilik ayarlarınız güncellendi.",
+        ACCOUNT_DELETED: "Hesabınız başarıyla silindi.",
+        ACCOUNT_REACTIVATED: "Hesabınız başarıyla yeniden etkinleştirildi.",
         USER_FOLLOWED: "Kullanıcı takip edildi.",
         USER_UNFOLLOWED: "Kullanıcı takipten çıkarıldı.",
 
@@ -106,5 +118,8 @@ export const MESSAGES = {
         PASSWORD_RESET_SUBJECT: "Şifre Sıfırlama İsteği",
         PASSWORD_RESET_BODY: (otpCode: string) =>
             `Şifrenizi sıfırlamak için bu kodu kullanabilirsiniz: ${otpCode}\n\nBu kod 1 saat boyunca geçerlidir. Eğer böyle bir istekte bulunmadıysanız, lütfen bu mesajı dikkate almayınız.`,
+        EMAIL_CHANGE_SUBJECT: "E-posta Değişikliği Doğrulama Kodu",
+        EMAIL_CHANGE_BODY: (otpCode: string) =>
+            `E-posta adresinizi değiştirmek için bu doğrulama kodunu kullanabilirsiniz: ${otpCode}\n\nBu kod 15 dakika boyunca geçerlidir. Eğer böyle bir istekte bulunmadıysanız, lütfen bu mesajı dikkate almayınız.`,
     },
 } as const;

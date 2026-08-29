@@ -9,6 +9,7 @@ import {
     forgotPassword,
     verifyResetCode,
     resetPassword,
+    reactivate,
 } from "@/controllers/v1/auth.controller";
 
 // Middlewares & Validations
@@ -38,6 +39,13 @@ router.post("/register", validate(registerSchema), register);
  * @access  Public
  */
 router.post("/login", authLimiter, validate(loginSchema), login);
+
+/**
+ * @route   POST /api/auth/reactivate
+ * @desc    Reactivate a soft-deleted user account and log in
+ * @access  Public
+ */
+router.post("/reactivate", authLimiter, validate(loginSchema), reactivate);
 
 /**
  * @route   POST /api/auth/refresh
