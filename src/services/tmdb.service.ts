@@ -40,7 +40,7 @@ export const tmdbService = {
     },
 
     getTrendMovies: async (page: number) => {
-        const res = await fetch(`${TMDB_BASE_URL}/trending/movie/day?language=tr-TR&page=${page}`, {
+        const res = await fetch(`${TMDB_BASE_URL}/trending/movie/day?language=en-US&page=${page}`, {
             headers: { Authorization: `Bearer ${TMDB_TOKEN}`, accept: "application/json" },
         });
 
