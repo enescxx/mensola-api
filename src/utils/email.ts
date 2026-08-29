@@ -59,3 +59,28 @@ export const sendBetaWaitlistEmail = async (to: string) => {
         console.log("Error sending beta waitlist email:", error);
     }
 };
+
+export const sendEmailChangeVerificationCode = async (to: string, otpCode: string) => {
+    try {
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: Number(process.env.SMTP_PORT) || 465,
+            secure: Number(process.env.SMTP_PORT) === 465,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+
+        const mailOptions = {
+            from: "mensola <noreply@mensola.app>",
+            to,
+            subject: MESSAGES.EMAILS.EMAIL_CHANGE_SUBJECT,
+            text: MESSAGES.EMAILS.EMAIL_CHANGE_BODY(otpCode),
+        };
+
+        await transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.log("Error sending email change verification code:", error);
+    }
+};
