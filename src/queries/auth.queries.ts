@@ -8,9 +8,14 @@ export const authQueries = {
             VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW()) 
             RETURNING id, email, username;`,
         findByEmail: `
-            SELECT id, email, fullname, username, avatar, password
+            SELECT *
             FROM "User" WHERE email = $1`,
-        findIdByEmail: `SELECT id FROM "User" WHERE email = $1`,
+        findIdByEmail: `SELECT id FROM "User" WHERE email = $1 AND "deletedAt" IS NULL`,
+        reactivate: `
+            UPDATE "User"
+            SET "deletedAt" = NULL, "updatedAt" = NOW()
+            WHERE id = $1;
+        `,
         // Retrieves user ID if a valid password reset ticket exists and hasn't expired
         findByTicket: `SELECT id FROM "User" WHERE "resetToken" = $1 AND "resetTokenExpires" > NOW()`,
         // Updates user password and clears reset token metadata
