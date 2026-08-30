@@ -37,6 +37,17 @@ export const movieIdParamSchema = z.object({
     params: z.object({ movieId: movieIdRule }),
 });
 
+export const addFavoriteMovieSchema = z.object({
+    body: z.object({
+        movieId: movieIdRule.optional(),
+        tmdbId: z.coerce.number().optional(),
+        replaceMovieId: movieIdRule.optional(),
+    }).refine(data => data.movieId !== undefined || data.tmdbId !== undefined, {
+        message: "movieId veya tmdbId belirtilmelidir.",
+        path: ["movieId"]
+    })
+});
+
 export const tmdbIdParamSchema = z.object({
     params: z.object({ tmdbId: z.coerce.number() }),
 });

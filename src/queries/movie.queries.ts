@@ -385,6 +385,11 @@ export const movieQueries = {
                     JOIN "MovieList" ml ON ml.id = mli."movieListId"
                     WHERE mli."movieId" = m.id AND ml."creatorId" = $2::uuid AND ml."listType" = 'watchlist'
                 ) AS "isWatchlisted",
+                EXISTS (
+                    SELECT 1 FROM "MovieListItem" mli
+                    JOIN "MovieList" ml ON ml.id = mli."movieListId"
+                    WHERE mli."movieId" = m.id AND ml."creatorId" = $2::uuid AND ml."listType" = 'favorites'
+                ) AS "isFavorite",
                 (SELECT COUNT(*)::int FROM "Interaction" i WHERE i."targetId" = m.id AND i."targetType" = 'movie' AND i."isLiked" = true) AS "likesCount",
                 (SELECT COUNT(*)::int FROM "Comment" c JOIN "Interaction" i ON c."interactionId" = i.id WHERE i."targetId" = m.id AND i."targetType" = 'movie') AS "commentsCount",
                 COALESCE(interactions_data.interactions, '[]') AS interactions,
@@ -487,8 +492,20 @@ export const movieQueries = {
              * Returns the newly created row.
              */
             add: `
+                WITH existing_list AS (
+                    SELECT id FROM "MovieList" WHERE "listType" = 'watchlist' AND "creatorId" = $1 LIMIT 1
+                ),
+                new_list AS (
+                    INSERT INTO "MovieList" ("title", "isPrivate", "listType", "creatorId")
+                    SELECT 'Watchlist', true, 'watchlist', $1
+                    WHERE NOT EXISTS (SELECT 1 FROM existing_list)
+                    RETURNING id
+                ),
+                target_list AS (
+                    SELECT id FROM existing_list UNION ALL SELECT id FROM new_list
+                )
                 INSERT INTO "MovieListItem" ("movieListId", "movieId", "addedBy", "addedAt")
-                VALUES ((SELECT id FROM "MovieList" WHERE "listType" = 'watchlist' AND "creatorId" = $1 ORDER BY "createdAt" ASC LIMIT 1), $2, $1, NOW())
+                SELECT id, $2, $1, NOW() FROM target_list
                 ON CONFLICT ("movieListId", "movieId") DO NOTHING
                 RETURNING *;`,
 
@@ -578,8 +595,21 @@ export const movieQueries = {
              * Returns the newly created row.
              */
             add: `
+                WITH existing_list AS (
+                    SELECT id FROM "MovieList" WHERE "listType" = 'favorites' AND "creatorId" = $1 LIMIT 1
+                ),
+                new_list AS (
+                    INSERT INTO "MovieList" ("title", "isPrivate", "listType", "creatorId")
+                    SELECT 'Favorites', true, 'favorites', $1
+                    WHERE NOT EXISTS (SELECT 1 FROM existing_list)
+                    RETURNING id
+                ),
+                target_list AS (
+                    SELECT id FROM existing_list UNION ALL SELECT id FROM new_list
+                )
                 INSERT INTO "MovieListItem" ("movieListId", "movieId", "addedBy", "addedAt")
-                VALUES ((SELECT id FROM "MovieList" WHERE "listType" = 'favorites' AND "creatorId" = $1 ORDER BY "createdAt" ASC LIMIT 1), $2, $1, NOW())
+                SELECT id, $2, $1, NOW() FROM target_list
+                ON CONFLICT ("movieListId", "movieId") DO NOTHING
                 RETURNING *;`,
 
             /**

@@ -126,6 +126,7 @@ export type GetMovieResponse = IMovie & {
     isWatched?: boolean;
     isInList?: boolean;
     isWatchlisted?: boolean;
+    isFavorite?: boolean;
     likesCount?: number;
     commentsCount?: number;
     interactions: GetMovieInteractionsItem[];

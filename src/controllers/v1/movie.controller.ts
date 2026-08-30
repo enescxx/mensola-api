@@ -387,12 +387,16 @@ const removeMovieFromWatchlist = async (req: TypedRequest<{ movieId: MovieId }>,
  * @desc    Add a movie to the authenticated user's favorites list
  * @access  Private (Requires Access Token)
  */
-const addMovieToFavorites = async (req: TypedRequest<{ movieId: MovieId }>, res: Response, next: NextFunction) => {
+const addMovieToFavorites = async (
+    req: TypedRequest<{}, { movieId?: MovieId; tmdbId?: TmdbId; replaceMovieId?: MovieId }>,
+    res: Response,
+    next: NextFunction,
+) => {
     try {
         const userId = req.user!.id;
-        const movieId = req.params.movieId;
+        const { movieId, tmdbId, replaceMovieId } = req.body;
 
-        const favoriteItem = await addToFavorites({ userId, movieId });
+        const favoriteItem = await addToFavorites(userId, { movieId, tmdbId, replaceMovieId });
         return sendResponse(res, 201, favoriteItem);
     } catch (error) {
         next(error);

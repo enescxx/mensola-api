@@ -1,6 +1,7 @@
 import pool from "@/config/db";
 import { movieQueries } from "@/queries/movie.queries";
 import { ApiError } from "@/utils/error";
+import { MovieId, TmdbId } from "@/types/common.types";
 
 // Types & Interfaces
 import {
@@ -253,8 +254,58 @@ export const removeFromWatchlist = async (dto: UserMovieActionDto): Promise<IMov
  * @param dto - Data transfer object containing userId and movieId.
  * @returns The newly created MovieListItem record representing the favorite entry.
  */
-export const addToFavorites = async (dto: UserMovieActionDto): Promise<IMovieListItem> => {
-    const result = await pool.query<IMovieListItem>(movieQueries.movies.favorites.add, [dto.userId, dto.movieId]);
+export const addToFavorites = async (
+    userId: string,
+    data: { movieId?: MovieId; tmdbId?: TmdbId; replaceMovieId?: MovieId }
+): Promise<IMovieListItem> => {
+    const { movieId, tmdbId, replaceMovieId } = data;
+
+    // 1. Eğer replaceMovieId verilmişse eski favoriyi kaldır
+    if (replaceMovieId) {
+        await pool.query(movieQueries.movies.favorites.remove, [userId, replaceMovieId]);
+    }
+
+    // 2. Eğer movieId yoksa ama tmdbId varsa filmi bul veya tmdb'den çek
+    let targetMovieId: MovieId | undefined = movieId;
+    if (!targetMovieId && tmdbId) {
+        const checkResult = await pool.query(movieQueries.movies.checkExists, [tmdbId]);
+        if (checkResult.rows.length > 0) {
+            targetMovieId = checkResult.rows[0].id;
+        } else {
+            const tmdbMovie = await tmdbService.getMovieByTmdbId(tmdbId);
+            const values = [
+                tmdbMovie.tmdbId,
+                tmdbMovie.title,
+                tmdbMovie.poster,
+                tmdbMovie.releaseDate,
+                tmdbMovie.rating,
+                tmdbMovie.genres,
+                tmdbMovie.duration,
+            ];
+            const insertResult = await pool.query(movieQueries.movies.insertMovie, values);
+            targetMovieId = insertResult.rows[0].id;
+        }
+    }
+
+    if (!targetMovieId) {
+        throw new ApiError("NOT_FOUND", 404);
+    }
+
+    // 3. Limit kontrolü
+    const countResult = await pool.query(
+        `SELECT COUNT(*) FROM "MovieListItem" mli
+         JOIN "MovieList" ml ON ml.id = mli."movieListId"
+         WHERE ml."listType" = 'favorites' AND ml."creatorId" = $1`,
+        [userId]
+    );
+
+    const count = parseInt(countResult.rows[0].count, 10);
+    if (count >= 3) {
+        throw new ApiError("MAX_FAVORITES_FILM_REACHED", 400);
+    }
+
+    // 4. Favoriye ekle
+    const result = await pool.query<IMovieListItem>(movieQueries.movies.favorites.add, [userId, targetMovieId]);
     return result.rows[0];
 };
 

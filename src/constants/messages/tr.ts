@@ -73,6 +73,8 @@ export const MESSAGES = {
         USERNAME_ALREADY_TAKEN: "Bu kullanıcı adı zaten alınmış.",
         EMAIL_ALREADY_TAKEN: "Bu e-posta adresi zaten kullanımda.",
         INCORRECT_PASSWORD: "Mevcut şifreniz hatalı.",
+        MAX_FAVORITES_FILM_REACHED: "En fazla 3 favori film ekleyebilirsiniz.",
+        MAX_FAVORITES_TRACK_REACHED: "En fazla 3 favori şarkı ekleyebilirsiniz.",
     },
 
     SUCCESS: {
