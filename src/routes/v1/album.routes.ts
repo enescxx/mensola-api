@@ -8,6 +8,7 @@ import {
     unlikeAlbum,
     getAlbumInteractionsList,
     createAlbumInteraction,
+    getOrFetchSpotifyAlbum,
 } from "@/controllers/v1/album.controller";
 
 import { extractUser, verifyToken } from "@/middlewares/auth.middleware";
@@ -22,6 +23,7 @@ import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
 const router = Router();
 
+router.get("/by-spotify/:spotifyId", extractUser, getOrFetchSpotifyAlbum);
 router.get("/likes", extractUser, validate(albumPaginationQuerySchema), requiredUserId, getLikedAlbumsList);
 router.get("/:albumId/tracks", extractUser, validate(albumIdParamSchema), getAlbumTracksList);
 router.get("/:albumId/interactions", extractUser, validate(albumIdParamSchema), getAlbumInteractionsList);

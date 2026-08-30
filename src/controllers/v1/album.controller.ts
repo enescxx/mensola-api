@@ -8,12 +8,13 @@ import {
     unlikeAlbum as unlikeAlbumService,
     getAlbumInteractions,
     upsertAlbumInteraction,
+    findOrFetchSpotifyAlbum,
 } from "@/services/album.service";
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express.types";
 import { GetLikedAlbumsDto, UpsertAlbumInteractionDto } from "@/types/album.types";
 import { ApiError } from "@/utils/error";
-import { AlbumId, PaginationQueries } from "@/types/common.types";
+import { AlbumId, PaginationQueries, SpotifyId } from "@/types/common.types";
 
 /**
  * Retrieves a paginated list of albums liked by a target user (or current user).
@@ -62,6 +63,32 @@ export const getAlbumDetails = async (req: TypedRequest<{ albumId: AlbumId }>, r
 
         const album = await getAlbumById({ albumId, currentUserId });
 
+        return sendResponse(res, 200, album);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Retrieves (or fetches from Spotify & saves to DB) detailed information for a Spotify album.
+ *
+ * @route   GET /api/v1/albums/by-spotify/:spotifyId
+ * @access  Public / Optional Auth
+ */
+export const getOrFetchSpotifyAlbum = async (
+    req: TypedRequest<{ spotifyId?: SpotifyId }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const spotifyId = req.params.spotifyId;
+        const currentUserId = req.user?.id;
+
+        if (!spotifyId) {
+            throw new ApiError("NOT_FOUND", 404);
+        }
+
+        const album = await findOrFetchSpotifyAlbum(spotifyId, currentUserId);
         return sendResponse(res, 200, album);
     } catch (error) {
         next(error);

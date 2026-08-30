@@ -216,4 +216,43 @@ export const spotifyService = {
             };
         });
     },
+
+    getAlbumBySpotifyId: async (spotifyId: SpotifyId) => {
+        const token = await getAccessToken();
+
+        const res = await fetch(`https://api.spotify.com/v1/albums/${spotifyId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error(`Spotify getAlbumBySpotifyId failed: ${res.status}`);
+
+        const spotifyData = await res.json();
+
+        let artists: Omit<IArtist, "id">[] = [];
+        if (spotifyData.artists) {
+            artists = spotifyData.artists.map((itemArtist: ISpotifyArtist) => ({
+                spotifyId: itemArtist.id,
+                name: itemArtist.name,
+            }));
+        }
+
+        return {
+            spotifyId: spotifyData.id as SpotifyId,
+            title: spotifyData.name,
+            image: getAlbumCover(spotifyData.images),
+            releaseDate: spotifyData.release_date,
+            songCount: spotifyData.total_tracks,
+            artists,
+            tracks: (spotifyData.tracks?.items ?? []).map((t: any) => ({
+                spotifyId: t.id as SpotifyId,
+                title: t.name,
+                duration: t.duration_ms,
+                image: getAlbumCover(spotifyData.images),
+                artists: t.artists?.map((a: any) => ({
+                    spotifyId: a.id,
+                    name: a.name,
+                })) ?? [],
+            })),
+        };
+    },
 };
