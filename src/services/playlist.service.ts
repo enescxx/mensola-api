@@ -20,6 +20,7 @@ import {
     UnlikePlaylistResponse,
     AddTrackToPlaylistDto,
     RemoveTrackFromPlaylistDto,
+    CreatePlaylistDto,
 } from "@/types/playlist.types";
 import { ApiError } from "@/utils/error";
 import { upsertInteractionComment } from "@/utils/interaction";
@@ -267,4 +268,24 @@ export const unlikePlaylist = async (dto: UnlikePlaylistDto): Promise<UnlikePlay
 
     const result = await pool.query<UnlikePlaylistResponse>(playlistQueries.likes.remove, [userId, playlistId]);
     return result.rows[0] || { playlistId, isLiked: false };
+};
+
+/**
+ * Creates a new custom playlist for a user.
+ *
+ * @param dto - Data transfer object containing title, description, image, isPrivate, and creatorId.
+ * @returns A promise that resolves to the newly created playlist.
+ */
+export const createPlaylist = async (dto: CreatePlaylistDto) => {
+    const { title, description = null, image = null, isPrivate = false, creatorId } = dto;
+
+    const result = await pool.query(playlistQueries.lists.create, [
+        title,
+        description,
+        image,
+        isPrivate,
+        creatorId,
+    ]);
+
+    return result.rows[0];
 };

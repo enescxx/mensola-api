@@ -23,6 +23,11 @@ export const playlistQueries = {
             ORDER BY p."createdAt" DESC
             LIMIT $3 OFFSET $4;
         `,
+        create: `
+            INSERT INTO "Playlist" (id, title, description, image, "isPrivate", "creatorId", "listType", "createdAt", "updatedAt")
+            VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 'custom', NOW(), NOW())
+            RETURNING id, title, description, image, "isPrivate", "creatorId", "listType", "createdAt";
+        `,
     },
     likes: {
         /**
