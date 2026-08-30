@@ -188,4 +188,32 @@ export const spotifyService = {
 
         return track;
     },
+
+    /**
+     * Returns 10 new tracks from Spotify search (year:2026).
+     * Used by the /v1/home newTracks section.
+     */
+    getNewTracks: async (limit: number = 10) => {
+        const token = await getAccessToken();
+
+        const res = await fetch(`https://api.spotify.com/v1/search?q=year:2026&type=track&limit=${limit}&market=US`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error(`Spotify getNewTracks failed: ${res.status}`);
+
+        const data = await res.json();
+        const items: any[] = data.tracks?.items ?? [];
+
+        return items.map((track: any) => {
+            const cover = getAlbumCover(track.album?.images);
+            return {
+                spotifyId: track.id as SpotifyId,
+                title: track.name,
+                artistName: track.artists?.map((a: any) => a.name).join(", ") ?? "Unknown Artist",
+                albumCoverUrl: cover,
+                previewUrl: track.preview_url ?? null,
+            };
+        });
+    },
 };

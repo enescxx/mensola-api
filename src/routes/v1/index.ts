@@ -9,6 +9,7 @@ import tmdbRoutes from "./tmdb.routes";
 import spotifyRoutes from "./spotify.routes";
 import storageRoutes from "./storage.routes";
 import betaRoutes from "./beta.routes";
+import homeRoutes from "./home.routes";
 
 import { Router } from "express";
 
@@ -25,5 +26,6 @@ v1Router.use("/tmdb", tmdbRoutes);
 v1Router.use("/spotify", spotifyRoutes);
 v1Router.use("/storage", storageRoutes);
 v1Router.use("/beta", betaRoutes);
+v1Router.use("/home", homeRoutes);
 
 export default v1Router;
