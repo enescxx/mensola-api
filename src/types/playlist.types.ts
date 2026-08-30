@@ -23,6 +23,13 @@ export type LikePlaylistDto = { userId: UserId; playlistId: PlaylistId };
 export type UnlikePlaylistDto = LikePlaylistDto;
 export type AddTrackToPlaylistDto = { playlistId: PlaylistId; trackId: TrackId; userId: UserId };
 export type RemoveTrackFromPlaylistDto = AddTrackToPlaylistDto;
+export type CreatePlaylistDto = {
+    title: string;
+    description?: string | null;
+    image?: string | null;
+    isPrivate?: boolean;
+    creatorId: UserId;
+};
 
 // ==========================================
 // API Responses

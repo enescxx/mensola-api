@@ -11,10 +11,11 @@ import {
     upsertPlaylistInteraction,
     likePlaylist as likePlaylistService,
     unlikePlaylist as unlikePlaylistService,
+    createPlaylist,
 } from "@/services/playlist.service";
 import { sendResponse } from "@/utils/response";
-import { TypedRequest, TypedRequestQuery } from "@/types/express.types";
-import { GetUserPlaylistsDto, GetLikedPlaylistsDto, UpsertPlaylistInteractionDto } from "@/types/playlist.types";
+import { TypedRequest, TypedRequestBody, TypedRequestQuery } from "@/types/express.types";
+import { GetUserPlaylistsDto, GetLikedPlaylistsDto, UpsertPlaylistInteractionDto, CreatePlaylistDto } from "@/types/playlist.types";
 import { PaginationQueries, PlaylistId, TrackId, UserId } from "@/types/common.types";
 import { MESSAGES } from "@/constants/messages";
 
@@ -278,6 +279,35 @@ export const unlikePlaylist = async (
         const result = await unlikePlaylistService({ userId, playlistId });
 
         return sendResponse(res, 200, result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Creates a new custom playlist for the authenticated user.
+ *
+ * @route   POST /v1/playlists
+ * @access  Private (Requires Access Token)
+ */
+export const createPlaylistHandler = async (
+    req: TypedRequestBody<Omit<CreatePlaylistDto, "creatorId">>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const { title, description, image, isPrivate } = req.body;
+        const creatorId = req.user!.id as UserId;
+
+        const newPlaylist = await createPlaylist({
+            title,
+            description,
+            image,
+            isPrivate,
+            creatorId,
+        });
+
+        return sendResponse(res, 201, newPlaylist, MESSAGES.SUCCESS.CREATED_SUCCESSFULLY);
     } catch (error) {
         next(error);
     }

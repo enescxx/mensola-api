@@ -13,6 +13,28 @@ export const playlistIdRule = z
     .uuid(MESSAGES.ERRORS.INVALID_UUID(MESSAGES.FIELDS.PLAYLIST_ID))
     .trim();
 
+export const listTitleRule = z
+    .string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.TITLE) })
+    .trim()
+    .min(1, MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.TITLE))
+    .max(100, MESSAGES.ERRORS.MAX_LENGTH(MESSAGES.FIELDS.TITLE, 100));
+
+export const listDescRule = z
+    .string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.DESCRIPTION) })
+    .trim()
+    .max(500, MESSAGES.ERRORS.MAX_LENGTH(MESSAGES.FIELDS.DESCRIPTION, 500))
+    .optional();
+
+export const listImageRule = z
+    .string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.IMAGE) })
+    .url(MESSAGES.ERRORS.INVALID_URL)
+    .optional()
+    .nullable();
+
+export const listIsPrivateRule = z
+    .boolean({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.IS_PRIVATE) })
+    .optional();
+
 export const playlistPaginationQuerySchema = z.object({
     query: z.object({
         userId: userIdRule,
@@ -34,4 +56,16 @@ export const createPlaylistInteractionSchema = z.object({
 
 export const addTrackToPlaylistSchema = z.object({
     params: z.object({ playlistId: playlistIdRule, trackId: trackIdRule }),
+});
+
+export const createPlaylistSchema = z.object({
+    body: z.object(
+        {
+            title: listTitleRule,
+            description: listDescRule,
+            image: listImageRule,
+            isPrivate: listIsPrivateRule,
+        },
+        { message: MESSAGES.ERRORS.MISSING_REQUIRED_FIELDS },
+    ),
 });
