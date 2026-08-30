@@ -35,6 +35,11 @@ export const trackQueries = {
                 JOIN "Comment" c ON c."interactionId" = i.id
                 WHERE i."targetId" = t.id AND i."targetType" = 'track' AND c."parentId" IS NULL
             ) AS "commentsCount",
+            EXISTS (
+                SELECT 1 FROM "PlaylistItem" mli
+                JOIN "Playlist" ml ON ml.id = mli."playlistId"
+                WHERE mli."trackId" = t.id AND ml."creatorId" = $2::uuid AND ml."listType" = 'favorites'
+            ) AS "isFavorite",
             COALESCE(interactions_data.interactions, '[]') AS interactions,
             CASE WHEN user_int.user_interaction IS NOT NULL THEN (user_int.user_interaction->>'isLiked')::boolean ELSE false END AS "isLiked",
             user_int.user_interaction AS "currentUserInteraction"
@@ -170,6 +175,57 @@ export const trackQueries = {
             SELECT * FROM deleted
             UNION ALL
             SELECT * FROM updated;
+        `,
+    },
+    favorites: {
+        get: `
+            SELECT 
+                t."id", 
+                t."spotifyId", 
+                t."title", 
+                t."duration", 
+                t."image", 
+                t."albumId", 
+                t."createdAt",
+                true AS "isFavorite",
+                COALESCE(
+                    (
+                        SELECT json_agg(json_build_object('id', a."id", 'name', a."name"))
+                        FROM "TrackArtist" ta
+                        JOIN "Artist" a ON ta."artistId" = a."id"
+                        WHERE ta."trackId" = t."id"
+                    ), 
+                    '[]'::json
+                ) AS "artists"
+            FROM "PlaylistItem" mli
+            JOIN "Track" t ON mli."trackId" = t."id"
+            JOIN "Playlist" ml ON ml.id = mli."playlistId"
+            WHERE ml."listType" = 'favorites' AND ml."creatorId" = $1
+            ORDER BY mli."addedAt" DESC
+            LIMIT $2 OFFSET $3;
+        `,
+        add: `
+            WITH existing_list AS (
+                SELECT id FROM "Playlist" WHERE "listType" = 'favorites' AND "creatorId" = $1 LIMIT 1
+            ),
+            new_list AS (
+                INSERT INTO "Playlist" ("title", "isPrivate", "listType", "creatorId")
+                SELECT 'Favorites', true, 'favorites', $1
+                WHERE NOT EXISTS (SELECT 1 FROM existing_list)
+                RETURNING id
+            ),
+            target_list AS (
+                SELECT id FROM existing_list UNION ALL SELECT id FROM new_list
+            )
+            INSERT INTO "PlaylistItem" ("playlistId", "trackId", "addedBy", "addedAt")
+            SELECT id, $2, $1, NOW() FROM target_list
+            ON CONFLICT ("playlistId", "trackId") DO NOTHING
+            RETURNING *;
+        `,
+        remove: `
+            DELETE FROM "PlaylistItem"
+            WHERE "playlistId" IN (SELECT id FROM "Playlist" WHERE "listType" = 'favorites' AND "creatorId" = $1) AND "trackId" = $2
+            RETURNING *;
         `,
     },
     items: {

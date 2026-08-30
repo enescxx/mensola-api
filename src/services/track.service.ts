@@ -1,6 +1,6 @@
 import pool from "@/config/db";
 import { trackQueries } from "@/queries/track.queries";
-import { SpotifyId, UserId } from "@/types/common.types";
+import { SpotifyId, UserId, TrackId } from "@/types/common.types";
 import {
     GetLikedTracksDto,
     GetLikedTracksResponse,
@@ -30,6 +30,79 @@ export const getLikedTracks = async (dto: GetLikedTracksDto): Promise<GetLikedTr
     ]);
 
     return result.rows;
+};
+
+export const getFavoriteTracks = async (dto: GetLikedTracksDto): Promise<GetLikedTracksResponse> => {
+    const offset = (dto.page - 1) * dto.limit;
+
+    const result = await pool.query<GetLikedTracksResponseItem>(trackQueries.favorites.get, [
+        dto.userId,
+        dto.limit,
+        offset,
+    ]);
+
+    return result.rows;
+};
+
+export const addTrackToFavorites = async (
+    userId: UserId,
+    data: { trackId?: TrackId; spotifyId?: SpotifyId; replaceTrackId?: TrackId }
+) => {
+    const { trackId, spotifyId, replaceTrackId } = data;
+
+    // 1. Eğer replaceTrackId verilmişse eski favoriyi kaldır
+    if (replaceTrackId) {
+        await pool.query(trackQueries.favorites.remove, [userId, replaceTrackId]);
+    }
+
+    // 2. Eğer trackId yoksa ama spotifyId varsa şarkıyı bul veya spotify'dan çek
+    let targetTrackId: TrackId | undefined = trackId;
+    if (!targetTrackId && spotifyId) {
+        const trackCheck = await pool.query(trackQueries.checkExists, [spotifyId]);
+        if (trackCheck.rows.length > 0) {
+            targetTrackId = trackCheck.rows[0].id;
+        } else {
+            const fetched = await findOrFetchSpotifyTrack(spotifyId, userId);
+            targetTrackId = fetched.id;
+        }
+    }
+
+    if (!targetTrackId) {
+        throw new ApiError("NOT_FOUND", 404);
+    }
+
+    // 3. Limit kontrolü
+    const countResult = await pool.query(
+        `SELECT COUNT(*) FROM "PlaylistItem" pli
+         JOIN "Playlist" pl ON pl.id = pli."playlistId"
+         WHERE pl."listType" = 'favorites' AND pl."creatorId" = $1`,
+        [userId]
+    );
+
+    const count = parseInt(countResult.rows[0].count, 10);
+    if (count >= 3) {
+        throw new ApiError("MAX_FAVORITES_TRACK_REACHED", 400);
+    }
+
+    // Check if the track exists
+    const trackCheck = await pool.query(`SELECT id FROM "Track" WHERE id = $1`, [targetTrackId]);
+    if (trackCheck.rows.length === 0) {
+        throw new ApiError("NOT_FOUND", 404);
+    }
+
+    const result = await pool.query(trackQueries.favorites.add, [userId, targetTrackId]);
+    return result.rows[0];
+};
+
+export const removeTrackFromFavorites = async (trackId: string, userId: string) => {
+    // Check if the track exists
+    const trackCheck = await pool.query(`SELECT id FROM "Track" WHERE id = $1`, [trackId]);
+    if (trackCheck.rows.length === 0) {
+        throw new ApiError("NOT_FOUND", 404);
+    }
+
+    const result = await pool.query(trackQueries.favorites.remove, [userId, trackId]);
+    return result.rows[0] || { trackId, isFavorite: false };
 };
 
 /**

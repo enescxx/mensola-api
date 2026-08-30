@@ -2,6 +2,9 @@ import { Router } from "express";
 
 import {
     getLikedTracksList,
+    getFavoriteTracksList,
+    addTrackToFavoritesHandler,
+    removeTrackFromFavoritesHandler,
     getTrackDetails,
     likeTrackHandler,
     unlikeTrackHandler,
@@ -18,6 +21,7 @@ import {
     trackParamSchema,
     createTrackInteractionSchema,
     spotifyIdParamSchema,
+    addFavoriteTrackSchema,
 } from "@/validations/track.validation";
 import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
@@ -25,6 +29,9 @@ const router = Router();
 
 router.get("/by-spotify/:spotifyId", extractUser, validate(spotifyIdParamSchema), getOrFetchSpotifyTrack);
 router.get("/likes", extractUser, validate(trackPaginationQuerySchema), requiredUserId, getLikedTracksList);
+router.get("/favorites", extractUser, validate(trackPaginationQuerySchema), requiredUserId, getFavoriteTracksList);
+router.post("/favorites", verifyToken, validate(addFavoriteTrackSchema), addTrackToFavoritesHandler);
+router.delete("/:trackId/favorites", verifyToken, validate(trackParamSchema), removeTrackFromFavoritesHandler);
 router.get("/:trackId", extractUser, validate(trackParamSchema), getTrackDetails);
 router.get("/:trackId/interactions", extractUser, validate(trackParamSchema), getTrackInteractionsList);
 router.post("/:trackId/interactions", verifyToken, validate(createTrackInteractionSchema), createTrackInteraction);

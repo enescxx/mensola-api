@@ -46,6 +46,7 @@ import {
     listAndMovieParamsSchema,
     createMovieInteractionSchema,
     tmdbIdParamSchema,
+    addFavoriteMovieSchema,
 } from "@/validations/movie.validation";
 import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
@@ -100,7 +101,7 @@ router.post("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), ad
 router.delete("/:movieId/watchlist", verifyToken, validate(movieIdParamSchema), removeMovieFromWatchlist);
 
 // Favorites Status
-router.post("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), addMovieToFavorites);
+router.post("/favorites", verifyToken, validate(addFavoriteMovieSchema), addMovieToFavorites);
 router.delete("/:movieId/favorites", verifyToken, validate(movieIdParamSchema), removeMovieFromFavorites);
 
 // Movie Like Status

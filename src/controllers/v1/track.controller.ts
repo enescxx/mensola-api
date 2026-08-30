@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from "express";
 
 import {
     getLikedTracks,
+    getFavoriteTracks,
+    addTrackToFavorites,
+    removeTrackFromFavorites,
     getTrackById,
     likeTrack,
     unlikeTrack,
@@ -12,7 +15,7 @@ import {
 import { sendResponse } from "@/utils/response";
 import { TypedRequest, TypedRequestQuery } from "@/types/express.types";
 import { GetLikedTracksDto, UpsertTrackInteractionDto } from "@/types/track.types";
-import { SpotifyId, TrackId } from "@/types/common.types";
+import { SpotifyId, TrackId, UserId } from "@/types/common.types";
 import { MESSAGES } from "@/constants/messages";
 import { ApiError } from "@/utils/error";
 
@@ -179,6 +182,81 @@ export const getOrFetchSpotifyTrack = async (
 
     try {
         const result = await findOrFetchSpotifyTrack(spotifyId, userId);
+        return sendResponse(res, 200, result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Retrieves a paginated list of favorite tracks for a target user (or current user).
+ *
+ * @route   GET /api/tracks/favorites
+ * @access  Public / Optional Auth
+ */
+export const getFavoriteTracksList = async (
+    req: TypedRequestQuery<Partial<GetLikedTracksDto>>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.query.userId || req.user?.id;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 18;
+
+        const favoriteTracks = await getFavoriteTracks({ userId, limit, page });
+
+        return sendResponse(res, 200, {
+            items: favoriteTracks,
+            page,
+            limit,
+            totalItems: favoriteTracks.length,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Adds a specific track to the authenticated user's favorites list.
+ *
+ * @route   POST /api/tracks/:trackId/favorites
+ * @access  Private
+ */
+export const addTrackToFavoritesHandler = async (
+    req: TypedRequest<{}, { trackId?: TrackId; spotifyId?: SpotifyId; replaceTrackId?: TrackId }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const { trackId, spotifyId, replaceTrackId } = req.body;
+        const userId = req.user!.id as UserId;
+
+        const result = await addTrackToFavorites(userId, { trackId, spotifyId, replaceTrackId });
+
+        return sendResponse(res, 201, result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Removes a specific track from the authenticated user's favorites list.
+ *
+ * @route   DELETE /api/tracks/:trackId/favorites
+ * @access  Private
+ */
+export const removeTrackFromFavoritesHandler = async (
+    req: TypedRequest<{ trackId: TrackId }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const trackId = req.params.trackId;
+        const userId = req.user!.id;
+
+        const result = await removeTrackFromFavorites(trackId, userId);
+
         return sendResponse(res, 200, result);
     } catch (error) {
         next(error);
