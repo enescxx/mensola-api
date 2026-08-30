@@ -84,4 +84,48 @@ export const tmdbService = {
 
         return movie;
     },
+
+    /**
+     * Returns the top `limit` trending movies of the day enriched with
+     * backdrop and overview — used by the /v1/home hero section.
+     */
+    getTrendingHero: async (limit: number = 5) => {
+        const res = await fetch(`${TMDB_BASE_URL}/trending/movie/day?language=en-US&page=1`, {
+            headers: { Authorization: `Bearer ${TMDB_TOKEN}`, accept: "application/json" },
+        });
+
+        if (!res.ok) throw new Error(`TMDB trending failed: ${res.status}`);
+
+        const data = (await res.json()) as TrendMoviesResult;
+
+        return data.results.slice(0, limit).map((item: ITmdbMovie) => ({
+            tmdbId: item.id as TmdbId,
+            title: item.original_title,
+            overview: item.overview,
+            backdropUrl: getTmdbImage(item.backdrop_path ?? null, "original"),
+            posterUrl: getTmdbImage(item.poster_path ?? null, "w342"),
+            rating: item.vote_average,
+        }));
+    },
+
+    /**
+     * Returns current theatrical releases — used by the /v1/home now-playing section.
+     */
+    getNowPlaying: async (limit: number = 15) => {
+        const res = await fetch(`${TMDB_BASE_URL}/movie/now_playing?language=en-US&page=1`, {
+            headers: { Authorization: `Bearer ${TMDB_TOKEN}`, accept: "application/json" },
+        });
+
+        if (!res.ok) throw new Error(`TMDB now_playing failed: ${res.status}`);
+
+        const data = (await res.json()) as TrendMoviesResult;
+
+        return data.results.slice(0, limit).map((item: ITmdbMovie) => ({
+            tmdbId: item.id as TmdbId,
+            title: item.original_title,
+            posterUrl: getTmdbImage(item.poster_path ?? null, "w342"),
+            rating: item.vote_average,
+            releaseDate: item.release_date,
+        }));
+    },
 };
