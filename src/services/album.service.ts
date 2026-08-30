@@ -1,5 +1,9 @@
 import pool from "@/config/db";
 import { albumQueries } from "@/queries/album.queries";
+import { artistQueries } from "@/queries/artist.queries";
+import { trackQueries } from "@/queries/track.queries";
+import { spotifyService } from "@/services/spotify.service";
+import { SpotifyId, UserId } from "@/types/common.types";
 import {
     GetLikedAlbumsDto,
     GetLikedAlbumsResponse,
@@ -181,4 +185,72 @@ export const upsertAlbumInteraction = async (dto: UpsertAlbumInteractionDto) => 
     } finally {
         client.release();
     }
+};
+
+const getOrInsertArtist = async (client: any, artist: { spotifyId: string; name: string }) => {
+    const artistCheck = await client.query(artistQueries.checkExists, [artist.spotifyId]);
+    if (artistCheck.rows.length > 0) {
+        return artistCheck.rows[0].id;
+    }
+    const insertResult = await client.query(artistQueries.insertArtist, [artist.spotifyId, artist.name, null]);
+    return insertResult.rows[0].id;
+};
+
+export const findOrFetchSpotifyAlbum = async (spotifyId: SpotifyId, currentUserId?: UserId) => {
+    const albumCheck = await pool.query(albumQueries.checkExists, [spotifyId]);
+
+    let albumId: string;
+
+    if (albumCheck.rows.length > 0) {
+        albumId = albumCheck.rows[0].id;
+    } else {
+        const client = await pool.connect();
+        try {
+            await client.query("BEGIN");
+
+            const albumData = await spotifyService.getAlbumBySpotifyId(spotifyId);
+
+            const albumValues = [
+                albumData.spotifyId,
+                albumData.title,
+                albumData.image,
+                albumData.releaseDate,
+                albumData.songCount,
+            ];
+            const insertAlbumResult = await client.query(albumQueries.insertAlbum, albumValues);
+            albumId = insertAlbumResult.rows[0].id;
+
+            for (const artist of albumData.artists ?? []) {
+                const artistId = await getOrInsertArtist(client, artist);
+                await client.query(albumQueries.insertAlbumArtist, [albumId, artistId]);
+            }
+
+            for (const track of albumData.tracks ?? []) {
+                const trackCheck = await client.query(trackQueries.checkExists, [track.spotifyId]);
+                let trackId: string;
+                if (trackCheck.rows.length > 0) {
+                    trackId = trackCheck.rows[0].id;
+                } else {
+                    const trackValues = [track.spotifyId, track.title, track.duration, track.image, albumId];
+                    const insertTrackResult = await client.query(trackQueries.insertTrack, trackValues);
+                    trackId = insertTrackResult.rows[0].id;
+
+                    for (const artist of track.artists ?? []) {
+                        const artistId = await getOrInsertArtist(client, artist);
+                        await client.query(trackQueries.insertTrackArtist, [trackId, artistId]);
+                    }
+                }
+            }
+
+            await client.query("COMMIT");
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    const finalResult = await pool.query(albumQueries.getById, [albumId, currentUserId || null]);
+    return finalResult.rows[0];
 };
