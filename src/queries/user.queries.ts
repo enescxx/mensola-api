@@ -452,6 +452,7 @@ export const userQueries = {
                 ) as sml
             FROM "User" u
             WHERE u."deletedAt" IS NULL 
+              AND ($2::uuid IS NULL OR u.id != $2::uuid)
               AND (
                   u.username % $1 OR 
                   COALESCE(u.fullname, '') % $1
