@@ -46,7 +46,7 @@ export const movieQueries = {
                 AND ml."listType" = 'custom' 
                 AND (ml."isPrivate" = false OR $1 = $2)
             GROUP BY ml.id
-            ORDER BY ml."createdAt" DESC
+            ORDER BY ml."updatedAt" DESC
             LIMIT $3 OFFSET $4;`,
 
         /**
@@ -153,9 +153,9 @@ export const movieQueries = {
          * Inserts a new custom movie list into the database and returns created record.
          */
         create: `
-            INSERT INTO "MovieList" (id, title, description, image, "isPrivate","creatorId") 
-            VALUES (gen_random_uuid(), $1, $2, $3, COALESCE($4, false), $5) 
-            RETURNING id, title, description, image, "isPrivate","creatorId";`,
+            INSERT INTO "MovieList" (id, title, description, image, "isPrivate","creatorId", "createdAt", "updatedAt") 
+            VALUES (gen_random_uuid(), $1, $2, $3, COALESCE($4, false), $5, NOW(), NOW()) 
+            RETURNING id, title, description, image, "isPrivate","creatorId", "createdAt", "updatedAt";`,
 
         /**
          * Updates an existing custom movie list, allowing for modification of its title, description, image, and privacy status.

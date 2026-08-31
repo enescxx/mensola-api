@@ -37,6 +37,8 @@ export interface IMovieList {
     isPrivate: boolean;
     listType?: MovieListType;
     creatorId: UserId;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
 }
 
 export interface IMovieListItem {

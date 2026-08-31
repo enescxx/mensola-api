@@ -46,6 +46,8 @@ export interface IPlaylist {
     isPrivate: boolean;
     listType?: "custom" | "favorites";
     creatorId: UserId;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
 }
 
 // ==========================================
