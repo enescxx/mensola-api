@@ -19,6 +19,9 @@ import {
     VerifyEmailChangeDto,
     ChangePasswordDto,
     ChangePasswordResponse,
+    SearchUsersDto,
+    SearchUsersResponse,
+    SearchUsersResponseItem,
 } from "@/types/user.types";
 import { deleteFileFromR2 } from "./storage.service";
 import crypto from "crypto";
@@ -445,4 +448,23 @@ export const softDeleteAccount = async (userId: string): Promise<void> => {
 
     // 2. Revoke all active sessions
     await pool.query(authQueries.session.deleteByUserId, [userId]);
+};
+
+/**
+ * Searches users by username or fullname using trigram similarity.
+ * 
+ * @param dto - Pagination settings, search query, and viewer context
+ * @returns Array of matching users
+ */
+export const searchUsers = async (dto: SearchUsersDto): Promise<SearchUsersResponse> => {
+    const offset = (dto.page - 1) * dto.limit;
+
+    const result = await pool.query<SearchUsersResponseItem>(userQueries.search.byQuery, [
+        dto.query,
+        dto.viewerId || null,
+        dto.limit,
+        offset,
+    ]);
+
+    return result.rows;
 };

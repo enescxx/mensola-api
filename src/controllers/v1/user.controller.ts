@@ -1,6 +1,6 @@
 import { Response, NextFunction, Request } from "express";
 
-import { getUserProfile, profileUpdate, getFollowers, getFollowing, follow, unfollow, updateUsername, checkUsernameAvailability, requestEmailChange, verifyEmailChange, changePassword, updateProfilePrivacy, softDeleteAccount } from "@/services/user.service";
+import { getUserProfile, profileUpdate, getFollowers, getFollowing, follow, unfollow, updateUsername, checkUsernameAvailability, requestEmailChange, verifyEmailChange, changePassword, updateProfilePrivacy, softDeleteAccount, searchUsers } from "@/services/user.service";
 
 import { sendResponse } from "@/utils/response";
 
@@ -309,4 +309,36 @@ const deleteMeController = async (
     }
 };
 
-export { getMe, getUserById, updateProfile, getUserFollowers, getUserFollowing, followUser, unfollowUser, changeUsername, verifyUsername, requestEmailChangeController, verifyEmailChangeController, changePasswordController, updatePrivacyController, deleteMeController };
+/**
+ * Retrieves a paginated list of users matching the search query.
+ */
+const searchUsersController = async (
+    req: TypedRequestQuery<{ q: string; page?: string; limit?: string }>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const query = req.query.q as string;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 20;
+        const viewerId = req.user?.id;
+
+        const users = await searchUsers({
+            query,
+            page,
+            limit,
+            viewerId,
+        });
+
+        return sendResponse(res, 200, {
+            items: users,
+            page,
+            limit,
+            hasMore: users.length === limit,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { getMe, getUserById, updateProfile, getUserFollowers, getUserFollowing, followUser, unfollowUser, changeUsername, verifyUsername, requestEmailChangeController, verifyEmailChangeController, changePasswordController, updatePrivacyController, deleteMeController, searchUsersController };

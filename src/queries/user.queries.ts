@@ -19,61 +19,79 @@ export const userQueries = {
          * $2 - Requesting User ID (uuid | null)
          */
         get: `
+            WITH viewer_access AS (
+                SELECT 
+                    u.id AS user_id,
+                    u.username,
+                    u.avatar,
+                    u.fullname,
+                    u.bio,
+                    u."isPrivate",
+                    CASE 
+                        WHEN u."isPrivate" = false THEN true
+                        WHEN u.id = $2::uuid THEN true
+                        WHEN $2::uuid IS NOT NULL AND EXISTS (
+                            SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id
+                        ) THEN true
+                        ELSE false
+                    END AS has_access,
+                    CASE 
+                        WHEN $2::uuid IS NOT NULL AND EXISTS (
+                            SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id
+                        ) THEN true
+                        ELSE false
+                    END AS is_following
+                FROM "User" u
+                WHERE u.id = $1 AND u."deletedAt" IS NULL
+            )
             SELECT 
-                u.id,
-                u.username,
-                u.avatar,
-                u.fullname,
-                u.bio,
-                COALESCE(movie_lists.count, 0) AS "movieListCount",
-                COALESCE(playlists.count, 0) AS "playlistCount",
-                COALESCE(watchlists.count, 0) AS "watchlistMoviesCount",
-                COALESCE(watched_stats.count, 0) AS "watchedMoviesCount",
-                
-                COALESCE(fav_movies.movies, '[]'::json) AS "favoriteMovies",
-                COALESCE(fav_tracks.tracks, '[]'::json) AS "favoriteTracks",
-                
-                COALESCE(stats.total_liked_movies, 0) AS "likedMoviesCount",
-                COALESCE(stats.total_liked_tracks, 0) AS "likedTracksCount",
-                COALESCE(stats.total_liked_playlists, 0) AS "likedPlaylistsCount",
-                COALESCE(stats.total_liked_movie_lists, 0) AS "likedMovieListsCount",
-                COALESCE(stats.total_liked_albums, 0) AS "likedAlbumsCount",
+                v.user_id AS id,
+                v.username,
+                v.avatar,
+                v.fullname,
+                v.bio,
+                v."isPrivate",
+                v.has_access AS "hasAccess",
+                v.is_following AS "isFollowingByMe",
                 
                 COALESCE(follow_stats.follower_count, 0) AS "followersCount",
                 COALESCE(follow_stats.following_count, 0) AS "followingCount",
-        
+                COALESCE(watched_stats.count, 0) AS "watchedMoviesCount",
+                
+                CASE WHEN v.has_access THEN COALESCE(movie_lists.count, 0) ELSE 0 END AS "movieListCount",
+                CASE WHEN v.has_access THEN COALESCE(playlists.count, 0) ELSE 0 END AS "playlistCount",
+                CASE WHEN v.has_access THEN COALESCE(watchlists.count, 0) ELSE 0 END AS "watchlistMoviesCount",
+                
+                CASE WHEN v.has_access THEN COALESCE(fav_movies.movies, '[]'::json) ELSE '[]'::json END AS "favoriteMovies",
+                CASE WHEN v.has_access THEN COALESCE(fav_tracks.tracks, '[]'::json) ELSE '[]'::json END AS "favoriteTracks",
+                
+                CASE WHEN v.has_access THEN COALESCE(stats.total_liked_movies, 0) ELSE 0 END AS "likedMoviesCount",
+                CASE WHEN v.has_access THEN COALESCE(stats.total_liked_tracks, 0) ELSE 0 END AS "likedTracksCount",
+                CASE WHEN v.has_access THEN COALESCE(stats.total_liked_playlists, 0) ELSE 0 END AS "likedPlaylistsCount",
+                CASE WHEN v.has_access THEN COALESCE(stats.total_liked_movie_lists, 0) ELSE 0 END AS "likedMovieListsCount",
+                CASE WHEN v.has_access THEN COALESCE(stats.total_liked_albums, 0) ELSE 0 END AS "likedAlbumsCount",
+                
                 CASE 
-                    WHEN $1 != $2::uuid::uuid 
+                    WHEN v.has_access AND $1 != $2::uuid 
                     THEN COALESCE(mutual_follows.list, '[]'::json)
                     ELSE NULL
-                END AS "mutualFollowers",
+                END AS "mutualFollowers"
         
-                CASE 
-                    WHEN $2::uuid IS NOT NULL AND EXISTS (
-                        SELECT 1
-                        FROM "Follow"
-                        WHERE "followerId" = $2::uuid AND "followingId" = u.id
-                    )
-                    THEN true
-                    ELSE false
-                END AS "isFollowingByMe"
-        
-                
-            FROM "User" u
+            FROM viewer_access v
             
             LEFT JOIN (
                 SELECT "creatorId" AS creator_id, COUNT(*) as count
                 FROM "MovieList" 
                 WHERE "listType" = 'custom' AND "creatorId" = $1 
                 GROUP BY "creatorId"
-            ) movie_lists ON u.id = movie_lists.creator_id
+            ) movie_lists ON v.user_id = movie_lists.creator_id
         
             LEFT JOIN (
                 SELECT "creatorId" as creator_id, COUNT(*) as count
                 FROM "Playlist"
                 WHERE "listType" = 'custom' AND "creatorId" = $1
                 GROUP BY "creatorId"
-            ) playlists ON u.id = playlists.creator_id
+            ) playlists ON v.user_id = playlists.creator_id
             
             LEFT JOIN (
                 SELECT 
@@ -109,7 +127,7 @@ export const userQueries = {
                 ) user_favs
                 WHERE user_favs.rn <= 3
                 GROUP BY user_favs.creator_id
-            ) fav_movies ON u.id = fav_movies.creator_id
+            ) fav_movies ON v.user_id = fav_movies.creator_id
             
             LEFT JOIN (
                 SELECT 
@@ -148,7 +166,7 @@ export const userQueries = {
                 ) user_favs
                 WHERE user_favs.rn <= 3
                 GROUP BY user_favs.creator_id
-            ) fav_tracks ON u.id = fav_tracks.creator_id
+            ) fav_tracks ON v.user_id = fav_tracks.creator_id
             
             LEFT JOIN (
                 SELECT 
@@ -159,9 +177,9 @@ export const userQueries = {
                     COUNT(CASE WHEN "targetType" = 'movieList' AND "isLiked" = true THEN 1 END) AS total_liked_movie_lists,
                     COUNT(CASE WHEN "targetType" = 'album' AND "isLiked" = true THEN 1 END) AS total_liked_albums
                 FROM "Interaction"
-                WHERE "userId" = $1 -- Performans için alt sorguda da filtreliyoruz
+                WHERE "userId" = $1
                 GROUP BY "userId"
-            ) stats ON u.id = stats."userId"
+            ) stats ON v.user_id = stats."userId"
         
             LEFT JOIN (
                 SELECT 
@@ -178,7 +196,7 @@ export const userQueries = {
                     GROUP BY "followerId"
                 ) combined_follows
                 GROUP BY u_id
-            ) follow_stats ON u.id = follow_stats.u_id
+            ) follow_stats ON v.user_id = follow_stats.u_id
         
             LEFT JOIN (
                 SELECT ml."creatorId" as creator_id, COUNT(mli."movieId") as count
@@ -186,14 +204,14 @@ export const userQueries = {
                 LEFT JOIN "MovieListItem" mli ON ml.id = mli."movieListId"
                 WHERE ml."listType" = 'watchlist' AND ml."creatorId" = $1
                 GROUP BY ml."creatorId"
-            ) watchlists ON u.id = watchlists.creator_id
+            ) watchlists ON v.user_id = watchlists.creator_id
         
             LEFT JOIN (
                 SELECT "userId", COUNT(*) AS count
                 FROM "WatchedMovie"
                 WHERE "userId" = $1
                 GROUP BY "userId"
-            ) watched_stats ON u.id = watched_stats."userId"
+            ) watched_stats ON v.user_id = watched_stats."userId"
         
             LEFT JOIN (
                 SELECT
@@ -216,10 +234,7 @@ export const userQueries = {
                         WHERE "followerId" = $2::uuid
                     )
                 GROUP BY f."followingId"
-            ) mutual_follows ON u.id = mutual_follows.target_user_id
-        
-        
-            WHERE u.id = $1 AND u."deletedAt" IS NULL;`,
+            ) mutual_follows ON v.user_id = mutual_follows.target_user_id;`,
 
         softDelete: `
             UPDATE "User"
@@ -403,5 +418,46 @@ export const userQueries = {
             WHERE id = $2
             RETURNING id, email, username, "isPrivate";
         `,
+    },
+
+    /**
+     * Search Queries
+     */
+    search: {
+        /**
+         * Search users by username or fullname using pg_trgm similarity.
+         *
+         * Parameters:
+         * $1 - Search query (string)
+         * $2 - Requesting User ID for following context (uuid | null)
+         * $3 - LIMIT
+         * $4 - OFFSET
+         */
+        byQuery: `
+            SELECT 
+                u.id,
+                u.username,
+                u.fullname,
+                u.avatar,
+                CASE 
+                    WHEN $2::uuid IS NOT NULL AND EXISTS (
+                        SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id
+                    ) THEN true
+                    ELSE false
+                END AS "isFollowingByMe",
+                -- Calculate a similarity score (using GREATEST to pick the best match between username and fullname)
+                GREATEST(
+                    similarity(u.username, $1),
+                    similarity(COALESCE(u.fullname, ''), $1)
+                ) as sml
+            FROM "User" u
+            WHERE u."deletedAt" IS NULL 
+              AND (
+                  u.username % $1 OR 
+                  COALESCE(u.fullname, '') % $1
+              )
+            ORDER BY sml DESC, u.username ASC
+            LIMIT $3 OFFSET $4;
+        `
     },
 };

@@ -16,6 +16,7 @@ import {
     changePasswordController,
     updatePrivacyController,
     deleteMeController,
+    searchUsersController,
 } from "@/controllers/v1/user.controller";
 
 // Middlewares
@@ -23,7 +24,7 @@ import { verifyToken, extractUser } from "@/middlewares/auth.middleware";
 import { validate } from "@/middlewares/validate.middleware";
 
 // Validations
-import { userListQuerySchema, userIdParamSchema, updateProfileSchema, updateUsernameSchema, checkUsernameQuerySchema, requestEmailChangeSchema, verifyEmailChangeSchema, changePasswordSchema, updatePrivacySchema } from "@/validations/user.validation";
+import { userListQuerySchema, userIdParamSchema, updateProfileSchema, updateUsernameSchema, checkUsernameQuerySchema, requestEmailChangeSchema, verifyEmailChangeSchema, changePasswordSchema, updatePrivacySchema, searchUserQuerySchema } from "@/validations/user.validation";
 import { requiredUserId } from "@/middlewares/requiredId.middleware";
 
 const router = Router();
@@ -138,6 +139,13 @@ router.delete("/:userId/follow", verifyToken, validate(userIdParamSchema), unfol
 /* ==========================================================================
    Public Profile Routes
    ========================================================================== */
+
+/**
+ * @route   GET /api/users/search
+ * @desc    Search users by username or fullname
+ * @access  Public / Optional Auth (Attaches viewer context if authenticated)
+ */
+router.get("/search", extractUser, validate(searchUserQuerySchema), searchUsersController);
 
 /**
  * @route   GET /api/users/:userId

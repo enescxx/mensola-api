@@ -97,3 +97,16 @@ export const updatePrivacySchema = z.object({
         }),
     }),
 });
+
+/**
+ * Search Users Query Schema
+ */
+export const searchUserQuerySchema = z.object({
+    query: z
+        .object({
+            q: z.string().min(1, MESSAGES.ERRORS.FIELD_REQUIRED("Arama sorgusu")),
+            page: pageQueryRule,
+            limit: limitQueryRule,
+        })
+        .passthrough(),
+});

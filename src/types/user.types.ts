@@ -65,6 +65,7 @@ export type GetFollowersDto = {
 export type GetFollowingDto = GetFollowersDto;
 export type FollowDto = { followerId: UserId; followingId: UserId };
 export type UnfollowDto = { followerId: UserId; followingId: UserId };
+export type SearchUsersDto = { query: string; viewerId?: UserId; limit: number; page: number };
 
 // ==========================================
 // API Responses
@@ -74,6 +75,8 @@ export type GetUserProfileResponse = IUser &
     IStats & {
         mutualFollowers?: Pick<IUser, "id" | "username" | "fullname">[];
         isFollowingByMe?: boolean;
+        isPrivate?: boolean;
+        hasAccess?: boolean;
     };
 export type ProfileUpdateResponse = Pick<IUser, "id" | "username" | "fullname" | "bio" | "avatar">;
 export type GetFollowersResponseItem = UserSummary & {
@@ -83,6 +86,8 @@ export type GetFollowersResponseItem = UserSummary & {
 export type GetFollowersResponse = GetFollowersResponseItem[];
 export type GetFollowingResponseItem = GetFollowersResponseItem;
 export type GetFollowingResponse = GetFollowingResponseItem[];
+export type SearchUsersResponseItem = Pick<IUser, "id" | "username" | "fullname" | "avatar"> & { isFollowingByMe: boolean; sml: number };
+export type SearchUsersResponse = SearchUsersResponseItem[];
 
 // ==========================================
 // Shared Projections (DTO / Response Items)
