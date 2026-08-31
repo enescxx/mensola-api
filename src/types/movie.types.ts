@@ -24,6 +24,7 @@ export interface IMovie {
     rating?: number;
     genres?: string[];
     duration?: number;
+    overview?: string;
     createdAt?: Date | string;
 }
 

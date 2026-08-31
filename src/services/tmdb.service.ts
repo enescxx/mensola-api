@@ -80,6 +80,7 @@ export const tmdbService = {
             rating: movieData.vote_average,
             genres: movieData.genres ? movieData.genres.map((g) => g.name) : [],
             duration: movieData.runtime || undefined,
+            overview: movieData.overview || undefined,
         };
 
         return movie;
