@@ -69,6 +69,7 @@ export const getUserProfile = async (dto: GetUserProfileDto): Promise<GetUserPro
     if (!dto.viewerId || dto.viewerId === dto.targetUserId) {
         delete profile.mutualFollowers;
         delete profile.isFollowingByMe;
+        delete profile.isPendingByMe;
     }
 
     return profile;
@@ -187,14 +188,32 @@ export const getFollowing = async (dto: GetFollowingDto): Promise<GetFollowingRe
  * @returns Boolean true indicating success
  * @throws ApiError (400) if a user attempts to follow themselves
  */
-export const follow = async (dto: FollowDto): Promise<boolean> => {
+export const follow = async (
+    dto: FollowDto,
+): Promise<{ status: "pending" | "accepted"; isFollowing: boolean; isPending: boolean }> => {
     if (dto.followerId === dto.followingId) {
         throw new ApiError("CANNOT_FOLLOW_SELF", 400);
     }
 
-    await pool.query(userQueries.actions.follow, [dto.followerId, dto.followingId]);
+    const targetUser = await pool.query<{ id: string; isPrivate: boolean }>(
+        `SELECT id, "isPrivate" FROM "User" WHERE id = $1 AND "deletedAt" IS NULL`,
+        [dto.followingId],
+    );
 
-    return true;
+    if (targetUser.rows.length === 0) {
+        throw new ApiError("NOT_FOUND", 404);
+    }
+
+    const isPrivate = targetUser.rows[0].isPrivate ?? false;
+    const status: "pending" | "accepted" = isPrivate ? "pending" : "accepted";
+
+    await pool.query(userQueries.actions.follow, [dto.followerId, dto.followingId, status]);
+
+    return {
+        status,
+        isFollowing: status === "accepted",
+        isPending: status === "pending",
+    };
 };
 
 /**
@@ -223,10 +242,11 @@ export const unfollow = async (dto: UnfollowDto): Promise<boolean> => {
  */
 export const updateUsername = async (dto: { userId: string; username: string }) => {
     // 1. Fetch current username, usernameChangedAt, and subscriptionTier
-    const userResult = await pool.query<{ username: string; usernameChangedAt: string | null; subscriptionTier: string }>(
-        userQueries.profile.getUsernameAndChangedAt,
-        [dto.userId]
-    );
+    const userResult = await pool.query<{
+        username: string;
+        usernameChangedAt: string | null;
+        subscriptionTier: string;
+    }>(userQueries.profile.getUsernameAndChangedAt, [dto.userId]);
 
     if (userResult.rows.length === 0) {
         throw new ApiError("NOT_FOUND", 404);
@@ -248,19 +268,12 @@ export const updateUsername = async (dto: { userId: string; username: string }) 
 
         if (diffDays < 14) {
             const remainingDays = Math.ceil(14 - diffDays);
-            throw new ApiError(
-                "USERNAME_CHANGE_LIMIT",
-                400,
-                MESSAGES.ERRORS.USERNAME_CHANGE_LIMIT(remainingDays)
-            );
+            throw new ApiError("USERNAME_CHANGE_LIMIT", 400, MESSAGES.ERRORS.USERNAME_CHANGE_LIMIT(remainingDays));
         }
     }
 
     // 3. Check if new username is already taken
-    const duplicateResult = await pool.query(userQueries.profile.existsByUsername, [
-        dto.username,
-        dto.userId,
-    ]);
+    const duplicateResult = await pool.query(userQueries.profile.existsByUsername, [dto.username, dto.userId]);
 
     if (duplicateResult.rows.length > 0) {
         throw new ApiError("USERNAME_ALREADY_TAKEN", 400);
@@ -269,7 +282,7 @@ export const updateUsername = async (dto: { userId: string; username: string }) 
     // 4. Update the username and timestamp
     const updateResult = await pool.query<{ id: string; username: string; usernameChangedAt: Date }>(
         userQueries.profile.updateUsername,
-        [dto.username, dto.userId]
+        [dto.username, dto.userId],
     );
 
     return updateResult.rows[0];
@@ -293,10 +306,7 @@ export const checkUsernameAvailability = async (username: string): Promise<{ ava
  */
 export const requestEmailChange = async (dto: RequestEmailChangeDto): Promise<boolean> => {
     // 1. Get the current user's password hash
-    const userRes = await pool.query<{ password: string }>(
-        userQueries.emailChange.getPasswordHash,
-        [dto.userId]
-    );
+    const userRes = await pool.query<{ password: string }>(userQueries.emailChange.getPasswordHash, [dto.userId]);
     const user = userRes.rows[0];
     if (!user) {
         throw new ApiError("UNAUTHORIZED", 401);
@@ -312,10 +322,7 @@ export const requestEmailChange = async (dto: RequestEmailChangeDto): Promise<bo
     }
 
     // 3. Verify new email is not in use
-    const emailCheck = await pool.query(
-        userQueries.emailChange.existsByEmail,
-        [dto.email]
-    );
+    const emailCheck = await pool.query(userQueries.emailChange.existsByEmail, [dto.email]);
     if (emailCheck.rowCount && emailCheck.rowCount > 0) {
         throw new ApiError("EMAIL_ALREADY_TAKEN", 400);
     }
@@ -325,12 +332,7 @@ export const requestEmailChange = async (dto: RequestEmailChangeDto): Promise<bo
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
 
     // 5. Store in database
-    await pool.query(userQueries.emailChange.upsertVerification, [
-        dto.userId,
-        dto.email,
-        code,
-        expiresAt,
-    ]);
+    await pool.query(userQueries.emailChange.upsertVerification, [dto.userId, dto.email, code, expiresAt]);
 
     // 6. Send verification email
     await sendEmailChangeVerificationCode(dto.email, code);
@@ -342,11 +344,13 @@ export const requestEmailChange = async (dto: RequestEmailChangeDto): Promise<bo
  * Verifies the 6-digit OTP code against the database, updates the user's email address,
  * and deletes the verification record.
  */
-export const verifyEmailChange = async (dto: VerifyEmailChangeDto): Promise<{ id: string; email: string; username: string }> => {
+export const verifyEmailChange = async (
+    dto: VerifyEmailChangeDto,
+): Promise<{ id: string; email: string; username: string }> => {
     // 1. Retrieve the verification record
     const verificationRes = await pool.query<{ newEmail: string; code: string; expiresAt: Date }>(
         userQueries.emailChange.getVerification,
-        [dto.userId]
+        [dto.userId],
     );
     const verification = verificationRes.rows[0];
 
@@ -363,7 +367,7 @@ export const verifyEmailChange = async (dto: VerifyEmailChangeDto): Promise<{ id
     // 3. Update the user's email address
     const updateRes = await pool.query<{ id: string; email: string; username: string }>(
         userQueries.emailChange.updateEmail,
-        [dto.email, dto.userId]
+        [dto.email, dto.userId],
     );
 
     // 4. Delete the verification record
@@ -383,10 +387,7 @@ export const verifyEmailChange = async (dto: VerifyEmailChangeDto): Promise<{ id
  */
 export const changePassword = async (dto: ChangePasswordDto): Promise<ChangePasswordResponse> => {
     // 1. Get current password hash
-    const userRes = await pool.query<{ password: string }>(
-        userQueries.emailChange.getPasswordHash,
-        [dto.userId]
-    );
+    const userRes = await pool.query<{ password: string }>(userQueries.emailChange.getPasswordHash, [dto.userId]);
     const user = userRes.rows[0];
     if (!user) {
         throw new ApiError("UNAUTHORIZED", 401);
@@ -421,10 +422,13 @@ export const changePassword = async (dto: ChangePasswordDto): Promise<ChangePass
 /**
  * Updates profile privacy status (isPrivate) in the database.
  */
-export const updateProfilePrivacy = async (userId: string, isPrivate: boolean): Promise<{ id: string; email: string; username: string; isPrivate: boolean }> => {
+export const updateProfilePrivacy = async (
+    userId: string,
+    isPrivate: boolean,
+): Promise<{ id: string; email: string; username: string; isPrivate: boolean }> => {
     const result = await pool.query<{ id: string; email: string; username: string; isPrivate: boolean }>(
         userQueries.privacy.update,
-        [isPrivate, userId]
+        [isPrivate, userId],
     );
 
     if (result.rows.length === 0) {
@@ -452,7 +456,7 @@ export const softDeleteAccount = async (userId: string): Promise<void> => {
 
 /**
  * Searches users by username or fullname using trigram similarity.
- * 
+ *
  * @param dto - Pagination settings, search query, and viewer context
  * @returns Array of matching users
  */

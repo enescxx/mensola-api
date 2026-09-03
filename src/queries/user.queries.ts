@@ -31,16 +31,22 @@ export const userQueries = {
                         WHEN u."isPrivate" = false THEN true
                         WHEN u.id = $2::uuid THEN true
                         WHEN $2::uuid IS NOT NULL AND EXISTS (
-                            SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id
+                            SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id AND "status" = 'accepted'
                         ) THEN true
                         ELSE false
                     END AS has_access,
                     CASE 
                         WHEN $2::uuid IS NOT NULL AND EXISTS (
-                            SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id
+                            SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id AND "status" = 'accepted'
                         ) THEN true
                         ELSE false
-                    END AS is_following
+                    END AS is_following,
+                    CASE 
+                        WHEN $2::uuid IS NOT NULL AND EXISTS (
+                            SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id AND "status" = 'pending'
+                        ) THEN true
+                        ELSE false
+                    END AS is_pending
                 FROM "User" u
                 WHERE u.id = $1 AND u."deletedAt" IS NULL
             )
@@ -53,6 +59,7 @@ export const userQueries = {
                 v."isPrivate",
                 v.has_access AS "hasAccess",
                 v.is_following AS "isFollowingByMe",
+                v.is_pending AS "isPendingByMe",
                 
                 COALESCE(follow_stats.follower_count, 0) AS "followersCount",
                 COALESCE(follow_stats.following_count, 0) AS "followingCount",
@@ -188,11 +195,11 @@ export const userQueries = {
                     SUM(is_following) AS following_count
                 FROM (
                     SELECT "followingId" AS u_id, COUNT(*) AS is_follower, 0 AS is_following
-                    FROM "Follow" WHERE "followingId" = $1 
+                    FROM "Follow" WHERE "followingId" = $1 AND "status" = 'accepted'
                     GROUP BY "followingId"
                     UNION ALL
                     SELECT "followerId" AS u_id, 0 AS is_follower, COUNT(*) AS is_following
-                    FROM "Follow" WHERE "followerId" = $1 
+                    FROM "Follow" WHERE "followerId" = $1 AND "status" = 'accepted'
                     GROUP BY "followerId"
                 ) combined_follows
                 GROUP BY u_id
@@ -226,12 +233,13 @@ export const userQueries = {
                 FROM "Follow" f
                 JOIN "User" u_sub ON f."followerId" = u_sub.id
                 WHERE f."followingId" = $1 
+                    AND f."status" = 'accepted'
                     AND $2::uuid IS NOT NULL
                     AND $1 != $2::uuid
                     AND f."followerId" IN (
                         SELECT "followingId"
                         FROM "Follow"
-                        WHERE "followerId" = $2::uuid
+                        WHERE "followerId" = $2::uuid AND "status" = 'accepted'
                     )
                 GROUP BY f."followingId"
             ) mutual_follows ON v.user_id = mutual_follows.target_user_id;`,
@@ -300,15 +308,19 @@ export const userQueries = {
                 u.avatar,
                 EXISTS (
                     SELECT 1 FROM "Follow" f1 
-                    WHERE f1."followerId" = $2 AND f1."followingId" = u.id
+                    WHERE f1."followerId" = $2 AND f1."followingId" = u.id AND f1."status" = 'accepted'
                 ) AS "isFollowing",
                 EXISTS (
+                    SELECT 1 FROM "Follow" f_p 
+                    WHERE f_p."followerId" = $2 AND f_p."followingId" = u.id AND f_p."status" = 'pending'
+                ) AS "isPending",
+                EXISTS (
                     SELECT 1 FROM "Follow" f2 
-                    WHERE f2."followerId" = u.id AND f2."followingId" = $2
+                    WHERE f2."followerId" = u.id AND f2."followingId" = $2 AND f2."status" = 'accepted'
                 ) AS "isFollower"
             FROM "Follow" f
             JOIN "User" u ON f."followerId" = u.id
-            WHERE f."followingId" = $1
+            WHERE f."followingId" = $1 AND f."status" = 'accepted'
             ORDER BY f."followedAt" DESC
             LIMIT $3 OFFSET $4;`,
 
@@ -329,15 +341,19 @@ export const userQueries = {
                 u.avatar,
                 EXISTS (
                     SELECT 1 FROM "Follow" f1 
-                    WHERE f1."followerId" = $2 AND f1."followingId" = u.id
+                    WHERE f1."followerId" = $2 AND f1."followingId" = u.id AND f1."status" = 'accepted'
                 ) AS "isFollowing",
                 EXISTS (
+                    SELECT 1 FROM "Follow" f_p 
+                    WHERE f_p."followerId" = $2 AND f_p."followingId" = u.id AND f_p."status" = 'pending'
+                ) AS "isPending",
+                EXISTS (
                     SELECT 1 FROM "Follow" f2 
-                    WHERE f2."followerId" = u.id AND f2."followingId" = $2
+                    WHERE f2."followerId" = u.id AND f2."followingId" = $2 AND f2."status" = 'accepted'
                 ) AS "isFollower"
             FROM "Follow" f
             JOIN "User" u ON f."followingId" = u.id
-            WHERE f."followerId" = $1
+            WHERE f."followerId" = $1 AND f."status" = 'accepted'
             ORDER BY f."followedAt" DESC
             LIMIT $3 OFFSET $4;`,
     },
@@ -352,10 +368,11 @@ export const userQueries = {
          * Parameters:
          * $1 - Follower User ID
          * $2 - Following User ID
+         * $3 - Status ('pending' | 'accepted')
          */
         follow: `
-            INSERT INTO "Follow" ("followerId", "followingId")
-            VALUES ($1, $2)
+            INSERT INTO "Follow" ("followerId", "followingId", "status")
+            VALUES ($1, $2, $3)
             ON CONFLICT ("followerId", "followingId") DO NOTHING;`,
 
         /**
@@ -441,10 +458,16 @@ export const userQueries = {
                 u.avatar,
                 CASE 
                     WHEN $2::uuid IS NOT NULL AND EXISTS (
-                        SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id
+                        SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id AND "status" = 'accepted'
                     ) THEN true
                     ELSE false
                 END AS "isFollowingByMe",
+                CASE 
+                    WHEN $2::uuid IS NOT NULL AND EXISTS (
+                        SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id AND "status" = 'pending'
+                    ) THEN true
+                    ELSE false
+                END AS "isPendingByMe",
                 -- Calculate a similarity score (using GREATEST to pick the best match between username and fullname)
                 GREATEST(
                     similarity(u.username, $1),

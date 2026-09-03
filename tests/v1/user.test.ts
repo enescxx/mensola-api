@@ -434,6 +434,44 @@ describe("User endpoints", () => {
         });
 
         /**
+         * @test Ensures following a private user creates a pending follow request
+         */
+        it("should create a pending follow request when target user has private account (201)", async () => {
+            // Update User A to private
+            await request(app)
+                .patch("/v1/users/privacy")
+                .set("Authorization", `Bearer ${userAToken}`)
+                .send({ isPrivate: true });
+
+            // User C attempts to follow User A (User A is private)
+            const response = await request(app)
+                .post(`/v1/users/${userAId}/follow`)
+                .set("Authorization", `Bearer ${userCToken}`);
+
+            expect(response.status).toBe(201);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.status).toBe("pending");
+            expect(response.body.data.isPending).toBe(true);
+            expect(response.body.data.isFollowing).toBe(false);
+            expect(response.body.message).toBe(MESSAGES.SUCCESS.FOLLOW_REQUEST_SENT);
+
+            // Verify User A profile viewed by User C has isPendingByMe: true, isFollowingByMe: false, hasAccess: false
+            const profileRes = await request(app)
+                .get(`/v1/users/${userAId}`)
+                .set("Authorization", `Bearer ${userCToken}`);
+
+            expect(profileRes.body.data.profile.isPendingByMe).toBe(true);
+            expect(profileRes.body.data.profile.isFollowingByMe).toBe(false);
+            expect(profileRes.body.data.profile.hasAccess).toBe(false);
+
+            // Revert User A privacy back to public
+            await request(app)
+                .patch("/v1/users/privacy")
+                .set("Authorization", `Bearer ${userAToken}`)
+                .send({ isPrivate: false });
+        });
+
+        /**
          * @test Ensures business logic prevents self-following (400 Bad Request)
          */
         it("should prevent a user from following themselves (400)", async () => {

@@ -15,7 +15,8 @@ import { sendResponse } from "@/utils/response";
  */
 export const getHome = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const data = await getHomeData();
+        const viewerId = req.user?.id;
+        const data = await getHomeData(viewerId);
         sendResponse(res, 200, data);
     } catch (error) {
         next(error);

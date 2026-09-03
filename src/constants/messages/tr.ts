@@ -92,6 +92,7 @@ export const MESSAGES = {
         ACCOUNT_DELETED: "Hesabınız başarıyla silindi.",
         ACCOUNT_REACTIVATED: "Hesabınız başarıyla yeniden etkinleştirildi.",
         USER_FOLLOWED: "Kullanıcı takip edildi.",
+        FOLLOW_REQUEST_SENT: "Takip isteği gönderildi.",
         USER_UNFOLLOWED: "Kullanıcı takipten çıkarıldı.",
 
         RETRIEVED_SUCCESSFULLY: "Veriler başarıyla getirildi.",

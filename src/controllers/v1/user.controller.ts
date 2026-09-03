@@ -135,9 +135,14 @@ const followUser = async (req: TypedRequest<{ userId: UserId }>, res: Response, 
         const targetUserId = req.params.userId;
         const currentUserId = req.user!.id;
 
-        await follow({ followerId: currentUserId, followingId: targetUserId });
+        const result = await follow({ followerId: currentUserId, followingId: targetUserId });
 
-        return sendResponse(res, 201, null, MESSAGES.SUCCESS.USER_FOLLOWED);
+        const message =
+            result.status === "pending"
+                ? MESSAGES.SUCCESS.FOLLOW_REQUEST_SENT
+                : MESSAGES.SUCCESS.USER_FOLLOWED;
+
+        return sendResponse(res, 201, result, message);
     } catch (error) {
         next(error);
     }
