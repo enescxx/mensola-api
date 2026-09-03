@@ -75,18 +75,24 @@ export type GetUserProfileResponse = IUser &
     IStats & {
         mutualFollowers?: Pick<IUser, "id" | "username" | "fullname">[];
         isFollowingByMe?: boolean;
+        isPendingByMe?: boolean;
         isPrivate?: boolean;
         hasAccess?: boolean;
     };
 export type ProfileUpdateResponse = Pick<IUser, "id" | "username" | "fullname" | "bio" | "avatar">;
 export type GetFollowersResponseItem = UserSummary & {
     isFollowing: boolean;
+    isPending?: boolean;
     isFollower: boolean;
 };
 export type GetFollowersResponse = GetFollowersResponseItem[];
 export type GetFollowingResponseItem = GetFollowersResponseItem;
 export type GetFollowingResponse = GetFollowingResponseItem[];
-export type SearchUsersResponseItem = Pick<IUser, "id" | "username" | "fullname" | "avatar"> & { isFollowingByMe: boolean; sml: number };
+export type SearchUsersResponseItem = Pick<IUser, "id" | "username" | "fullname" | "avatar"> & {
+    isFollowingByMe: boolean;
+    isPendingByMe?: boolean;
+    sml: number;
+};
 export type SearchUsersResponse = SearchUsersResponseItem[];
 
 // ==========================================

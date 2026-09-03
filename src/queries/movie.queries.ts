@@ -86,11 +86,15 @@ export const movieQueries = {
                         u.avatar AS "avatar",
                         EXISTS (
                             SELECT 1 FROM "Follow" f1 
-                            WHERE $2::uuid IS NOT NULL AND f1."followerId" = $2::uuid AND f1."followingId" = u.id
+                            WHERE $2::uuid IS NOT NULL AND f1."followerId" = $2::uuid AND f1."followingId" = u.id AND f1."status" = 'accepted'
                         ) AS "isFollowing",
                         EXISTS (
+                            SELECT 1 FROM "Follow" f_p 
+                            WHERE $2::uuid IS NOT NULL AND f_p."followerId" = $2::uuid AND f_p."followingId" = u.id AND f_p."status" = 'pending'
+                        ) AS "isPending",
+                        EXISTS (
                             SELECT 1 FROM "Follow" f2 
-                            WHERE $2::uuid IS NOT NULL AND f2."followerId" = u.id AND f2."followingId" = $2::uuid
+                            WHERE $2::uuid IS NOT NULL AND f2."followerId" = u.id AND f2."followingId" = $2::uuid AND f2."status" = 'accepted'
                         ) AS "isFollower"
                     FROM "MovieListOwner" mlo
                     JOIN "User" u ON u.id = mlo."userId"

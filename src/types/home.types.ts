@@ -37,4 +37,5 @@ export interface HomeResponseData {
     heroMovies: HeroMovie[];
     nowPlayingMovies: NowPlayingMovie[];
     newTracks: NewTrack[];
+    hasPendingFollowRequest: boolean;
 }
