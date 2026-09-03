@@ -10,6 +10,7 @@ import spotifyRoutes from "./spotify.routes";
 import storageRoutes from "./storage.routes";
 import betaRoutes from "./beta.routes";
 import homeRoutes from "./home.routes";
+import notificationRoutes from "./notification.routes";
 
 import { Router } from "express";
 
@@ -17,6 +18,7 @@ const v1Router = Router();
 
 v1Router.use("/auth", authRoutes);
 v1Router.use("/users", userRoutes);
+v1Router.use("/user", userRoutes);
 v1Router.use("/movies", movieRoutes);
 v1Router.use("/bookmarks", bookmarkRoutes);
 v1Router.use("/tracks", trackRoutes);
@@ -27,5 +29,6 @@ v1Router.use("/spotify", spotifyRoutes);
 v1Router.use("/storage", storageRoutes);
 v1Router.use("/beta", betaRoutes);
 v1Router.use("/home", homeRoutes);
+v1Router.use("/notifications", notificationRoutes);
 
 export default v1Router;

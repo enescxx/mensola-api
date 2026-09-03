@@ -70,6 +70,7 @@ export const getUserProfile = async (dto: GetUserProfileDto): Promise<GetUserPro
         delete profile.mutualFollowers;
         delete profile.isFollowingByMe;
         delete profile.isPendingByMe;
+        delete profile.hasPendingRequestFromUser;
     }
 
     return profile;

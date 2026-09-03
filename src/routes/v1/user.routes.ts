@@ -18,6 +18,10 @@ import {
     deleteMeController,
     searchUsersController,
 } from "@/controllers/v1/user.controller";
+import {
+    handleAcceptFollowRequest,
+    handleDeclineFollowRequest,
+} from "@/controllers/v1/notification.controller";
 
 // Middlewares
 import { verifyToken, extractUser } from "@/middlewares/auth.middleware";
@@ -135,6 +139,30 @@ router.post("/:userId/follow", verifyToken, validate(userIdParamSchema), followU
  * @access  Private (Requires valid Access Token)
  */
 router.delete("/:userId/follow", verifyToken, validate(userIdParamSchema), unfollowUser);
+
+/**
+ * @route   POST /api/users/follow-requests/:userId/accept
+ * @desc    Accept a pending follow request
+ * @access  Private (Requires valid Access Token)
+ */
+router.post(
+    "/follow-requests/:userId/accept",
+    verifyToken,
+    validate(userIdParamSchema),
+    handleAcceptFollowRequest
+);
+
+/**
+ * @route   POST /api/users/follow-requests/:userId/decline
+ * @desc    Decline a pending follow request
+ * @access  Private (Requires valid Access Token)
+ */
+router.post(
+    "/follow-requests/:userId/decline",
+    verifyToken,
+    validate(userIdParamSchema),
+    handleDeclineFollowRequest
+);
 
 /* ==========================================================================
    Public Profile Routes

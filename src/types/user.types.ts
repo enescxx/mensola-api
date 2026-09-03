@@ -76,6 +76,7 @@ export type GetUserProfileResponse = IUser &
         mutualFollowers?: Pick<IUser, "id" | "username" | "fullname">[];
         isFollowingByMe?: boolean;
         isPendingByMe?: boolean;
+        hasPendingRequestFromUser?: boolean;
         isPrivate?: boolean;
         hasAccess?: boolean;
     };

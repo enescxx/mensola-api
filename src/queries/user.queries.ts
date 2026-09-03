@@ -46,7 +46,13 @@ export const userQueries = {
                             SELECT 1 FROM "Follow" WHERE "followerId" = $2::uuid AND "followingId" = u.id AND "status" = 'pending'
                         ) THEN true
                         ELSE false
-                    END AS is_pending
+                    END AS is_pending,
+                    CASE 
+                        WHEN $2::uuid IS NOT NULL AND EXISTS (
+                            SELECT 1 FROM "Follow" WHERE "followerId" = u.id AND "followingId" = $2::uuid AND "status" = 'pending'
+                        ) THEN true
+                        ELSE false
+                    END AS has_pending_request_from_user
                 FROM "User" u
                 WHERE u.id = $1 AND u."deletedAt" IS NULL
             )
@@ -60,6 +66,7 @@ export const userQueries = {
                 v.has_access AS "hasAccess",
                 v.is_following AS "isFollowingByMe",
                 v.is_pending AS "isPendingByMe",
+                v.has_pending_request_from_user AS "hasPendingRequestFromUser",
                 
                 COALESCE(follow_stats.follower_count, 0) AS "followersCount",
                 COALESCE(follow_stats.following_count, 0) AS "followingCount",
