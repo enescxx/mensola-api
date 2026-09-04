@@ -1,4 +1,4 @@
-import { MESSAGES } from "@/constants/messages";
+import { MESSAGES, translateMessage } from "@/constants/messages";
 import { Request, Response, NextFunction } from "express";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 
@@ -10,6 +10,8 @@ import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
  * and formats the error payload consistently using the standard ApiError structure.
  */
 export const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+    const lang = res.locals?.language || (req.headers["accept-language"]?.toString().toLowerCase().startsWith("en") ? "en" : "tr");
+
     // Default to custom statusCode/message or fallback to 500 Internal Server Error
     let statusCode = err.statusCode || 500;
     let message = err.message || "Internal Server Error";
@@ -18,7 +20,7 @@ export const globalErrorHandler = (err: any, req: Request, res: Response, next: 
         return res.status(403).json({
             success: false,
             error: {
-                message: MESSAGES.ERRORS.INVALID_TOKEN,
+                message: translateMessage(MESSAGES.ERRORS.INVALID_TOKEN, lang),
             },
         });
     }
@@ -33,7 +35,7 @@ export const globalErrorHandler = (err: any, req: Request, res: Response, next: 
         success: false,
         error: {
             code: err.code || statusCode,
-            message,
+            message: translateMessage(message, lang),
         },
     });
 };

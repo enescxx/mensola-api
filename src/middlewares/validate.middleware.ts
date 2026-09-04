@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z, ZodIssue, ZodSchema } from "zod";
-import { MESSAGES } from "@/constants/messages";
+import { MESSAGES, translateMessage } from "@/constants/messages";
 
 /**
  * Express Request Validation Middleware
@@ -20,15 +20,18 @@ export const validate = (schema: ZodSchema) => {
         });
 
         if (!result.success) {
+            const lang = res.locals?.language;
+
             // Map Zod issues into a clean, field-specific error array
             const errorDetails = result.error.issues.map((issue: ZodIssue) => ({
                 // Extracts the field name from path (e.g., ['body', 'email'] -> 'email')
                 field: issue.path.length > 1 ? String(issue.path[1]) : String(issue.path[0]) || "unknown",
-                message: issue.message,
+                message: translateMessage(issue.message, lang),
             }));
 
             // Use the first validation issue message as the primary error message
-            const firstErrorMessage = errorDetails[0]?.message || MESSAGES.ERRORS.VALIDATION_FAILED;
+            const firstErrorMessage =
+                errorDetails[0]?.message || translateMessage(MESSAGES.ERRORS.VALIDATION_FAILED, lang);
 
             res.status(400).json({
                 success: false,

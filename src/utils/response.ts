@@ -1,5 +1,6 @@
 import { Response } from "express";
 import { ApiResponse } from "@/types/api";
+import { translateMessage } from "@/constants/messages";
 
 /**
  * Standardized Success Response Helper
@@ -20,9 +21,12 @@ export const sendResponse = <T>(
     data: T,
     message?: string,
 ): Response<ApiResponse<T>> => {
+    const lang = res.locals?.language;
+    const localizedMessage = message ? translateMessage(message, lang) : undefined;
+
     return res.status(statusCode).json({
         success: true,
-        ...(message && { message }),
+        ...(localizedMessage && { message: localizedMessage }),
         data,
     });
 };
