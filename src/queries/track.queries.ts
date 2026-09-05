@@ -232,6 +232,9 @@ export const trackQueries = {
         /**
          * Fetches all user interactions containing a comment for a specific track.
          */
+        /**
+         * $1 = targetId (track), $2 = limit, $3 = offset, $4 = currentUserId (nullable)
+         */
         getInteractions: `
             SELECT
                 i.id,
@@ -248,8 +251,13 @@ export const trackQueries = {
                     'content', c.content,
                     'date', c."createdAt"
                 ) AS "comment",
-                (SELECT COUNT(*)::int FROM "Interaction" sub_i WHERE sub_i."targetId" = i.id AND sub_i."targetType" = 'interaction' AND sub_i."isLiked" = true) AS "likeCount",
-                (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."parentId" = c.id) AS "replyCount"
+                (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likeCount",
+                (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."parentId" = c.id) AS "replyCount",
+                CASE
+                    WHEN $4::uuid IS NOT NULL
+                    THEN EXISTS (SELECT 1 FROM "CommentLike" cl WHERE cl."commentId" = c.id AND cl."userId" = $4::uuid)
+                    ELSE false
+                END AS "isLikedByMe"
             FROM "Comment" c
             JOIN "Interaction" i ON c."interactionId" = i.id
             JOIN "User" u ON u.id = i."userId"

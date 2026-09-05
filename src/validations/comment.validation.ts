@@ -28,3 +28,15 @@ export const getCommentThreadSchema = z.object({
         limit: limitQueryRule,
     }),
 });
+
+/**
+ * Validation schema for POST /comments/:commentId/like
+ *
+ * Only validates the commentId path parameter.
+ * Body is intentionally empty – toggle semantics require no payload.
+ */
+export const commentIdParamSchema = z.object({
+    params: z.object({
+        commentId: commentIdRule,
+    }),
+});

@@ -64,6 +64,8 @@ export type GetCommentThreadDto = {
     commentId: CommentId;
     page: number;
     limit: number;
+    /** Authenticated user's ID – used to compute isLikedByMe per comment */
+    currentUserId?: UserId | null;
 };
 
 /** A single flattened comment item returned in a thread */
@@ -74,6 +76,8 @@ export type CommentThreadItem = {
     content: string;
     createdAt: Date | string;
     user: Pick<UserSummary, "id" | "username" | "avatar">;
+    likeCount: number;
+    isLikedByMe: boolean;
 };
 
 /** Pagination metadata included in the thread response */
@@ -89,4 +93,17 @@ export type CommentThreadResponse = {
     interactionId: InteractionId;
     comments: CommentThreadItem[];
     pagination: CommentThreadPagination;
+};
+
+/** DTO for the toggle-like operation */
+export type ToggleCommentLikeDto = {
+    commentId: CommentId;
+    userId: UserId;
+};
+
+/** Response returned after a toggle like/unlike */
+export type ToggleCommentLikeResponse = {
+    commentId: CommentId;
+    isLikedByMe: boolean;
+    likeCount: number;
 };
