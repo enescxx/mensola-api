@@ -11,6 +11,7 @@ import storageRoutes from "./storage.routes";
 import betaRoutes from "./beta.routes";
 import homeRoutes from "./home.routes";
 import notificationRoutes from "./notification.routes";
+import commentRoutes from "./comment.routes";
 
 import { Router } from "express";
 
@@ -30,5 +31,6 @@ v1Router.use("/storage", storageRoutes);
 v1Router.use("/beta", betaRoutes);
 v1Router.use("/home", homeRoutes);
 v1Router.use("/notifications", notificationRoutes);
+v1Router.use("/comments", commentRoutes);
 
 export default v1Router;
