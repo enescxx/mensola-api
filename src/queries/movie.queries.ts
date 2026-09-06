@@ -249,8 +249,9 @@ export const movieQueries = {
                         'content', c.content,
                         'date', c."createdAt"
                     ) AS "comment",
+                    (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likesCount",
                     (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likeCount",
-                    (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."parentId" = c.id) AS "replyCount",
+                    (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."interactionId" = i.id AND sub_c."parentId" IS NOT NULL) AS "replyCount",
                     CASE
                         WHEN $4::uuid IS NOT NULL
                         THEN EXISTS (SELECT 1 FROM "CommentLike" cl WHERE cl."commentId" = c.id AND cl."userId" = $4::uuid)
@@ -419,6 +420,10 @@ export const movieQueries = {
                         ),
                         'rating', int_data."rating",
                         'isLiked', COALESCE(int_data."isLiked", false),
+                        'likesCount', int_data."likesCount",
+                        'likeCount', int_data."likesCount",
+                        'replyCount', int_data."replyCount",
+                        'isLikedByMe', int_data."isLikedByMe",
                         'comment', json_build_object(
                             'id', int_data.cid,
                             'content', int_data.content,
@@ -437,7 +442,14 @@ export const movieQueries = {
                         u.id AS uid, 
                         u.username, 
                         u.fullname, 
-                        u.avatar
+                        u.avatar,
+                        (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likesCount",
+                        (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."interactionId" = m_int.id AND sub_c."parentId" IS NOT NULL) AS "replyCount",
+                        CASE
+                            WHEN $2::uuid IS NOT NULL
+                            THEN EXISTS (SELECT 1 FROM "CommentLike" cl WHERE cl."commentId" = c.id AND cl."userId" = $2::uuid)
+                            ELSE false
+                        END AS "isLikedByMe"
                     FROM "Interaction" m_int
                     JOIN "Comment" c ON c."interactionId" = m_int.id AND c."parentId" IS NULL
                     LEFT JOIN "User" u ON u.id = m_int."userId"
