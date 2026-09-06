@@ -3,7 +3,7 @@ import { albumQueries } from "@/queries/album.queries";
 import { artistQueries } from "@/queries/artist.queries";
 import { trackQueries } from "@/queries/track.queries";
 import { spotifyService } from "@/services/spotify.service";
-import { SpotifyId, UserId } from "@/types/common.types";
+import { AlbumId, SpotifyId, UserId } from "@/types/common.types";
 import {
     GetLikedAlbumsDto,
     GetLikedAlbumsResponse,
@@ -132,7 +132,25 @@ export const getAlbumInteractions = async (dto: GetAlbumInteractionsDto) => {
     const { albumId, currentUserId, page, limit } = dto;
     const offset = (page - 1) * limit;
 
-    const result = await pool.query(albumQueries.interaction.get, [albumId, limit, offset, currentUserId || null]);
+    let targetAlbumId = albumId;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(albumId);
+    if (!isUuid) {
+        const albumRow = await pool.query<{ id: string }>('SELECT id FROM "Album" WHERE "spotifyId" = $1 LIMIT 1', [
+            albumId,
+        ]);
+        if (albumRow.rows.length > 0) {
+            targetAlbumId = albumRow.rows[0].id as AlbumId;
+        } else {
+            return [];
+        }
+    }
+
+    const result = await pool.query(albumQueries.interaction.get, [
+        targetAlbumId,
+        limit,
+        offset,
+        currentUserId || null,
+    ]);
 
     return result.rows;
 };

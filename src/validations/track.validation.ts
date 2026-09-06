@@ -6,6 +6,7 @@ import {
     trackIdRule,
     userIdRule,
 } from "./common.validation";
+import { MESSAGES } from "../constants/messages/tr";
 
 export const trackPaginationQuerySchema = z.object({
     query: z.object({ userId: userIdRule, page: pageQueryRule, limit: limitQueryRule }),
@@ -13,6 +14,12 @@ export const trackPaginationQuerySchema = z.object({
 
 export const trackParamSchema = z.object({
     params: z.object({ trackId: trackIdRule }),
+});
+
+export const trackInteractionsParamSchema = z.object({
+    params: z.object({
+        trackId: z.string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.TRACK_ID) }).trim().min(1),
+    }),
 });
 
 export const addFavoriteTrackSchema = z.object({

@@ -166,7 +166,18 @@ export const getTrackInteractions = async (dto: GetTrackInteractionsDto) => {
     const { trackId, currentUserId, page, limit } = dto;
     const offset = (page - 1) * limit;
 
-    const result = await pool.query(trackQueries.items.getInteractions, [trackId, limit, offset, currentUserId || null]);
+    let targetTrackId = trackId;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trackId);
+    if (!isUuid) {
+        const trackRow = await pool.query<{ id: string }>('SELECT id FROM "Track" WHERE "spotifyId" = $1 LIMIT 1', [trackId]);
+        if (trackRow.rows.length > 0) {
+            targetTrackId = trackRow.rows[0].id as TrackId;
+        } else {
+            return [];
+        }
+    }
+
+    const result = await pool.query(trackQueries.items.getInteractions, [targetTrackId, limit, offset, currentUserId || null]);
 
     return result.rows;
 };

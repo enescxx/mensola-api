@@ -17,6 +17,7 @@ import { validate } from "@/middlewares/validate.middleware";
 import {
     albumPaginationQuerySchema,
     albumIdParamSchema,
+    albumInteractionsParamSchema,
     createAlbumInteractionSchema,
 } from "@/validations/album.validation";
 import { requiredUserId } from "@/middlewares/requiredId.middleware";
@@ -26,7 +27,7 @@ const router = Router();
 router.get("/by-spotify/:spotifyId", extractUser, getOrFetchSpotifyAlbum);
 router.get("/likes", extractUser, validate(albumPaginationQuerySchema), requiredUserId, getLikedAlbumsList);
 router.get("/:albumId/tracks", extractUser, validate(albumIdParamSchema), getAlbumTracksList);
-router.get("/:albumId/interactions", extractUser, validate(albumIdParamSchema), getAlbumInteractionsList);
+router.get("/:albumId/interactions", extractUser, validate(albumInteractionsParamSchema), getAlbumInteractionsList);
 router.post("/:albumId/interactions", verifyToken, validate(createAlbumInteractionSchema), createAlbumInteraction);
 router.post("/:albumId/like", verifyToken, validate(albumIdParamSchema), likeAlbum);
 router.delete("/:albumId/like", verifyToken, validate(albumIdParamSchema), unlikeAlbum);

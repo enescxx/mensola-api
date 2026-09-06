@@ -37,6 +37,12 @@ export const movieIdParamSchema = z.object({
     params: z.object({ movieId: movieIdRule }),
 });
 
+export const movieInteractionsParamSchema = z.object({
+    params: z.object({
+        movieId: z.string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.MOVIE_ID) }).trim().min(1),
+    }),
+});
+
 export const addFavoriteMovieSchema = z.object({
     body: z.object({
         movieId: movieIdRule.optional(),

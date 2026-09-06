@@ -19,6 +19,7 @@ import { validate } from "@/middlewares/validate.middleware";
 import {
     trackPaginationQuerySchema,
     trackParamSchema,
+    trackInteractionsParamSchema,
     createTrackInteractionSchema,
     spotifyIdParamSchema,
     addFavoriteTrackSchema,
@@ -32,7 +33,7 @@ router.get("/likes", extractUser, validate(trackPaginationQuerySchema), required
 router.get("/favorites", extractUser, validate(trackPaginationQuerySchema), requiredUserId, getFavoriteTracksList);
 router.post("/favorites", verifyToken, validate(addFavoriteTrackSchema), addTrackToFavoritesHandler);
 router.delete("/:trackId/favorites", verifyToken, validate(trackParamSchema), removeTrackFromFavoritesHandler);
-router.get("/:trackId/interactions", extractUser, validate(trackParamSchema), getTrackInteractionsList);
+router.get("/:trackId/interactions", extractUser, validate(trackInteractionsParamSchema), getTrackInteractionsList);
 router.post("/:trackId/interactions", verifyToken, validate(createTrackInteractionSchema), createTrackInteraction);
 router.post("/:trackId/interaction", verifyToken, validate(createTrackInteractionSchema), createTrackInteraction);
 router.post("/:trackId/like", verifyToken, validate(trackParamSchema), likeTrackHandler);

@@ -15,6 +15,12 @@ export const albumIdParamSchema = z.object({
     params: z.object({ albumId: albumIdRule }),
 });
 
+export const albumInteractionsParamSchema = z.object({
+    params: z.object({
+        albumId: z.string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.ALBUM_ID) }).trim().min(1),
+    }),
+});
+
 export const createAlbumInteractionSchema = z.object({
     params: z.object({ albumId: albumIdRule }),
     body: createOrUpdateInteractionBody,

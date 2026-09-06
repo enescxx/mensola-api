@@ -42,6 +42,7 @@ import {
     moviePaginationQuerySchema,
     createMovieListSchema,
     movieIdParamSchema,
+    movieInteractionsParamSchema,
     updateMovieListSchema,
     listIdParamSchema,
     listAndMovieParamsSchema,
@@ -111,7 +112,7 @@ router.post("/:movieId/like", verifyToken, validate(movieIdParamSchema), likeMov
 router.delete("/:movieId/like", verifyToken, validate(movieIdParamSchema), unlikeMovie);
 
 // Full Interaction Status (Rating, Comment, Like)
-router.get("/:movieId/interactions", extractUser, validate(movieIdParamSchema), getMovieInteractionsList);
+router.get("/:movieId/interactions", extractUser, validate(movieInteractionsParamSchema), getMovieInteractionsList);
 router.post("/:movieId/interactions", verifyToken, validate(createMovieInteractionSchema), createMovieInteraction);
 router.post("/:movieId/interaction", verifyToken, validate(createMovieInteractionSchema), createMovieInteraction);
 

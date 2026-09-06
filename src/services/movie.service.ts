@@ -436,11 +436,27 @@ export const getListInteractions = async (dto: GetListItemsDto & { currentUserId
 /**
  * Retrieves all interactions/comments for a specific movie.
  */
-export const getMovieInteractions = async (dto: { movieId: MovieId; currentUserId?: string; limit: number; page: number }) => {
+export const getMovieInteractions = async (dto: { movieId: string; currentUserId?: string; limit: number; page: number }) => {
     const { movieId, currentUserId, limit, page } = dto;
     const offset = (page - 1) * limit;
 
-    const result = await pool.query(movieQueries.movies.getInteractions, [movieId, limit, offset, currentUserId || null]);
+    let targetMovieId = movieId;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(movieId);
+    if (!isUuid) {
+        const tmdbIdNum = parseInt(movieId, 10);
+        if (!isNaN(tmdbIdNum)) {
+            const movieRow = await pool.query<{ id: string }>('SELECT id FROM "Movie" WHERE "tmdbId" = $1 LIMIT 1', [tmdbIdNum]);
+            if (movieRow.rows.length > 0) {
+                targetMovieId = movieRow.rows[0].id;
+            } else {
+                return [];
+            }
+        } else {
+            return [];
+        }
+    }
+
+    const result = await pool.query(movieQueries.movies.getInteractions, [targetMovieId, limit, offset, currentUserId || null]);
 
     return result.rows;
 };
