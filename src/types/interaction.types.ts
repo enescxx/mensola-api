@@ -53,6 +53,10 @@ export type CurrentUserInteraction =
 export type InteractionItemResponse = Pick<IInteraction, "id" | "rating" | "isLiked"> & {
     user: UserSummary;
     comment: InteractionCommentItem;
+    likesCount?: number;
+    likeCount?: number;
+    replyCount?: number;
+    isLikedByMe?: boolean;
 };
 
 // ==========================================
@@ -64,7 +68,7 @@ export type GetCommentThreadDto = {
     commentId: CommentId;
     page: number;
     limit: number;
-    /** Authenticated user's ID – used to compute isLikedByMe per comment */
+    /** Authenticated user's ID – used to compute isLiked per comment */
     currentUserId?: UserId | null;
 };
 
@@ -77,7 +81,7 @@ export type CommentThreadItem = {
     createdAt: Date | string;
     user: Pick<UserSummary, "id" | "username" | "avatar">;
     likeCount: number;
-    isLikedByMe: boolean;
+    isLiked: boolean;
 };
 
 /** Pagination metadata included in the thread response */
@@ -104,6 +108,18 @@ export type ToggleCommentLikeDto = {
 /** Response returned after a toggle like/unlike */
 export type ToggleCommentLikeResponse = {
     commentId: CommentId;
-    isLikedByMe: boolean;
+    isLiked: boolean;
     likeCount: number;
 };
+
+// ==========================================
+// Comment Reply DTOs
+// ==========================================
+
+/** DTO for adding a reply to an existing comment */
+export type CreateReplyDto = {
+    commentId: CommentId;
+    userId: UserId;
+    content: string;
+};
+

@@ -14,7 +14,7 @@ export const commentQueries = {
      * Fetches all comments belonging to a given interactionId.
      *
      * - Joins the User table to include id, username, and avatar for each comment.
-     * - Joins CommentLike to compute likeCount and isLikedByMe per comment.
+     * - Joins CommentLike to compute likeCount and isLiked per comment.
      * - Returns comments in chronological order (createdAt ASC) to represent a conversation flow.
      * - Supports offset-based pagination via LIMIT and OFFSET.
      * - Each row includes parentId so the client can reconstruct the thread hierarchy if needed.
@@ -45,7 +45,7 @@ export const commentQueries = {
                     WHERE cl."commentId" = c.id AND cl."userId" = $4::uuid
                 )
                 ELSE false
-            END                         AS "isLikedByMe"
+            END                         AS "isLiked"
         FROM "Comment" c
         JOIN "User" u ON u.id = c."userId"
         WHERE c."interactionId" = $1::uuid
@@ -72,7 +72,7 @@ export const commentQueries = {
      * Returns the existing row or nothing.
      */
     findCommentLike: `
-        SELECT id FROM "CommentLike"
+        SELECT 1 FROM "CommentLike"
         WHERE "userId" = $1::uuid AND "commentId" = $2::uuid
         LIMIT 1
     `,
@@ -85,7 +85,6 @@ export const commentQueries = {
         INSERT INTO "CommentLike" ("userId", "commentId")
         VALUES ($1::uuid, $2::uuid)
         ON CONFLICT ("userId", "commentId") DO NOTHING
-        RETURNING id
     `,
 
     /**
@@ -115,4 +114,53 @@ export const commentQueries = {
         WHERE id = $1::uuid
         LIMIT 1
     `,
+
+    /* ==========================================================================
+       Comment Reply Queries
+       ========================================================================== */
+
+    /**
+     * Finds the target parent comment and its interactionId.
+     * Used to verify that the target comment exists and retrieve its interaction context.
+     */
+    findCommentWithInteraction: `
+        SELECT id, "interactionId"
+        FROM "Comment"
+        WHERE id = $1::uuid
+        LIMIT 1
+    `,
+
+    /**
+     * Inserts a new reply comment and returns it formatted as a CommentThreadItem,
+     * including joined User details (id, username, avatar) and initial likeCount / isLiked.
+     *
+     * Parameters:
+     *   $1 = userId (uuid)
+     *   $2 = interactionId (uuid)
+     *   $3 = parentId (uuid - the target commentId being replied to)
+     *   $4 = content (text)
+     */
+    createReply: `
+        WITH inserted_comment AS (
+            INSERT INTO "Comment" ("userId", "interactionId", "parentId", "content")
+            VALUES ($1::uuid, $2::uuid, $3::uuid, $4)
+            RETURNING id, "userId", "interactionId", "parentId", "content", "createdAt"
+        )
+        SELECT
+            ic.id                        AS "id",
+            ic."interactionId"           AS "interactionId",
+            ic."parentId"                AS "parentId",
+            ic.content                   AS "content",
+            ic."createdAt"               AS "createdAt",
+            json_build_object(
+                'id',       u.id,
+                'username', u.username,
+                'avatar',   u.avatar
+            )                           AS "user",
+            0                           AS "likeCount",
+            false                       AS "isLiked"
+        FROM inserted_comment ic
+        JOIN "User" u ON u.id = ic."userId"
+    `,
 };
+

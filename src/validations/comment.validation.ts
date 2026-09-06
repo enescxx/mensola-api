@@ -40,3 +40,23 @@ export const commentIdParamSchema = z.object({
         commentId: commentIdRule,
     }),
 });
+
+/**
+ * Validation schema for POST /comments/:commentId/replies
+ *
+ * Validates:
+ *  - params.commentId → required UUID
+ *  - body.content     → non-empty trimmed string, min 1, max 2000 chars
+ */
+export const createReplySchema = z.object({
+    params: z.object({
+        commentId: commentIdRule,
+    }),
+    body: z.object({
+        content: z
+            .string({ message: MESSAGES.ERRORS.FIELD_REQUIRED(MESSAGES.FIELDS.COMMENT) })
+            .trim()
+            .min(1, "Yanıt metni boş bırakılamaz.")
+            .max(2000, MESSAGES.ERRORS.MAX_LENGTH(MESSAGES.FIELDS.COMMENT, 2000)),
+    }),
+});
