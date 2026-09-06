@@ -110,7 +110,6 @@ export const albumQueries = {
                     'rating', int_data."rating",
                     'isLiked', COALESCE(int_data."isLiked", false),
                     'likesCount', int_data."likesCount",
-                    'likeCount', int_data."likesCount",
                     'replyCount', int_data."replyCount",
                     'isLikedByMe', int_data."isLikedByMe",
                     'comment', json_build_object(
@@ -234,7 +233,6 @@ export const albumQueries = {
                     'date', c."createdAt"
                 ) AS "comment",
                 (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likesCount",
-                (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likeCount",
                 (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."interactionId" = i.id AND sub_c."parentId" IS NOT NULL) AS "replyCount",
                 CASE
                     WHEN $4::uuid IS NOT NULL

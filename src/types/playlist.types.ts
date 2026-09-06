@@ -11,7 +11,7 @@ export type GetUserPlaylistsDto = PaginationQueries & { userId: UserId; currentU
 export type GetLikedPlaylistsDto = PaginationQueries & { userId: UserId; currentUserId?: UserId };
 export type GetPlaylistItemsDto = PaginationQueries & { playlistId: PlaylistId; currentUserId?: UserId };
 export type GetPlaylistDetailsDto = { playlistId: PlaylistId; currentUserId?: UserId };
-export type GetPlaylistInteractionsDto = PaginationQueries & { playlistId: PlaylistId };
+export type GetPlaylistInteractionsDto = PaginationQueries & { playlistId: PlaylistId; currentUserId?: string };
 export type UpsertPlaylistInteractionDto = {
     userId: UserId;
     playlistId: PlaylistId;

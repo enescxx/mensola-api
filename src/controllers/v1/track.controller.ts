@@ -121,17 +121,18 @@ export const getTrackInteractionsList = async (
     next: NextFunction,
 ) => {
     try {
+        const currentUserId = req.user?.id;
         const trackId = req.params.trackId;
         const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 10;
+        const limit = Number(req.query.limit) || 18;
 
-        const interactions = await getTrackInteractions({ trackId, page, limit });
+        const interactions = await getTrackInteractions({ trackId, currentUserId, page, limit });
 
         return sendResponse(res, 200, {
             items: interactions,
             page,
             limit,
-            totalItems: interactions.length, // Or from a separate count query if we implement it later
+            hasMore: interactions.length === limit,
         });
     } catch (error) {
         next(error);

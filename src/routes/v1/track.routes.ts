@@ -32,10 +32,11 @@ router.get("/likes", extractUser, validate(trackPaginationQuerySchema), required
 router.get("/favorites", extractUser, validate(trackPaginationQuerySchema), requiredUserId, getFavoriteTracksList);
 router.post("/favorites", verifyToken, validate(addFavoriteTrackSchema), addTrackToFavoritesHandler);
 router.delete("/:trackId/favorites", verifyToken, validate(trackParamSchema), removeTrackFromFavoritesHandler);
-router.get("/:trackId", extractUser, validate(trackParamSchema), getTrackDetails);
 router.get("/:trackId/interactions", extractUser, validate(trackParamSchema), getTrackInteractionsList);
 router.post("/:trackId/interactions", verifyToken, validate(createTrackInteractionSchema), createTrackInteraction);
+router.post("/:trackId/interaction", verifyToken, validate(createTrackInteractionSchema), createTrackInteraction);
 router.post("/:trackId/like", verifyToken, validate(trackParamSchema), likeTrackHandler);
 router.delete("/:trackId/like", verifyToken, validate(trackParamSchema), unlikeTrackHandler);
+router.get("/:trackId", extractUser, validate(trackParamSchema), getTrackDetails);
 
 export default router;

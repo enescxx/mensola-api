@@ -250,7 +250,6 @@ export const movieQueries = {
                         'date', c."createdAt"
                     ) AS "comment",
                     (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likesCount",
-                    (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likeCount",
                     (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."interactionId" = i.id AND sub_c."parentId" IS NOT NULL) AS "replyCount",
                     CASE
                         WHEN $4::uuid IS NOT NULL
@@ -421,7 +420,6 @@ export const movieQueries = {
                         'rating', int_data."rating",
                         'isLiked', COALESCE(int_data."isLiked", false),
                         'likesCount', int_data."likesCount",
-                        'likeCount', int_data."likesCount",
                         'replyCount', int_data."replyCount",
                         'isLikedByMe', int_data."isLikedByMe",
                         'comment', json_build_object(
@@ -761,5 +759,40 @@ export const movieQueries = {
                   AND "isLiked" = false
                   AND NOT EXISTS (SELECT 1 FROM "Comment" WHERE "interactionId" = $1);`,
         },
+
+        /**
+         * $1 = targetId (movie), $2 = limit, $3 = offset, $4 = currentUserId (nullable)
+         */
+        getInteractions: `
+            SELECT
+                i.id,
+                i."rating"::float,
+                COALESCE(i."isLiked", false) AS "isLiked",
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'fullname', u.fullname,
+                    'avatar', u.avatar
+                ) AS "user",
+                json_build_object(
+                    'id', c.id,
+                    'content', c.content,
+                    'date', c."createdAt"
+                ) AS "comment",
+                (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likesCount",
+                (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."interactionId" = i.id AND sub_c."parentId" IS NOT NULL) AS "replyCount",
+                CASE
+                    WHEN $4::uuid IS NOT NULL
+                    THEN EXISTS (SELECT 1 FROM "CommentLike" cl WHERE cl."commentId" = c.id AND cl."userId" = $4::uuid)
+                    ELSE false
+                END AS "isLikedByMe"
+            FROM "Comment" c
+            JOIN "Interaction" i ON c."interactionId" = i.id
+            JOIN "User" u ON u.id = i."userId"
+            WHERE i."targetId" = $1
+              AND i."targetType" = 'movie'
+              AND c."parentId" IS NULL
+            ORDER BY c."createdAt" DESC
+            LIMIT $2 OFFSET $3;`,
     },
 };

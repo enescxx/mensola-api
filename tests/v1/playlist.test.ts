@@ -404,7 +404,7 @@ describe("Playlist API", () => {
             expect(items[0].isLiked).toBe(true);
             expect(items[0].user.id).toBe(testUserA.id);
             expect(items[0].user.username).toBe(testUserA.username);
-            expect(items[0].likeCount).toBe(0);
+            expect(items[0].likesCount).toBe(0);
             expect(items[0].replyCount).toBe(0);
         });
 

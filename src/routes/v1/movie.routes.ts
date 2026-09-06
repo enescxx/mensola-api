@@ -29,6 +29,7 @@ import {
     likeMovie,
     unlikeMovie,
     createMovieInteraction,
+    getMovieInteractionsList,
     getOrFetchTmdbMovie,
 } from "@/controllers/v1/movie.controller";
 
@@ -76,6 +77,7 @@ router.delete("/lists/:listId/like", verifyToken, validate(listIdParamSchema), u
 // List Items & Interaction Operations
 router.get("/lists/:listId/items", extractUser, validate(listIdParamSchema), getMovieListItems);
 router.get("/lists/:listId/interactions", extractUser, validate(listIdParamSchema), getMovieListInteractions);
+router.post("/lists/:listId/interactions", verifyToken, validate(listIdParamSchema), createMovieListInteraction);
 router.post("/lists/:listId/interaction", verifyToken, validate(listIdParamSchema), createMovieListInteraction);
 router.post("/lists/:listId/items/:movieId", verifyToken, validate(listAndMovieParamsSchema), addMovieToList);
 router.delete("/lists/:listId/items/:movieId", verifyToken, validate(listAndMovieParamsSchema), removeMovieFromList);
@@ -109,6 +111,8 @@ router.post("/:movieId/like", verifyToken, validate(movieIdParamSchema), likeMov
 router.delete("/:movieId/like", verifyToken, validate(movieIdParamSchema), unlikeMovie);
 
 // Full Interaction Status (Rating, Comment, Like)
+router.get("/:movieId/interactions", extractUser, validate(movieIdParamSchema), getMovieInteractionsList);
+router.post("/:movieId/interactions", verifyToken, validate(createMovieInteractionSchema), createMovieInteraction);
 router.post("/:movieId/interaction", verifyToken, validate(createMovieInteractionSchema), createMovieInteraction);
 
 /* ==========================================================================

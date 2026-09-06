@@ -176,11 +176,12 @@ export const getAlbumInteractionsList = async (
     next: NextFunction,
 ) => {
     try {
+        const currentUserId = req.user?.id;
         const albumId = req.params.albumId;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
 
-        const interactions = await getAlbumInteractions({ albumId, limit, page });
+        const interactions = await getAlbumInteractions({ albumId, currentUserId, limit, page });
 
         return sendResponse(res, 200, { items: interactions, page, limit, hasMore: interactions.length === limit });
     } catch (error) {

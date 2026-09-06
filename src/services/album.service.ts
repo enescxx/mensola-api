@@ -129,10 +129,10 @@ export const unlikeAlbum = async (dto: UnlikeAlbumDto): Promise<UnlikeAlbumRespo
  * @returns A promise that resolves to a list of interactions with comments.
  */
 export const getAlbumInteractions = async (dto: GetAlbumInteractionsDto) => {
-    const { albumId, page, limit } = dto;
+    const { albumId, currentUserId, page, limit } = dto;
     const offset = (page - 1) * limit;
 
-    const result = await pool.query(albumQueries.interaction.get, [albumId, limit, offset]);
+    const result = await pool.query(albumQueries.interaction.get, [albumId, limit, offset, currentUserId || null]);
 
     return result.rows;
 };

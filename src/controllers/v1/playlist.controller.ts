@@ -196,11 +196,12 @@ export const getPlaylistInteractionsList = async (
     next: NextFunction,
 ) => {
     try {
+        const currentUserId = req.user?.id;
         const playlistId = req.params.playlistId;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
 
-        const interactions = await getPlaylistInteractions({ playlistId, limit, page });
+        const interactions = await getPlaylistInteractions({ playlistId, currentUserId, limit, page });
 
         return sendResponse(res, 200, { items: interactions, page, limit, hasMore: interactions.length === limit });
     } catch (error) {

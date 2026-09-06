@@ -163,10 +163,10 @@ export const unlikeTrack = async (trackId: string, userId: string) => {
  * @returns A promise that resolves to a list of interactions with comments.
  */
 export const getTrackInteractions = async (dto: GetTrackInteractionsDto) => {
-    const { trackId, page, limit } = dto;
+    const { trackId, currentUserId, page, limit } = dto;
     const offset = (page - 1) * limit;
 
-    const result = await pool.query(trackQueries.items.getInteractions, [trackId, limit, offset]);
+    const result = await pool.query(trackQueries.items.getInteractions, [trackId, limit, offset, currentUserId || null]);
 
     return result.rows;
 };

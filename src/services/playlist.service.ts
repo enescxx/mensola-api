@@ -164,10 +164,10 @@ export const getPlaylistDetails = async (dto: GetPlaylistDetailsDto): Promise<Ge
  * @returns A promise that resolves to a list of interactions with comments.
  */
 export const getPlaylistInteractions = async (dto: GetPlaylistInteractionsDto) => {
-    const { playlistId, page, limit } = dto;
+    const { playlistId, currentUserId, page, limit } = dto;
     const offset = (page - 1) * limit;
 
-    const result = await pool.query(playlistQueries.items.getInteractions, [playlistId, limit, offset]);
+    const result = await pool.query(playlistQueries.items.getInteractions, [playlistId, limit, offset, currentUserId || null]);
 
     return result.rows;
 };

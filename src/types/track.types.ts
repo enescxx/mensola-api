@@ -7,7 +7,7 @@ import { CurrentUserInteraction, InteractionItemResponse } from "@/types/interac
 // ==========================================
 
 export type GetLikedTracksDto = PaginationQueries & { userId?: UserId };
-export type GetTrackInteractionsDto = PaginationQueries & { trackId: TrackId };
+export type GetTrackInteractionsDto = PaginationQueries & { trackId: TrackId; currentUserId?: string };
 export type UpsertTrackInteractionDto = {
     userId: UserId;
     trackId: TrackId;

@@ -21,6 +21,7 @@ import {
     getListById,
     getListItems,
     getListInteractions,
+    getMovieInteractions,
     addItemToList,
     removeItemFromList,
     likeList,
@@ -532,11 +533,36 @@ const getMovieListInteractions = async (
     next: NextFunction,
 ) => {
     try {
+        const currentUserId = req.user?.id;
         const listId = req.params.listId;
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 18;
 
-        const interactions = await getListInteractions({ listId, limit, page });
+        const interactions = await getListInteractions({ listId, currentUserId, limit, page });
+        return sendResponse(res, 200, { items: interactions, page, limit, hasMore: interactions.length === limit });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Retrieves all interactions (comments, ratings, likes) for a specific movie.
+ *
+ * @route   GET /api/movies/:movieId/interactions
+ * @access  Public / Optional Auth
+ */
+const getMovieInteractionsList = async (
+    req: TypedRequest<{ movieId: MovieId }, {}, Partial<PaginationQueries>>,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const currentUserId = req.user?.id;
+        const movieId = req.params.movieId;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 18;
+
+        const interactions = await getMovieInteractions({ movieId, currentUserId, limit, page });
         return sendResponse(res, 200, { items: interactions, page, limit, hasMore: interactions.length === limit });
     } catch (error) {
         next(error);
@@ -779,5 +805,6 @@ export {
     likeMovie,
     unlikeMovie,
     createMovieInteraction,
+    getMovieInteractionsList,
     getOrFetchTmdbMovie,
 };

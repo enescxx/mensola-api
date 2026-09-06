@@ -11,7 +11,7 @@ export type GetAlbumDetailsDto = { albumId: AlbumId; currentUserId?: UserId };
 export type GetAlbumTracksDto = PaginationQueries & { albumId: AlbumId; currentUserId?: UserId };
 export type LikeAlbumDto = { userId: UserId; albumId: AlbumId };
 export type UnlikeAlbumDto = LikeAlbumDto;
-export type GetAlbumInteractionsDto = PaginationQueries & { albumId: AlbumId };
+export type GetAlbumInteractionsDto = PaginationQueries & { albumId: AlbumId; currentUserId?: string };
 
 export type UpsertAlbumInteractionDto = {
     userId: UserId;

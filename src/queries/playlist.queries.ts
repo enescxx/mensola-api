@@ -203,7 +203,6 @@ export const playlistQueries = {
                     'date', c."createdAt"
                 ) AS "comment",
                 (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likesCount",
-                (SELECT COUNT(*)::int FROM "CommentLike" cl WHERE cl."commentId" = c.id) AS "likeCount",
                 (SELECT COUNT(*)::int FROM "Comment" sub_c WHERE sub_c."interactionId" = i.id AND sub_c."parentId" IS NOT NULL) AS "replyCount",
                 CASE
                     WHEN $4::uuid IS NOT NULL

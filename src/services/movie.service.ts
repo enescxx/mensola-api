@@ -424,11 +424,23 @@ export const getListItems = async (dto: GetListItemsDto): Promise<GetListItemsRe
 /**
  * Retrieves all interactions/comments for a specific movie list.
  */
-export const getListInteractions = async (dto: GetListItemsDto) => {
-    const { listId, page, limit } = dto;
+export const getListInteractions = async (dto: GetListItemsDto & { currentUserId?: string }) => {
+    const { listId, currentUserId, page, limit } = dto;
     const offset = (page - 1) * limit;
 
-    const result = await pool.query(movieQueries.lists.items.getInteractions, [listId, limit, offset]);
+    const result = await pool.query(movieQueries.lists.items.getInteractions, [listId, limit, offset, currentUserId || null]);
+
+    return result.rows;
+};
+
+/**
+ * Retrieves all interactions/comments for a specific movie.
+ */
+export const getMovieInteractions = async (dto: { movieId: MovieId; currentUserId?: string; limit: number; page: number }) => {
+    const { movieId, currentUserId, limit, page } = dto;
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(movieQueries.movies.getInteractions, [movieId, limit, offset, currentUserId || null]);
 
     return result.rows;
 };

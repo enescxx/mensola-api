@@ -54,7 +54,6 @@ export type InteractionItemResponse = Pick<IInteraction, "id" | "rating" | "isLi
     user: UserSummary;
     comment: InteractionCommentItem;
     likesCount?: number;
-    likeCount?: number;
     replyCount?: number;
     isLikedByMe?: boolean;
 };
